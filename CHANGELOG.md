@@ -5,6 +5,14 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.1 — 2026-11-17
+
+### Novità
+- Variabile **`EMAIL_EHLO`** (nuova in `.env.template`, può restare vuota): nome con cui Tana si
+  presenta al server SMTP. Serve con il relay di Google Workspace (`smtp-relay.gmail.com`), che può
+  rifiutare il nome del container; es. `EMAIL_EHLO=srv2.agescicampania.net`. `aggiorna.sh` si
+  ferma finché la variabile non è in `.env`.
+
 ## v1.0.0 — 2026-11-17
 
 Prima release di produzione: prenotazioni e sito della Base Scout «Gianni Sabatino», al posto

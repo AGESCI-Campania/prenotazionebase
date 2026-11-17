@@ -226,13 +226,15 @@ AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 # variabili d'ambiente omonime restano e finiscono qui.
 MAILERS = {
     "default": {
-        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        # SMTP di Django con il nome EHLO configurabile (relay di Google Workspace)
+        "BACKEND": "tana.core.mail.EmailBackend",
         "OPTIONS": {
             "host": env.str("EMAIL_HOST", default="localhost"),
             "port": env.int("EMAIL_PORT", default=587),
             "username": env.str("EMAIL_HOST_USER", default=""),
             "password": env.str("EMAIL_HOST_PASSWORD", default=""),
             "use_tls": env.bool("EMAIL_USE_TLS", default=True),
+            "local_hostname": env.str("EMAIL_EHLO", default=""),
         },
     }
 }

@@ -161,7 +161,9 @@ Come funziona l'accesso:
 
 In `.env`: `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` (e, se diversi, host, porta, mittente),
 `ADMIN_EMAILS` per le notifiche degli errori (indirizzi separati da virgola); poi
-`docker compose up -d`. Le variabili `EMAIL_*` configurano il mailer `default` di Django
+`docker compose up -d`. Con il relay di Google Workspace (`EMAIL_HOST=smtp-relay.gmail.com`)
+impostare anche `EMAIL_EHLO` con il nome del server (es. `srv2.agescicampania.net`): senza, Tana si
+presenta con il nome del container e il relay può rifiutarlo. Le variabili `EMAIL_*` configurano il mailer `default` di Django
 (`MAILERS` in `config/settings/base.py`). Prova di invio:
 
 ```bash
