@@ -5,6 +5,8 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.3 — 2026-11-17
+
 ### Interfaccia
 - Menu della gestione con le icone e con le sezioni Prenotazioni, Configurazione e Report a
   fisarmonica: una sola aperta alla volta, aperta quella della pagina corrente. A sezione
