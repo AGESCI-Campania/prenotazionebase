@@ -5,6 +5,8 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.4 — 2026-11-17
+
 ### Novità
 - **Blocco delle prenotazioni** (Gestione › Configurazione, in cima): con l'interruttore attivo
   nessuno può inserire nuove prenotazioni, nemmeno la gestione, e al posto del modulo compare un
