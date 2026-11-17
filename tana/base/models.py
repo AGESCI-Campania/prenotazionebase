@@ -58,6 +58,16 @@ def _giorno_dell_anno(mese: int, giorno: int) -> datetime.date:
     return datetime.date(2000, mese, giorno)
 
 
+# Default come funzioni: con un orario fisso il controllo fields.W161 di Django scatta quando
+# coincide (±10 s) con l'ora in cui gira il controllo.
+def orario_arrivo_standard() -> datetime.time:
+    return datetime.time(15, 0)
+
+
+def orario_partenza_standard() -> datetime.time:
+    return datetime.time(12, 0)
+
+
 class Configurazione(models.Model):
     """Parametri generali modificabili dalla gestione (singleton, pk=1)."""
 
@@ -96,8 +106,8 @@ class Configurazione(models.Model):
         "senza risposta il consenso è negato.",
     )
     # Orari standard (D-04)
-    orario_arrivo = models.TimeField("orario di arrivo", default=datetime.time(15, 0))
-    orario_partenza = models.TimeField("orario di partenza", default=datetime.time(12, 0))
+    orario_arrivo = models.TimeField("orario di arrivo", default=orario_arrivo_standard)
+    orario_partenza = models.TimeField("orario di partenza", default=orario_partenza_standard)
     # Orizzonte massimo (D-25)
     orizzonte_massimo = models.DateField(
         "orizzonte massimo",
