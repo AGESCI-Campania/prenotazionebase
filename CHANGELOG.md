@@ -5,6 +5,8 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.5 — 2026-11-17
+
 ### Novità
 - **Strutture nell'editor del sito** (Gestione › Strutture, o la voce «Strutture» in `/cms/`):
   nome, uso, ordine, descrizione e una galleria di immagini facoltativa, al posto del Django admin.
