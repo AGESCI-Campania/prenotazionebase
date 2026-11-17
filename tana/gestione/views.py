@@ -97,14 +97,28 @@ def _contatori() -> dict[str, int]:
     }
 
 
+# Sezione del menu laterale aperta per la voce attiva (le altre restano chiuse)
+SEZIONI_MENU = {
+    "configurazione": {"blocchi", "listini", "configurazione", "aggiornamenti", "utenti"},
+    "report": {"statistiche", "export"},
+}
+
+
+def _sezione(voce: str) -> str:
+    return next((nome for nome, voci in SEZIONI_MENU.items() if voce in voci), "prenotazioni")
+
+
 def _render(
     request: HttpRequest, template: str, voce: str, contesto: dict[str, Any]
 ) -> HttpResponse:
     utente = request.user
+    contatori = _contatori()
     contesto.update(
         {
-            "contatori": _contatori(),
+            "contatori": contatori,
+            "contatori_totale": sum(contatori.values()),
             "voce_attiva": voce,
+            "sezione_attiva": _sezione(voce),
             "puo": {
                 "pattuglia": permessi.e_pattuglia(utente),
                 "amministrazione": permessi.e_amministrazione(utente),

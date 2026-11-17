@@ -3,7 +3,7 @@
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
-from agesci_theme.forms import SelettoreData
+from agesci_theme.forms import Combobox, InputConAdorno, SelettoreData
 from django import forms
 
 from tana.accounts.models import Ruolo
@@ -196,7 +196,41 @@ class BloccoForm(forms.Form):
     motivo = forms.CharField(label="Motivo", max_length=300)
 
 
+MESI = [
+    (numero, nome)
+    for numero, nome in enumerate(
+        (
+            "gennaio",
+            "febbraio",
+            "marzo",
+            "aprile",
+            "maggio",
+            "giugno",
+            "luglio",
+            "agosto",
+            "settembre",
+            "ottobre",
+            "novembre",
+            "dicembre",
+        ),
+        start=1,
+    )
+]
+
+
+def _numero(suffisso: str) -> InputConAdorno:
+    return InputConAdorno(suffisso=suffisso, input_type="number", attrs={"min": 0})
+
+
 class ConfigurazioneForm(forms.ModelForm):
+    # Campi della stagione invernale, mostrati affiancati nel template
+    STAGIONE_INVERNALE = (
+        "inverno_dal_giorno",
+        "inverno_dal_mese",
+        "inverno_al_giorno",
+        "inverno_al_mese",
+    )
+
     class Meta:
         model = Configurazione
         fields = (
@@ -217,10 +251,54 @@ class ConfigurazioneForm(forms.ModelForm):
             "causale_bonifico",
         )
         widgets = {
+            "inverno_dal_mese": Combobox(choices=MESI, placeholder="Scegli il mese"),
+            "inverno_al_mese": Combobox(choices=MESI, placeholder="Scegli il mese"),
+            "acconto_percentuale": _numero("%"),
+            "acconto_giorni": _numero("giorni"),
+            "soglia_esenzione_giorni": _numero("giorni"),
+            "consenso_giorni": _numero("giorni"),
+            "anni_conservazione": _numero("anni"),
             "orizzonte_massimo": SelettoreData(),
             "orario_arrivo": forms.TimeInput(attrs={"type": "time"}),
             "orario_partenza": forms.TimeInput(attrs={"type": "time"}),
         }
+        labels = {
+            "inverno_dal_giorno": "Dal giorno",
+            "inverno_dal_mese": "Dal mese",
+            "inverno_al_giorno": "Al giorno (incluso)",
+            "inverno_al_mese": "Al mese",
+            "soglia_esenzione_giorni": "Soglia di esenzione dall'acconto",
+        }
+        help_texts = {
+            "acconto_percentuale": "Quota del preventivo da versare come acconto con il "
+            "bonifico; all'approvazione si può sempre esentare o cambiare l'importo.",
+            "acconto_giorni": "Giorni dall'approvazione entro cui caricare la ricevuta del "
+            "bonifico; dopo la richiesta scade e le date si liberano.",
+            "soglia_esenzione_giorni": "I soggiorni fino a questo numero di giorni non "
+            "pagano l'acconto.",
+            "consenso_giorni": "Giorni che il gruppo già presente ha per acconsentire a "
+            "un'uscita in giornata o a una giornata genitori (al massimo fino alla vigilia); "
+            "senza risposta il consenso è negato.",
+            "orario_arrivo": "Orario standard di arrivo: arrivare prima va concordato con il "
+            "gruppo uscente.",
+            "orario_partenza": "Orario standard di partenza: partire dopo va concordato con il "
+            "gruppo entrante.",
+            "orizzonte_massimo": "Non si accettano richieste con data di arrivo successiva; "
+            "si sposta in avanti quando si pubblica il nuovo listino.",
+            "anni_conservazione": "Dopo questi anni dalla partenza i dati personali della "
+            "prenotazione si anonimizzano (restano date, presenze e importi).",
+            "iban": "Conto su cui versare l'acconto: compare nell'email di approvazione e nel "
+            "PDF di conferma.",
+            "intestatario_bonifico": "Intestatario del conto, mostrato insieme all'IBAN.",
+            "causale_bonifico": "{numero} e {gruppo} si sostituiscono con i dati della "
+            "prenotazione.",
+        }
+
+    def campi_stagione(self) -> list[forms.BoundField]:
+        return [self[nome] for nome in self.STAGIONE_INVERNALE]
+
+    def altri_campi(self) -> list[forms.BoundField]:
+        return [c for c in self.visible_fields() if c.name not in self.STAGIONE_INVERNALE]
 
 
 class VersioneForm(forms.Form):

@@ -251,11 +251,16 @@ def test_blocchi_e_configurazione(admin):
     blocco = BloccoTecnico.objects.get()
     c.post(reverse("gestione:blocchi"), {"elimina": blocco.pk})
     assert not BloccoTecnico.objects.exists()
-    form = c.get(reverse("gestione:configurazione")).context["form"]
+    risposta = c.get(reverse("gestione:configurazione"))
+    pagina = risposta.content.decode()
+    assert 'class="menu-item selected" type="button" role="option" data-bs-value="11"' in pagina
+    assert '<span class="form-adorn-text" aria-hidden="true">%</span>' in pagina
+    form = risposta.context["form"]
     dati = {k: v for k, v in form.initial.items() if v is not None}
-    dati.update(iban="IT60X0542811101000000123456", acconto_percentuale=40)
+    dati.update(iban="IT60X0542811101000000123456", acconto_percentuale=40, inverno_al_mese=4)
     c.post(reverse("gestione:configurazione"), dati)
     assert Configurazione.corrente().acconto_percentuale == 40
+    assert Configurazione.corrente().inverno_al_mese == 4
 
 
 def test_versioni_di_listino(admin, prenotazione):
@@ -352,3 +357,14 @@ def test_export(anno_svolto, admin):
     testo = risposta.content.decode("utf-8-sig")
     (intestazione, riga) = list(csv.reader(io.StringIO(testo), delimiter=";"))
     assert riga[0] == "02/05/2027" and riga[-1] == "672,00"
+
+
+def test_menu_a_sezioni(prenotazione, admin, pattuglia):
+    pagina = cliente_di(admin).get(reverse("gestione:statistiche")).content.decode()
+    assert pagina.count('name="tana-menu"') == 3
+    assert pagina.count('name="tana-menu" open') == 1
+    assert 'name="tana-menu" open>\n        <summary class="tana-sidebar__sezione">Report' in pagina
+    elenco = reverse("gestione:elenco") + "?elenco=da_approvare"
+    pagina = cliente_di(pattuglia).get(elenco).content.decode()
+    assert pagina.count('name="tana-menu"') == 2  # niente Configurazione per la Pattuglia
+    assert f'active" href="{elenco}"' in pagina

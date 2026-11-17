@@ -5,6 +5,17 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Interfaccia
+- Menu della gestione con le icone e con le sezioni Prenotazioni, Configurazione e Report a
+  fisarmonica: una sola aperta alla volta, aperta quella della pagina corrente. A sezione
+  Prenotazioni chiusa, accanto al titolo compare il totale degli elementi in attesa.
+- Pagina Configurazione: percentuale, giorni e anni con l'unità dentro il campo, mesi della stagione
+  invernale scelti per nome, i quattro campi della stagione su una riga (due su schermi stretti) e
+  una spiegazione sotto ogni etichetta.
+
+### Correzioni
+- La voce «Da approvare» del menu della gestione ora si evidenzia quando è la pagina corrente.
+
 ## v1.0.2 — 2026-11-17
 
 ### Correzioni

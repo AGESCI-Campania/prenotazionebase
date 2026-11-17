@@ -2,5 +2,20 @@
 {% block titolo_pagina %}Configurazione · {% endblock %}
 {% block content %}
 <h1>Configurazione</h1>
-<form method="post" class="card"><div class="card-body">{% csrf_token %}{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Salva</button></div></form>
+<form method="post" class="card"><div class="card-body">{% csrf_token %}
+  {{ form.non_field_errors }}
+  {# Stagione invernale: quattro campi su una riga da lg, due righe (giorno e mese affiancati) sotto #}
+  <fieldset>
+    <legend class="fs-md fw-semibold mb-1">Stagione invernale</legend>
+    <small class="form-text d-block mb-2">Periodo che si ripete ogni anno: le tariffe invernali si applicano giorno per giorno ai soggiorni che vi cadono.</small>
+    <div class="row gx-3">
+      {% for field in form.campi_stagione %}
+        <div class="col-6 lg:col-3">{% include "prenotazioni/_campo.html" %}</div>
+      {% endfor %}
+    </div>
+  </fieldset>
+  {% for field in form.altri_campi %}{% include "prenotazioni/_campo.html" with aiuto_sotto_etichetta=True %}{% endfor %}
+  {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+  <button class="btn-solid theme-primary" type="submit">Salva</button>
+</div></form>
 {% endblock %}
