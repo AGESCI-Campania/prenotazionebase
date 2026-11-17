@@ -3,9 +3,12 @@
 Guida per l'amministratore del server, pensata per chi **non conosce il progetto**. Va seguita
 dall'inizio alla fine alla prima installazione; i capitoli 13–14 servono anche dopo.
 
-> Stato: prima stesura (F0). Si completa man mano che le fasi aggiungono passi e si prova per
-> intero in F8 su un server pulito, finché funziona senza interventi fuori testo. Ogni modifica a
-> script, variabili, servizi o passi manuali aggiorna questa guida nello stesso commit.
+> Stato: provata il 17/11/2026 (F8) su una VM Ubuntu 26.04 pulita, con frontend simulato:
+> installazione (§ 3–5), aggiornamento da terminale e dal web, ritorno automatico e manuale a
+> una versione precedente, aggiornamento non riuscito con il database cambiato, backup e
+> ripristino, avvio al boot. Restano da provare sul server vero Caddy, DNS, Sestante ed email.
+> Ogni modifica a script, variabili, servizi o passi manuali aggiorna questa guida nello stesso
+> commit.
 
 Regole del server: [`INTEGRAZIONE.md` del frontend](https://raw.githubusercontent.com/AGESCI-Campania/agesci-campania-web-frontend/main/docs/INTEGRAZIONE.md)
 e [`INTEGRAZIONE-SSO.md` di Sestante](https://raw.githubusercontent.com/AGESCI-Campania/sestante/main/docs/INTEGRAZIONE-SSO.md).

@@ -5,6 +5,10 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Correzioni
+- Orari standard della configurazione come default callable: il controllo `fields.W161` di Django
+  falliva se `check --deploy` girava a ridosso delle 12:00 o delle 15:00 (migrazione senza SQL).
+
 ## v0.9.2 — 2026-11-17
 
 Terza release di prova (F8).

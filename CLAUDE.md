@@ -35,7 +35,7 @@ importi o versioni. Le modifiche alla specifica le approva Andrea.
 | F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | **fatto** |
 | F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | **fatto** (testi lunghi da Andrea) |
 | F7 | Import SuperSaaS | **fatto** (import reale in F8) |
-| F8 | Prova completa di installazione, aggiornamento, backup; messa in produzione | prossima |
+| F8 | Prova completa di installazione, aggiornamento, backup; messa in produzione | in corso (prova su VM fatta, v0.9.2) |
 
 Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 

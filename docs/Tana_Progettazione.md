@@ -902,6 +902,16 @@ installare Tana da zero **senza conoscere il progetto**. Contenuto minimo:
 La guida si prova per intero in F8 su un server pulito (o una VM Ubuntu 26.04) e si corregge
 finché non funziona senza interventi fuori testo.
 
+Prova del 17/11/2026 (F8) su VM Ubuntu 26.04 arm64 (Lima), frontend simulato (rete
+`agesci-proxy`, unit fittizia, Caddy di prova con `X-Forwarded-Proto: https`), release v0.9.0 →
+v0.9.1 → v0.9.2: installazione secondo la guida senza interventi fuori testo; aggiornamento dal web
+(P-20) e da terminale; ritorno automatico con una release rotta (database invariato); release rotta
+dopo una migrazione (resta in manutenzione, recupero con la procedura della guida); ritorno manuale a
+una release precedente; backup (anche dalla unit) e ripristino completo; avvio al boot. Correzioni
+emerse: pacchetto `tana.aggiornamenti` escluso dal `.gitignore`, `libharfbuzz-subset0`
+nell'immagine, pre-release di uv `explicit`, immagini precedenti e pagina di manutenzione di nginx
+nel caso «database cambiato», default orari callable (W161 in CI).
+
 **Messa in produzione** (guida del frontend § 4 + § 9.2): frontend già installato → DNS → clone e
 `scripts/installa.sh` → unit systemd → blocco Caddy → Sestante → email → configurazione iniziale e
 contenuti → import SuperSaaS → verifiche → spegnimento di SuperSaaS e del Google Site.
