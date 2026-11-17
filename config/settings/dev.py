@@ -5,7 +5,16 @@ from .base import env
 
 DEBUG = env.bool("DJANGO_DEBUG", default=True)
 ALLOWED_HOSTS = ["*"]
-EMAIL_BACKEND = env.str("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+# Email in console; con EMAIL_MAILPIT=true a Mailpit (docker-compose.dev.yml, UI su :8025)
+if env.bool("EMAIL_MAILPIT", default=False):
+    MAILERS = {
+        "default": {
+            "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+            "OPTIONS": {"host": "localhost", "port": 1025, "use_tls": False},
+        }
+    }
+else:
+    MAILERS = {"default": {"BACKEND": "django.core.mail.backends.console.EmailBackend"}}
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 STORAGES = {
     **STORAGES,  # noqa: F405

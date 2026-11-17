@@ -16,6 +16,14 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 - Ricevute in uno storage privato (`STORAGES["privato"]`, in `PRIVATE_MEDIA_ROOT`) senza URL.
 - `manage.py dati_iniziali` crea aree, strutture, categorie, listini 2022/2023 e configurazione.
 
+### Email sui `MAILERS` di Django 6.1
+- Le impostazioni `EMAIL_*` (deprecate) sono sostituite dal mailer `default`. Le variabili
+  `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` di `.env`
+  restano invariate; `ADMINS` è ora una lista di indirizzi (da `ADMIN_EMAILS`, invariata).
+- Sviluppo: email in console, oppure a Mailpit con `EMAIL_MAILPIT=true` in `.env.dev` (variabile
+  nuova, solo sviluppo).
+- I test falliscono su ogni `RemovedInDjango2028Warning`.
+
 ### F0 — impianto del progetto
 - Progetto Django 6.1 con uv, Python 3.14, PostgreSQL 18, Wagtail 8.1, tema regionale 3.0.0a3
   con la palette della base, django-allauth (email + SSO Sestante predisposto), django-axes.

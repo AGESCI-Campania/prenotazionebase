@@ -50,6 +50,11 @@ Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 - **django-allauth** (email con verifica obbligatoria, MFA, SSO Sestante via `openid_connect`),
   **django-axes**, **WhiteNoise**, **WeasyPrint** (PDF), **openpyxl** (Excel), **gunicorn**.
 - Niente Celery/Redis: le scadenze le esegue il servizio `scheduler` (`manage.py scheduler`).
+- Email con i **`MAILERS`** di Django 6.1 (alias `default`, configurato dalle variabili `EMAIL_*`
+  di `.env`): inviare con `msg.send()` / `send_mail(...)` o `using="<alias>"`; **mai** le
+  impostazioni `EMAIL_*`, `get_connection()`, `connection=` né `fail_silently=` (deprecati, con
+  `MAILERS` sono errori). `ADMINS` è una lista di indirizzi. Nei test ogni
+  `RemovedInDjango2028Warning` è un errore.
 
 ## Layout
 ```

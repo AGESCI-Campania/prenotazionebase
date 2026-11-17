@@ -197,16 +197,25 @@ AXES_COOLOFF_TIME = 1  # ore
 AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 
 # --- Email (D-29) -----------------------------------------------------------------------
-EMAIL_BACKEND = env.str("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = env.str("EMAIL_HOST", default="localhost")
-EMAIL_PORT = env.int("EMAIL_PORT", default=587)
-EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+# Mailer di Django 6.1: "default" lo usano allauth, Wagtail, mail_admins e chi non indica
+# `using`. Le impostazioni EMAIL_HOST & co. sono deprecate (con MAILERS sono un errore); le
+# variabili d'ambiente omonime restano e finiscono qui.
+MAILERS = {
+    "default": {
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": env.str("EMAIL_HOST", default="localhost"),
+            "port": env.int("EMAIL_PORT", default=587),
+            "username": env.str("EMAIL_HOST_USER", default=""),
+            "password": env.str("EMAIL_HOST_PASSWORD", default=""),
+            "use_tls": env.bool("EMAIL_USE_TLS", default=True),
+        },
+    }
+}
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="Tana <prenotazioni@agescicampania.net>")
 SERVER_EMAIL = env.str("SERVER_EMAIL", default="prenotazioni@agescicampania.net")
 EMAIL_REPLY_TO = env.str("EMAIL_REPLY_TO", default="baseaiellodelsabato@campania.agesci.it")
-ADMINS = [("Admin", e) for e in env.list("ADMIN_EMAILS", default=[])]
+ADMINS = env.list("ADMIN_EMAILS", default=[])  # indirizzi, non più coppie (nome, email)
 
 # --- Scheduler (P-07, P-11) -------------------------------------------------------------
 SCHEDULER_INTERVALLO = env.int("SCHEDULER_INTERVALLO", default=300)  # secondi

@@ -146,7 +146,9 @@ Callback registrata: `https://<TANA_HOST>/accounts/oidc/sestante/login/callback/
 ## 8. Email
 
 In `.env`: `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` (e, se diversi, host, porta, mittente),
-`ADMIN_EMAILS` per le notifiche degli errori; poi `docker compose up -d`. Prova di invio:
+`ADMIN_EMAILS` per le notifiche degli errori (indirizzi separati da virgola); poi
+`docker compose up -d`. Le variabili `EMAIL_*` configurano il mailer `default` di Django
+(`MAILERS` in `config/settings/base.py`). Prova di invio:
 
 ```bash
 docker compose exec web uv run python manage.py sendtestemail <indirizzo>
