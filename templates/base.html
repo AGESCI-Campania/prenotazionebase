@@ -1,17 +1,36 @@
 {% extends "agesci_theme/base.html" %}
-{% load static %}
+{% load static wagtailcore_tags %}
 {# Base di tutte le pagine di Tana (applicative e del sito Wagtail): tema regionale + palette della base (P-08) #}
 {% block title %}{% block titolo_pagina %}{% endblock %}{{ agesci_theme_nome }}{% endblock %}
 {% block extra_head %}
   <link href="{% static 'tana/css/tana.css' %}" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="{% static 'tana/img/logo/lupo-base-aiello.svg' %}">
+  <link rel="manifest" href="{% url 'manifest' %}">
+  <link rel="apple-touch-icon" href="{% static 'tana/img/pwa/apple-touch-icon.png' %}">
+  <meta name="theme-color" content="#076633">
+  <script type="module" src="{% static 'tana/js/pwa.js' %}"></script>
   {% block head_pagina %}{% endblock %}
 {% endblock %}
 
 {% block header_nav %}
-  <li class="nav-item"><a href="/" class="nav-link">La base</a></li>
+  <li class="nav-item">
+    <button class="nav-link" type="button" data-bs-toggle="menu" aria-expanded="false">La base</button>
+    <div class="menu">
+      <a class="menu-item" href="/">Home</a>
+      {% for voce in menu_sito %}{% if not voce.figlie %}<a class="menu-item" href="{% pageurl voce.pagina %}">{{ voce.pagina.title }}</a>{% endif %}{% endfor %}
+    </div>
+  </li>
   <li class="nav-item"><a href="{% url 'disponibilita' %}" class="nav-link{% if sezione == 'disponibilita' %} active{% endif %}">Disponibilità</a></li>
   <li class="nav-item"><a href="{% url 'listino' %}" class="nav-link{% if sezione == 'listino' %} active{% endif %}">Listino prezzi</a></li>
+  {% for voce in menu_sito %}{% if voce.figlie %}
+    <li class="nav-item">
+      <button class="nav-link" type="button" data-bs-toggle="menu" aria-expanded="false">{{ voce.pagina.title }}</button>
+      <div class="menu">
+        <a class="menu-item" href="{% pageurl voce.pagina %}">{{ voce.pagina.title }}</a>
+        {% for figlia in voce.figlie %}<a class="menu-item" href="{% pageurl figlia %}">{{ figlia.title }}</a>{% endfor %}
+      </div>
+    </li>
+  {% endif %}{% endfor %}
   {% if request.user.is_authenticated %}
     <li class="nav-item"><a href="{% url 'prenotazioni:elenco' %}" class="nav-link{% if sezione == 'prenotazioni' %} active{% endif %}">Le mie prenotazioni</a></li>
     {% if menu_gestione %}<li class="nav-item"><a href="{% url 'gestione:cruscotto' %}" class="nav-link{% if voce_attiva %} active{% endif %}">Gestione</a></li>{% endif %}
@@ -20,8 +39,13 @@
 
 {% block offcanvas_nav %}
   <li><a href="/" class="nav-link">La base</a></li>
+  {% for voce in menu_sito %}{% if not voce.figlie %}<li><a href="{% pageurl voce.pagina %}" class="nav-link ps-7">{{ voce.pagina.title }}</a></li>{% endif %}{% endfor %}
   <li><a href="{% url 'disponibilita' %}" class="nav-link">Disponibilità</a></li>
   <li><a href="{% url 'listino' %}" class="nav-link">Listino prezzi</a></li>
+  {% for voce in menu_sito %}{% if voce.figlie %}
+    <li><a href="{% pageurl voce.pagina %}" class="nav-link">{{ voce.pagina.title }}</a></li>
+    {% for figlia in voce.figlie %}<li><a href="{% pageurl figlia %}" class="nav-link ps-7">{{ figlia.title }}</a></li>{% endfor %}
+  {% endif %}{% endfor %}
   {% if request.user.is_authenticated %}
     <li><a href="{% url 'prenotazioni:elenco' %}" class="nav-link">Le mie prenotazioni</a></li>
     {% if menu_gestione %}<li><a href="{% url 'gestione:cruscotto' %}" class="nav-link">Gestione</a></li>{% endif %}
@@ -64,7 +88,12 @@
       <div class="col-6 md:col-3">
         <h5>Contatti</h5>
         <ul class="ag-footer__nav">
-          <li><a href="mailto:baseaiellodelsabato@campania.agesci.it">baseaiellodelsabato@campania.agesci.it</a></li>
+          {% with impostazioni=settings.sito.ImpostazioniSito %}
+          <li><a href="mailto:{{ impostazioni.email }}">{{ impostazioni.email }}</a></li>
+          {% if impostazioni.telefono %}<li>{{ impostazioni.telefono }}</li>{% endif %}
+          {% if impostazioni.facebook %}<li><a href="{{ impostazioni.facebook }}" rel="noopener">Facebook</a></li>{% endif %}
+          {% if impostazioni.instagram %}<li><a href="{{ impostazioni.instagram }}" rel="noopener">Instagram</a></li>{% endif %}
+          {% endwith %}
         </ul>
       </div>
       <div class="col-12 md:col-auto md:ms-auto text-center md:text-end small">

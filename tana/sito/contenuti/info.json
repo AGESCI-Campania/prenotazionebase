@@ -1,0 +1,65 @@
+[
+ {
+  "type": "citazione",
+  "value": {
+   "testo": "La Legge Scout è fatta in modo da rappresentare una guida per le azioni, non un sistema di sanzioni per gli errori. Essa si limita ad esporre il buon comportamento che ci si attende da uno Scout.",
+   "autore": "B.P."
+  }
+ },
+ {
+  "type": "titolo",
+  "value": "Informazioni utili"
+ },
+ {
+  "type": "titolo",
+  "value": "Dov'è la Base?"
+ },
+ {
+  "type": "paragrafo",
+  "value": "<p>La Base è nel Comune di Aiello del Sabato in provincia di Avellino, più precisamente  in Contrada Bosco Materdomini presso la località “Acqua o’ Lupo”, a pochi km dai principali svincoli autostradali di Avellino.</p>"
+ },
+ {
+  "type": "titolo",
+  "value": "Come può essere raggiunta?"
+ },
+ {
+  "type": "paragrafo",
+  "value": "<p>La Base è facilmente raggiungibile con pullman che potranno lasciare i gruppi all'ingresso; auto e furgoni, invece, possono entrare all'interno della Base sostando solo ed esclusivamente all'interno della piazza d'ingresso, permettendo così lo scarico dei materiali a pochi metri dal refettorio e dai dormitori.</p>"
+ },
+ {
+  "type": "titolo",
+  "value": "Punti di interesse e distanze"
+ },
+ {
+  "type": "paragrafo",
+  "value": "<p>Di seguito alcune distanze dai punti di interesse principali:</p>"
+ },
+ {
+  "type": "paragrafo",
+  "value": "<ul><li>Uscita autostradale Avellino Ovest - 12 km</li><li>Uscita autostradale Avellino Est - 11 km</li><li>Raccordo autostradale Avellino/Salerno - 6 km</li><li>Ospedale Moscati - 11 km</li><li>Farmacia, Chiesa e negozi alimentari - 1.5 km</li></ul>"
+ },
+ {
+  "type": "titolo",
+  "value": "Copertura Mobile"
+ },
+ {
+  "type": "paragrafo",
+  "value": "<p>La Base è ben coperta da tutti i gestori mobili, nessun problema nella gestione di chiamate e connessioni 4G.</p>"
+ },
+ {
+  "type": "titolo",
+  "value": "Informazioni"
+ },
+ {
+  "type": "paragrafo",
+  "value": "<p>Per informazioni e contatti scrivete alla mail istituzionale <a href=\"mailto:baseaiellodelsabato@campania.agesci.it\">baseaiellodelsabato@campania.agesci.it</a> oppure contattate la segreteria regionale allo 081 457721 in orario di segreteria, disponibile sul sito <a href=\"https://campania.agesci.it/\">https://campania.agesci.it/</a></p>"
+ },
+ {
+  "type": "titolo",
+  "value": "Listino prezzi"
+ },
+ {
+  "type": "paragrafo",
+  "value": "<p>Il listino prezzi completo può essere consultato a questa <a href=\"/listino/\">pagina</a>.</p>"
+ }
+]

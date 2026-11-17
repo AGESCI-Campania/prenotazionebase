@@ -11,3 +11,4 @@ STORAGES = {
     "privato": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
+AGGIORNAMENTI_CONTROLLO_RELEASE = False  # niente chiamate a GitHub nei test

@@ -187,7 +187,7 @@ togli_manutenzione() {
 }
 
 stato backup "Backup del database" 25
-mkdir -p backups
+mkdir -p backups aggiornamenti
 BACKUP="backups/tana-db-$(date +%Y%m%d-%H%M%S)-pre-${VERSIONE#v}.sql.gz"
 info "Backup del database in $BACKUP"
 # shellcheck disable=SC2016  # variabili espanse nel container db
@@ -225,6 +225,7 @@ if servizi_sani 600 "${SERVIZI_SALUTE[@]}"; then
 	# Unit systemd: idempotenti, senza sudo stampano il comando per l'amministratore
 	installa_servizio_systemd prenotazionebase "$UNIT_PROXY"
 	installa_backup_systemd
+	installa_aggiornamenti_systemd
 	info "Fatto: Tana è alla versione $VERSIONE. Backup del database: $BACKUP"
 	stato fine "Tana è alla versione $VERSIONE." 100 completato
 	exit 0

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>{% block titolo %}{% endblock %}</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 20mm; @bottom-center { content: "Base Scout «Gianni Sabatino» · Regione AGESCI Campania · pagina " counter(page) " di " counter(pages); font-family: "Open Sans", "DejaVu Sans", sans-serif; font-size: 8pt; color: #6b7a70; } }
+  body { font-family: "Open Sans", "DejaVu Sans", sans-serif; font-size: 10pt; color: #2b3a30; line-height: 1.4; }
+  header { display: flex; align-items: center; gap: 12pt; border-bottom: 2pt solid #076633; padding-bottom: 8pt; margin-bottom: 14pt; }
+  header img { width: 52pt; }
+  header .nome { font-size: 13pt; font-weight: bold; color: #076633; }
+  h1 { font-size: 16pt; color: #076633; margin: 0 0 4pt; }
+  h2 { font-size: 12pt; color: #076633; margin: 14pt 0 4pt; }
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0; }
+  th { text-align: left; font-size: 8pt; text-transform: uppercase; color: #6b7a70; border-bottom: 1pt solid #d9e2dc; padding: 4pt; }
+  td { padding: 4pt; border-bottom: 0.5pt solid #eef2ef; vertical-align: top; }
+  .destra { text-align: right; }
+  .totale td { font-weight: bold; border-top: 1.5pt solid #076633; border-bottom: none; }
+  .nota { font-size: 8.5pt; color: #6b7a70; }
+  .riquadro { border: 1pt solid #d9e2dc; border-radius: 4pt; padding: 8pt; margin: 8pt 0; }
+  dl { display: grid; grid-template-columns: 34% 66%; margin: 0; }
+  dt { color: #6b7a70; } dd { margin: 0 0 3pt; }
+</style>
+</head>
+<body>
+<header>
+  <img src="{{ logo }}" alt="">
+  <div><div class="nome">Base Scout «Gianni Sabatino»</div><div class="nota">Regione AGESCI Campania · Aiello del Sabato (AV)</div></div>
+</header>
+{% block contenuto %}{% endblock %}
+</body>
+</html>

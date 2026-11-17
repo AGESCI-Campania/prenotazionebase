@@ -1,0 +1,1 @@
+{% load wagtailimages_tags %}<div class="row g-5 my-7">{% for elemento in value %}<figure class="md:col-4 tana-figura">{% image elemento.immagine fill-600x400 alt=elemento.didascalia|default:"" %}{% if elemento.didascalia %}<figcaption class="small fg-2">{{ elemento.didascalia }}</figcaption>{% endif %}</figure>{% endfor %}</div>

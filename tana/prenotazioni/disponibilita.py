@@ -120,3 +120,24 @@ def verifica_date(arrivo: datetime.date, partenza: datetime.date, codici: list[s
         if partenza in per_area:
             esito.partenza_con_arrivo.append(area.nome)
     return esito
+
+
+def prossimi_giorni(
+    dal: datetime.date, giorni: int
+) -> list[tuple[Area, list[tuple[datetime.date, str]]]]:
+    """Estratto per la home (mockup 6): stato della notte di ogni giorno per area."""
+    al = dal + datetime.timedelta(days=giorni)
+    stati = notti(dal, al)
+    return [
+        (
+            area,
+            [
+                (
+                    dal + datetime.timedelta(days=i),
+                    stati.get(area.pk, {}).get(dal + datetime.timedelta(days=i), LIBERO),
+                )
+                for i in range(giorni)
+            ],
+        )
+        for area in Area.objects.all()
+    ]

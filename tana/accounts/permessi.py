@@ -44,3 +44,14 @@ def e_titolare(utente: Any, prenotazione: Any) -> bool:
         and prenotazione.richiedente_id is not None
         and prenotazione.richiedente_id == utente.pk
     )
+
+
+def vede_info_interne(utente: Any) -> bool:
+    """Info interne del sito (D-18, D-20): gruppi con una prenotazione confermata e gestione."""
+    if vede_tutte_le_prenotazioni(utente) or _ha(utente, frozenset({Ruolo.REDAZIONE})):
+        return True
+    if not getattr(utente, "is_authenticated", False) or not utente.is_active:
+        return False
+    from tana.prenotazioni.models import Prenotazione, Stato
+
+    return Prenotazione.objects.filter(richiedente=utente, stato=Stato.CONFERMATA).exists()

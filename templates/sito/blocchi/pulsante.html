@@ -1,0 +1,1 @@
+{% load wagtailcore_tags %}<p><a class="btn-solid theme-primary" href="{% if value.pagina %}{% pageurl value.pagina %}{% else %}{{ value.indirizzo }}{% endif %}">{{ value.etichetta }}</a></p>

@@ -1,0 +1,43 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}Aggiornamenti · {% endblock %}
+{% block head_pagina %}{% if in_corso %}<meta http-equiv="refresh" content="5">{% endif %}{% endblock %}
+{% block content %}
+<h1>Aggiornamenti</h1>
+<div class="row g-7">
+  <div class="lg:col-7">
+    <div class="card"><div class="card-body">
+      <p>Versione installata: <b>{{ installata }}</b></p>
+      {% if release.versione %}
+        <p>Ultima release: <b>{{ release.versione }}</b>{% if release.pubblicata_il %} del {{ release.pubblicata_il|date:"j F Y"|lower }}{% endif %}{% if release.url %} · <a href="{{ release.url }}" rel="noopener">note su GitHub</a>{% endif %}</p>
+        {% if release.note %}<details><summary>Novità</summary><pre class="small">{{ release.note }}</pre></details>{% endif %}
+      {% else %}
+        <p class="fg-2">Nessuna release trovata{% if release.errore %} ({{ release.errore }}){% endif %}.</p>
+      {% endif %}
+      <p class="small fg-2">Controllata {% if release.controllata_il %}il {{ release.controllata_il|date:"j F Y, H:i"|lower }}{% else %}mai{% endif %}.</p>
+      <form method="post" class="d-inline">{% csrf_token %}<button class="btn-outline theme-primary" name="azione" value="controlla">Controlla ora</button></form>
+      {% if disponibile and not in_corso %}
+        <form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="versione" value="{{ release.versione }}"><button class="btn-solid theme-primary" name="azione" value="aggiorna">Aggiorna a {{ release.versione }}</button></form>
+        {% if not recente %}<p class="small mt-5">Serve un accesso recente (5 minuti): <a href="{% url 'account_reauthenticate' %}?next={{ request.path|urlencode }}">conferma la tua identità</a> oppure <a href="{% url 'account_logout' %}">esci</a> e rientra con Sestante.</p>{% endif %}
+      {% endif %}
+    </div></div>
+
+    {% if ultima %}
+      <div class="card mt-5"><div class="card-body">
+        <h2 class="fs-lg">{{ ultima.versione }} · {{ ultima.get_stato_display }}</h2>
+        {% if ultima.percentuale is not None %}<progress class="w-100" max="100" value="{{ ultima.percentuale }}">{{ ultima.percentuale }}%</progress>{% endif %}
+        <p>{{ ultima.messaggio }}</p>
+        {% if in_corso and in_corso.stato == "IN_ATTESA" %}<form method="post">{% csrf_token %}<button class="btn-outline theme-danger" name="azione" value="annulla">Annulla la richiesta</button></form>{% endif %}
+        {% if ultima.log %}<details><summary>Registro</summary><pre class="small">{{ ultima.log }}</pre></details>{% endif %}
+      </div></div>
+    {% endif %}
+  </div>
+  <div class="lg:col-5">
+    <div class="card"><div class="card-body">
+      <h2 class="fs-lg">Come funziona</h2>
+      <p class="small">L'aggiornamento lo esegue il server con <code>scripts/aggiorna.sh</code>: mette Tana in manutenzione, fa il backup del database, installa la nuova versione e, se non risponde, torna alla precedente. Questa pagina resta raggiungibile e mostra l'avanzamento.</p>
+      <h2 class="fs-lg mt-5">Storico</h2>
+      <ul class="list-unstyled small mb-0">{% for r in storico %}<li class="mb-3">{{ r.richiesta_il|date:"d/m/Y H:i" }} · {{ r.versione_partenza }} → {{ r.versione }} · {{ r.get_stato_display }} · {{ r.richiesta_da_email }}</li>{% empty %}<li class="fg-2">Nessuna richiesta.</li>{% endfor %}</ul>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

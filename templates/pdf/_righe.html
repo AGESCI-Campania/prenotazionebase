@@ -1,0 +1,8 @@
+{% load formati %}
+<table>
+  <thead><tr><th>Voce</th><th>Calcolo</th><th class="destra">Importo</th></tr></thead>
+  <tbody>
+    {% for riga in riepilogo.righe %}<tr><td>{{ riga.descrizione }}</td><td>{% if not riga.rettifica %}{{ riga.calcolo }}{% endif %}</td><td class="destra">{{ riga.importo_centesimi|euro }}</td></tr>{% endfor %}
+    <tr class="totale"><td colspan="2">Totale</td><td class="destra">{{ riepilogo.totale|euro }}</td></tr>
+  </tbody>
+</table>

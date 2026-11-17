@@ -24,8 +24,11 @@ jobs:
       DATABASE_URL: postgres://tana:tana@localhost:5432/tana
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v7
+      # setup-uv non pubblica più tag di major mobili: versione esatta (node24)
+      - uses: astral-sh/setup-uv@v10.3.3
       - run: uv python install 3.14
+      - name: Librerie di sistema per i PDF (WeasyPrint)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0 fonts-dejavu
       - run: uv sync --frozen
       - name: Lint
         run: |
@@ -50,7 +53,7 @@ jobs:
       - name: shellcheck
         run: shellcheck -x scripts/*.sh deploy/entrypoint.sh
       - name: Bit eseguibile committato
-        run: test -x scripts/installa.sh && test -x scripts/aggiorna.sh && test -x scripts/backup.sh
+        run: test -x scripts/installa.sh && test -x scripts/aggiorna.sh && test -x scripts/backup.sh && test -x scripts/esegui-aggiornamento.sh
       - name: Compose valido
         run: |
           cp .env.template .env

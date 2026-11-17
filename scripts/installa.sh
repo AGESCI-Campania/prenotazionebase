@@ -48,7 +48,7 @@ if ! git describe --tags --exact-match --match 'v[0-9]*' >/dev/null 2>&1; then
 fi
 
 # --- Cartelle (create dall'utente del repo: i container girano con lo stesso uid) ---
-mkdir -p logs backups
+mkdir -p logs backups aggiornamenti
 
 # --- Avvio (le migrazioni le applica l'entrypoint del container web) ---
 info "Costruisco le immagini di Tana e scarico le altre."
@@ -83,6 +83,7 @@ fi
 # Sestante non è una dipendenza d'avvio: serve solo al login.
 installa_servizio_systemd prenotazionebase "$UNIT_PROXY"
 installa_backup_systemd
+installa_aggiornamenti_systemd
 
 cat <<EOF
 

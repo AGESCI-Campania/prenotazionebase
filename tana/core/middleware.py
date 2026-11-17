@@ -6,7 +6,9 @@ from django.db import DatabaseError
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
 
-PERCORSI_LIBERI = ("/healthz/", "/static/")
+# La pagina degli aggiornamenti resta raggiungibile (i permessi li controlla la vista): durante
+# l'aggiornamento dal web mostra l'avanzamento (P-20)
+PERCORSI_LIBERI = ("/healthz/", "/static/", "/gestione/aggiornamenti/")
 
 
 class ManutenzioneMiddleware:

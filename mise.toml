@@ -7,6 +7,8 @@ uv = "latest"
 # Docker o Podman: su alcune macchine `docker` è solo un alias interattivo e nei task non esiste.
 # $COMPOSE va usato senza virgolette, così la shell lo divide in due parole.
 COMPOSE = "{{ exec(command='command -v docker >/dev/null 2>&1 && echo docker compose || echo podman compose') }}"
+# WeasyPrint (PDF) sul Mac: librerie Pango/GLib di Homebrew (brew install pango); su Linux non serve
+DYLD_FALLBACK_LIBRARY_PATH = "/opt/homebrew/lib"
 
 [tasks.install]
 description = "Dipendenze con uv e .env.dev di sviluppo"

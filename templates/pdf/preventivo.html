@@ -1,0 +1,12 @@
+{% extends "pdf/base.html" %}
+{% load formati %}
+{% block titolo %}{{ titolo }} {{ p.numero }}{% endblock %}
+{% block contenuto %}
+<h1>Preventivo</h1>
+<p class="nota">Emesso il {{ oggi|date:"j F Y"|lower }}{% if p.versione_listino %} · listino {{ p.versione_listino }}{% endif %}</p>
+{% include "pdf/_riepilogo.html" %}
+<h2>Contributo previsto</h2>
+{% include "pdf/_righe.html" with riepilogo=preventivo %}
+{% if p.acconto_centesimi %}<p>Acconto da versare: <b>{{ p.acconto_centesimi|euro }}</b>{% if p.scadenza_acconto %} entro il {{ p.scadenza_acconto|date:"j F Y"|lower }}{% endif %}.</p>{% endif %}
+<p class="nota">Il saldo si calcola a fine soggiorno sulle presenze effettive, più eventuali voci extra (pellet, danni, sovrapprezzi). L'acconto non è rimborsabile.</p>
+{% endblock %}

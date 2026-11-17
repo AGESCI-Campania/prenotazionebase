@@ -26,9 +26,10 @@ from django.views.decorators.http import require_POST
 
 from tana.accounts import permessi
 from tana.base.models import Area, Configurazione
+from tana.core.pdf import PdfNonDisponibile
 from tana.listini.models import Categoria
 
-from . import consensi, contributo, disponibilita, flusso, messaggi
+from . import consensi, contributo, disponibilita, documenti, flusso, messaggi
 from .forms import (
     AnnullaForm,
     MessaggioForm,
@@ -138,6 +139,7 @@ def dettaglio(request: HttpRequest, numero: str) -> HttpResponse:
             stato=RichiestaTelefono.StatoRichiesta.IN_ATTESA
         ).select_related("da"),
         "telefoni_visibili": messaggi.telefoni_visibili(prenotazione),
+        "documenti": [(t, documenti.TIPI[t]) for t in documenti.disponibili(prenotazione)],
     }
     return render(request, "prenotazioni/dettaglio.html", contesto)
 
@@ -277,6 +279,27 @@ def ricevuta(request: HttpRequest, numero: str, pk: int) -> HttpResponseBase:
         risposta["Content-Disposition"] = f'inline; filename="{nome.rsplit("/", 1)[-1]}"'
         return risposta
     return FileResponse(pagamento.ricevuta.open("rb"), filename=nome.rsplit("/", 1)[-1])
+
+
+def documento(request: HttpRequest, numero: str, tipo: str) -> HttpResponse:
+    """PDF della prenotazione (D-19): al titolare e a chi vede tutte le prenotazioni."""
+    if not request.user.is_authenticated:
+        raise Http404
+    prenotazione = get_object_or_404(Prenotazione, numero=numero)
+    if not (
+        permessi.e_titolare(request.user, prenotazione)
+        or permessi.vede_tutte_le_prenotazioni(request.user)
+    ) or tipo not in documenti.disponibili(prenotazione):
+        raise Http404
+    try:
+        contenuto = documenti.pdf(prenotazione, tipo)
+    except PdfNonDisponibile:
+        return HttpResponse("PDF non disponibile in questo momento.", status=503)
+    risposta = HttpResponse(contenuto, content_type="application/pdf")
+    risposta["Content-Disposition"] = (
+        f'inline; filename="{documenti.nome_file(prenotazione, tipo)}"'
+    )
+    return risposta
 
 
 def prenotazione_url(prenotazione: Prenotazione) -> str:

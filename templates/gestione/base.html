@@ -26,6 +26,8 @@
       {% include "gestione/_voce.html" with nome="listini" url_nome="gestione:listini" etichetta="Listini e versioni" %}
       {% include "gestione/_voce.html" with nome="configurazione" url_nome="gestione:configurazione" etichetta="Configurazione" %}
       <li><a class="ag-sidebar__nav-link" href="{% url 'admin:base_struttura_changelist' %}"><span class="ag-sidebar__label">Strutture e categorie</span></a></li>
+      <li><a class="ag-sidebar__nav-link" href="{% url 'wagtailadmin_home' %}"><span class="ag-sidebar__label">Pagine del sito</span></a></li>
+      {% include "gestione/_voce.html" with nome="aggiornamenti" url_nome="gestione:aggiornamenti" etichetta="Aggiornamenti" %}
     {% endif %}
     {% if puo.ruoli %}
       {% include "gestione/_voce.html" with nome="utenti" url_nome="gestione:utenti" etichetta="Utenti e ruoli" %}

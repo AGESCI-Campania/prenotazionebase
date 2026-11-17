@@ -121,3 +121,21 @@
 }
 .tana-riquadro { color: inherit; text-decoration: none; }
 .tana-riquadro:hover { border-color: var(--ag-primary); }
+
+/* Sito della base (D-30, mockup 6) */
+.tana-hero {
+  background: linear-gradient(120deg, var(--ag-primary) 0%, var(--tana-verde-medio) 60%, var(--tana-verde-chiaro) 100%);
+  color: #fff;
+}
+.tana-hero h1 { color: #fff; }
+.tana-hero__logo { width: 9rem; flex: none; }
+.tana-hero__logo img { width: 100%; }
+.tana-hero__testo { flex: 1 1 20rem; max-width: 40rem; }
+.tana-hero__secondario { color: #fff; border-color: #fff; }
+.tana-riquadro__foto { width: 100%; height: auto; border-radius: 0.4rem 0.4rem 0 0; }
+.tana-home-area { min-width: 8rem; }
+.tana-pagina { max-width: 48rem; }
+.tana-figura img { max-width: 100%; height: auto; border-radius: 0.4rem; }
+.tana-citazione { border-left: 4px solid var(--tana-verde-chiaro); padding-left: 1rem; font-style: italic; margin: 1.5rem 0; }
+.tana-mappa { position: relative; aspect-ratio: 16 / 9; }
+.tana-mappa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0.4rem; }

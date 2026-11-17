@@ -5,6 +5,22 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### F6 — sito della base, PDF, PWA, aggiornamento dal web
+- Sito Wagtail: home (mockup 6), pagine di contenuto con i blocchi di P-16 (niente HTML libero),
+  pagina delle strutture generata dai dati della base, pagina riservata ai gruppi confermati, menu a
+  tendina; albero con gli indirizzi del Google Site e reindirizzamenti dai vecchi; impostazioni del
+  sito (contatti e social). Editor `/cms/` per Redazione, Amministratore e Responsabile (P-15).
+- Testi del Google Site (home, La storia, Gianni Sabatino, Info) forniti da Andrea.
+- Regolamento come pagina Wagtail (in bozza, dal PDF di gennaio 2023): PDF generato a ogni
+  pubblicazione e archiviato, allegato alle email di conferma.
+- PDF di preventivo, conferma e consuntivo (WeasyPrint), scaricabili dal richiedente e dalla
+  gestione, allegati alle email di conferma e di chiusura.
+- PWA: manifest, icone (anche maskable e Apple), service worker senza uso offline.
+- Aggiornamento dal web (P-20): pagina Gestione › Aggiornamenti, `scripts/esegui-aggiornamento.sh`,
+  unit `prenotazionebase-aggiorna.path/.service`; cartella `aggiornamenti/` montata nel container web.
+- CI: Pango per i test dei PDF, `astral-sh/setup-uv@v10.3.3`.
+- Corretto: ciclo di reindirizzamenti tra login ed editor per chi è collegato senza permessi.
+
 ### F5 — area di gestione, statistiche, export
 - `/gestione/` con barra laterale e contatori: cruscotto, elenchi (da approvare, acconti, consensi,
   consuntivi, messaggi senza risposta, tutte), calendario con i nomi, arrivi e partenze per il

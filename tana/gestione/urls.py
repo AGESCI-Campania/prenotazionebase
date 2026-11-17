@@ -21,4 +21,5 @@ urlpatterns = [
     path("utenti/", views.utenti, name="utenti"),
     path("statistiche/", views.statistiche_anno, name="statistiche"),
     path("export/", views.esporta, name="export"),
+    path("aggiornamenti/", views.aggiornamenti, name="aggiornamenti"),
 ]

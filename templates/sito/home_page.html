@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+{% block titolo_pagina %}{% endblock %}
+{% block head_pagina %}{% if page.presentazione %}<meta name="description" content="{{ page.presentazione|truncatechars:160 }}">{% endif %}{% endblock %}
+{% block main_class %}p-0{% endblock %}
+{% block content %}
+<section class="tana-hero">
+  <div class="container d-flex flex-wrap align-items-center gap-12 py-12">
+    <span class="tana-hero__logo"><img src="{% static "tana/img/logo/scudo-base-aiello-bianco.svg" %}" alt=""></span>
+    <div class="tana-hero__testo">
+      <h1>{{ page.title }}</h1>
+      {% if page.presentazione %}<p class="fs-lg">{{ page.presentazione }}</p>{% endif %}
+      <div class="d-flex flex-wrap gap-3 mt-7">
+        <a class="btn-solid ag-btn-light" href="{% url 'prenotazioni:nuova' %}">Richiedi una prenotazione</a>
+        <a class="btn-outline tana-hero__secondario" href="{% url 'disponibilita' %}">Guarda le date libere</a>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="container py-12">
+  {% if riquadri %}
+    <div class="row g-7">
+      {% for p in riquadri %}
+        <div class="md:col-6 lg:col-3">
+          <a class="card d-block h-100 tana-riquadro" href="{% pageurl p %}">
+            {% if p.specific.immagine_riquadro %}{% image p.specific.immagine_riquadro fill-600x340 class="tana-riquadro__foto" alt="" %}{% endif %}
+            <div class="card-body"><h2 class="fs-lg">{{ p.title }}</h2>{% if p.specific.riassunto %}<p class="small fg-2 mb-0">{{ p.specific.riassunto }}</p>{% endif %}</div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% if page.corpo %}<div class="tana-pagina mt-12">{% include "sito/_corpo.html" with corpo=page.corpo %}</div>{% endif %}
+  <div class="row g-7 mt-7">
+    <div class="lg:col-7">
+      <div class="card h-100"><div class="card-body">
+        <h2 class="fs-lg">Disponibilità dei prossimi giorni</h2>
+        <p class="small fg-2">Notte per notte: verde libero, grigio occupato, tratteggio non disponibile.</p>
+        {% for area, giorni in prossimi_giorni %}
+          <div class="d-flex align-items-center gap-3 mt-3">
+            <b class="small tana-home-area">{{ area.nome }}</b>
+            <div class="d-flex gap-1 flex-grow-1">{% for giorno, stato in giorni %}<span class="tana-stato" title="{{ giorno|date:'j F'|lower }}"><i class="tana-{{ stato }}"></i></span>{% endfor %}</div>
+          </div>
+        {% endfor %}
+        <a class="d-inline-block mt-5" href="{% url 'disponibilita' %}">Il calendario completo</a>
+      </div></div>
+    </div>
+    <div class="lg:col-5">
+      {% with impostazioni=settings.sito.ImpostazioniSito %}
+      <div class="card h-100"><div class="card-body">
+        <h2 class="fs-lg">Seguici e scrivici</h2>
+        <p class="small">Notizie e foto dalla base su
+          {% if impostazioni.facebook %}<a href="{{ impostazioni.facebook }}" rel="noopener">Facebook</a>{% endif %}{% if impostazioni.facebook and impostazioni.instagram %} e {% endif %}{% if impostazioni.instagram %}<a href="{{ impostazioni.instagram }}" rel="noopener">Instagram</a>{% endif %}.</p>
+        <p class="small mb-0">Email: <a href="mailto:{{ impostazioni.email }}">{{ impostazioni.email }}</a>{% if impostazioni.telefono %}<br>Telefono: {{ impostazioni.telefono }}{% endif %}</p>
+      </div></div>
+      {% endwith %}
+    </div>
+  </div>
+</div>
+{% endblock %}

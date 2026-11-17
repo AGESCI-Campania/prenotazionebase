@@ -143,6 +143,66 @@ credenziali_mancanti() {
 	done
 }
 
-# Aggiornamento dal web (P-20 della specifica, da confermare): quando sarà approvato si aggiunge
-# qui installa_aggiornamenti_systemd sul modello di _plancia.sh (unit .path + runner
-# scripts/esegui-aggiornamento.sh), richiamata da installa.sh e aggiorna.sh.
+# Installa (o aggiorna) l'esecuzione degli aggiornamenti richiesti dal web (P-20, solo
+# amministrazione, pagina Gestione › Aggiornamenti): Django scrive aggiornamenti/richiesta.json
+# (bind mount), prenotazionebase-aggiorna.path lo vede e avvia prenotazionebase-aggiorna.service,
+# che lancia scripts/esegui-aggiornamento.sh come proprietario del repo. Il container non ha mai
+# accesso a Docker. Idempotente; senza sudo stampa il comando per l'amministratore.
+installa_aggiornamenti_systemd() {
+	local dir utente docker_bin cartella="/etc/systemd/system" tmp nome
+	if ! command -v systemctl >/dev/null 2>&1 || [[ ! -d /run/systemd/system ]]; then
+		avviso "systemd non disponibile: salto l'aggiornamento dal web."
+		return 0
+	fi
+	dir="$(pwd -P)"
+	utente="$(stat -c %U "$dir")"
+	docker_bin="$(command -v docker)"
+	tmp="$(mktemp -d)"
+	cat > "$tmp/prenotazionebase-aggiorna.service" <<UNIT
+# Generato da scripts/installa.sh / aggiorna.sh di ${dir} — non modificare a mano.
+[Unit]
+Description=AGESCI Campania - aggiornamento di Tana richiesto dal web
+Wants=docker.service
+After=docker.service prenotazionebase.service
+
+[Service]
+Type=oneshot
+User=${utente}
+WorkingDirectory=${dir}
+Environment=PATH=$(dirname "$docker_bin"):/usr/local/bin:/usr/bin:/bin
+ExecStart=${dir}/scripts/esegui-aggiornamento.sh
+TimeoutStartSec=45min
+UNIT
+	cat > "$tmp/prenotazionebase-aggiorna.path" <<UNIT
+# Generato da scripts/installa.sh / aggiorna.sh di ${dir} — non modificare a mano.
+[Unit]
+Description=AGESCI Campania - richieste di aggiornamento di Tana dal web
+
+[Path]
+PathExists=${dir}/aggiornamenti/richiesta.json
+Unit=prenotazionebase-aggiorna.service
+
+[Install]
+WantedBy=paths.target
+UNIT
+	if cmp -s "$tmp/prenotazionebase-aggiorna.service" "$cartella/prenotazionebase-aggiorna.service" \
+		&& cmp -s "$tmp/prenotazionebase-aggiorna.path" "$cartella/prenotazionebase-aggiorna.path" \
+		&& systemctl is-enabled --quiet prenotazionebase-aggiorna.path 2>/dev/null; then
+		rm -rf "$tmp"
+		info "Aggiornamento dal web (prenotazionebase-aggiorna.path) già installato e aggiornato."
+		return 0
+	fi
+	if (( EUID != 0 )) && ! sudo -n true 2>/dev/null; then
+		rm -rf "$tmp"
+		avviso "L'aggiornamento dal web (prenotazionebase-aggiorna.path) va installato o aggiornato da un amministratore:"
+		avviso "  sudo bash -c 'cd ${dir} && source scripts/_comune.sh && source scripts/_tana.sh && installa_aggiornamenti_systemd'"
+		return 0
+	fi
+	info "Installo l'aggiornamento dal web (prenotazionebase-aggiorna.path)."
+	for nome in prenotazionebase-aggiorna.service prenotazionebase-aggiorna.path; do
+		come_root install -m 644 "$tmp/$nome" "$cartella/$nome"
+	done
+	rm -rf "$tmp"
+	come_root systemctl daemon-reload
+	come_root systemctl enable --now --quiet prenotazionebase-aggiorna.path
+}

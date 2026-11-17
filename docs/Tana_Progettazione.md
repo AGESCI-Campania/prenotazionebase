@@ -47,12 +47,12 @@ legate a SSO e installazione sul modello di Plancia 3.0.
 | P-12 | ✅ Approvata. Ruoli di Tana assegnati in Tana dalla segreteria agli utenti entrati con Sestante (al primo accesso nessun ruolo locale). Precisazione del 17/11/2026 per il contratto SSO: solo i due ruoli globali (`admin-multipiattaforma` → Amministratore, `segreteria` → Segreteria regionale) arrivano dal claim `groups` | D-28 | Ruoli derivati dai gruppi di Sestante (claim `groups`) |
 | P-13 | ✅ Approvata. Account di gestione solo via Sestante, senza password locale; un solo superutente tecnico locale per emergenza, se Sestante non è raggiungibile, creato da `installa.sh` con MFA TOTP obbligatoria | D-28 | Anche password locali |
 | P-14 | ✅ Approvata. Ricevute dei bonifici e altri allegati privati serviti solo tramite Django con controllo dei permessi (`X-Accel-Redirect` verso una location `internal` di nginx), mai come `/media/` pubblico | D-27 | Media pubblici con URL non indovinabili |
-| P-15 | Ruolo **Redazione** assegnato dalla segreteria (anche a membri della Pattuglia): dà accesso solo all'editor delle pagine del sito; l'amministratore ha anche questo permesso | D-30, §6 | Editor riservato all'amministratore |
-| P-16 | Blocchi di contenuto limitati e senza HTML libero: paragrafo (testo formattato), titolo, immagine con didascalia, galleria, documento (PDF), citazione, pulsante/link, mappa incorporata da URL consentiti | D-30 | Blocco HTML libero |
-| P-17 | Migrazione manuale delle poche pagine del Google Site (testi e immagini) in F6, mantenendo gli stessi indirizzi relativi (`/la-storia/`, `/gianni-sabatino/`, `/le-strutture/`, `/info/regolamento/`) | D-30 | Comando di importazione automatica |
+| P-15 | ✅ Approvata il 17/11/2026. Ruolo **Redazione** assegnato dalla segreteria (anche a membri della Pattuglia): dà accesso solo all'editor delle pagine del sito; l'amministratore ha anche questo permesso | D-30, §6 | Editor riservato all'amministratore |
+| P-16 | ✅ Approvata il 17/11/2026. Blocchi di contenuto limitati e senza HTML libero: paragrafo (testo formattato), titolo, immagine con didascalia, galleria, documento (PDF), citazione, pulsante/link, mappa incorporata da URL consentiti | D-30 | Blocco HTML libero |
+| P-17 | ✅ Approvata il 17/11/2026. Migrazione manuale delle poche pagine del Google Site (testi e immagini) in F6, mantenendo gli stessi indirizzi relativi (`/la-storia/`, `/gianni-sabatino/`, `/le-strutture/`, `/info/regolamento/`) | D-30 | Comando di importazione automatica |
 | P-18 | ✅ Decisa il 17/11/2026. Il Google Site (migrato su `agescicampania.net` il 15/11, raggiungibile su `www.baseaiello.agescicampania.net`) resta online **così com'è, senza manutenzione**, solo come fonte dei contenuti: all'avvio di Tana i contenuti sono già tutti in Wagtail e il sito Google si **spegne** | D-30 | — |
 | P-19 | Chi entra con Sestante senza alcun ruolo di gestione (es. un capo AGESCI) può **prenotare come richiedente** con lo stesso account, senza registrarsi di nuovo; i richiedenti esterni restano con la registrazione email | D-15, D-28 | Sestante solo per la gestione |
-| P-20 | **Aggiornamento dal web** come in Plancia 3.0: pagina *Configurazione › Aggiornamenti* (solo amministratore, con riautenticazione), che scrive una richiesta letta da una unit systemd `.path` sull'host; il container non ha mai accesso a Docker | §9.1 | Solo `scripts/aggiorna.sh` da terminale |
+| P-20 | ✅ Approvata il 17/11/2026. **Aggiornamento dal web** come in Plancia 3.0: pagina *Configurazione › Aggiornamenti* (solo amministratore, con riautenticazione), che scrive una richiesta letta da una unit systemd `.path` sull'host; il container non ha mai accesso a Docker | §9.1 | Solo `scripts/aggiorna.sh` da terminale |
 | P-21 | Slug Sestante **`tana`** (provider "Tana – Prenotazioni Base Aiello", blueprint `provider-tana.yaml`) | D-28 | `prenotazionebase` come il repo |
 
 ---
@@ -531,6 +531,27 @@ Scelte di F5 (Andrea, 17/11/2026):
 - Permessi sugli importi: valorizzazioni, modifiche della quota e voci del preventivo solo
   all'amministrazione; voci del consuntivo, presenze effettive e pagamenti anche alla Pattuglia.
   Gli arrivi e le partenze mostrano solo prenotazioni approvate, confermate o in corso.
+
+Scelte di F6 (Andrea, 17/11/2026):
+- Approvate **P-15, P-16, P-17** (redazione, blocchi, pagine con gli stessi indirizzi) e **P-20**
+  (aggiornamento dal web, come Plancia 3.0).
+- **Regolamento in Tana**: il testo sta in una pagina Wagtail dedicata (cronologia delle versioni);
+  il PDF lo genera Tana **solo alla pubblicazione** e ogni versione resta nell'archivio dei
+  documenti; le email di conferma allegano l'ultima. Il PDF di Google Drive (gennaio 2023) è servito
+  solo a popolare la prima versione, che nasce **in bozza**: va allineata alle regole di Tana prima
+  di pubblicarla.
+- **Contenuti del Google Site**: i dati di fatto (strutture, distanze, contatti, social) sono già
+  nelle pagine; i testi lunghi (storia, Gianni Sabatino, ecc.) li fornisce Andrea; le foto le carica
+  la redazione. Vecchi indirizzi: `/home` → `/`, `/info/listino-prezzi` → `/listino/`.
+- **Le strutture**: introduzione e citazione di B.P. dall'editor; l'elenco si genera a ogni visita
+  dai dati delle strutture (D-12), raggruppato per area, con capienze e superfici nelle
+  descrizioni. Il palco con camerini non esiste più (i camerini sono depositi della base, non a
+  disposizione dei gruppi): va tolto anche dal testo del regolamento in bozza.
+- **PDF** di preventivo, conferma (con orari, coordinate del bonifico) e consuntivo con i pagamenti
+  ricevuti; la conferma e il regolamento sono allegati all'email di conferma, il consuntivo a quella
+  di chiusura.
+- **PWA** installabile con service worker che va sempre in rete (nessun uso offline: senza rete
+  mostra solo un avviso).
 
 ---
 

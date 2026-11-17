@@ -24,11 +24,13 @@ from django.views.decorators.http import require_POST
 from tana.accounts import permessi
 from tana.accounts.models import Nomina, Ruolo, User
 from tana.accounts.services import nomina, revoca
+from tana.aggiornamenti import services as servizi_aggiornamenti
+from tana.aggiornamenti.models import ReleaseGitHub, RichiestaAggiornamento
 from tana.base.models import Area, Configurazione
 from tana.core.services import storico
 from tana.listini.models import Listino, VersioneListino
 from tana.listini.services import nuova_versione
-from tana.prenotazioni import consensi, contributo, flusso, messaggi
+from tana.prenotazioni import consensi, contributo, documenti, flusso, messaggi
 from tana.prenotazioni.models import (
     BloccoTecnico,
     Occupazione,
@@ -251,6 +253,7 @@ def scheda(request: HttpRequest, numero: str) -> HttpResponse:
             "respingi_form": RespingiForm(),
             "risposta_form": RispostaForm(),
             "modificabile": p.stato in flusso.STATI_MODIFICABILI,
+            "documenti": [(t, documenti.TIPI[t]) for t in documenti.disponibili(p)],
             "pagabile": p.stato in {Stato.APPROVATA, Stato.CONFERMATA, Stato.SVOLTA, Stato.CHIUSA},
             "preventivo_modificabile": permessi.e_amministrazione(request.user)
             and not contributo.preventivo_congelato(p),
@@ -831,3 +834,57 @@ def esporta(request: HttpRequest) -> HttpResponse:
             risposta["Content-Disposition"] = f'attachment; filename="{nome}.csv"'
         return risposta
     return _render(request, "gestione/export.html", "export", {"form": form})
+
+
+# --- Aggiornamento dal web (P-20) -------------------------------------------------------
+
+
+@accesso(permessi.e_amministrazione)
+def aggiornamenti(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        azione_richiesta = request.POST.get("azione")
+        try:
+            if azione_richiesta == "controlla":
+                release = servizi_aggiornamenti.controlla_ultima_release()
+                if release.errore:
+                    messages.warning(request, f"GitHub non ha risposto: {release.errore}")
+            elif azione_richiesta == "aggiorna":
+                if not servizi_aggiornamenti.autenticazione_recente(request):
+                    messages.error(
+                        request,
+                        "Per aggiornare il server conferma la tua identità: rientra (o usa "
+                        "«Conferma la tua identità») e riprova entro 5 minuti.",
+                    )
+                else:
+                    servizi_aggiornamenti.crea_richiesta(
+                        request.user, request.POST.get("versione", "")
+                    )
+                    messages.success(
+                        request, "Aggiornamento richiesto: il server lo avvia entro pochi secondi."
+                    )
+            elif azione_richiesta == "annulla":
+                servizi_aggiornamenti.annulla_richiesta(request.user)
+                messages.success(request, "Richiesta annullata.")
+        except ValidationError as errore:
+            _errori(request, errore)
+        except (
+            servizi_aggiornamenti.RichiestaInCorso,
+            servizi_aggiornamenti.CartellaNonScrivibile,
+        ) as errore:
+            messages.error(request, str(errore))
+        return redirect("gestione:aggiornamenti")
+    in_corso = servizi_aggiornamenti.sincronizza_storico()
+    return _render(
+        request,
+        "gestione/aggiornamenti.html",
+        "aggiornamenti",
+        {
+            "installata": servizi_aggiornamenti.versione_installata(),
+            "release": ReleaseGitHub.corrente(),
+            "disponibile": servizi_aggiornamenti.aggiornamento_disponibile(),
+            "in_corso": in_corso if in_corso and in_corso.aperta else None,
+            "ultima": in_corso,
+            "storico": RichiestaAggiornamento.objects.all()[:20],
+            "recente": servizi_aggiornamenti.autenticazione_recente(request),
+        },
+    )

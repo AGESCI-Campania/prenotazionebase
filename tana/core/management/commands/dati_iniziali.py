@@ -1,8 +1,8 @@
 """manage.py dati_iniziali — dati di partenza, idempotente (lanciato da scripts/installa.sh).
 
-Crea aree, strutture, categorie, listini con la versione 2022/2023, la configurazione e i
-gruppi dei ruoli di gestione (§3, §5.3, §6, D-10, D-12); in F6 anche l'albero delle pagine del
-sito (D-30).
+Crea aree, strutture, categorie, listini con la versione 2022/2023, la configurazione, l'albero
+delle pagine del sito (D-30, P-17) e i gruppi dei ruoli di gestione con i loro permessi (§3,
+§5.3, §6, D-10, D-12, P-15).
 Mai sovrascrivere dati già modificati dalla gestione: si crea solo ciò che manca, e le voci di
 una versione di listino solo quando si crea la versione.
 """
@@ -12,10 +12,13 @@ import datetime
 from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from wagtail.models import Collection, GroupCollectionPermission, GroupPagePermission
 
 from tana.accounts.models import Ruolo
 from tana.base.models import Area, Configurazione, Struttura
 from tana.listini.models import Attivita, Categoria, Listino, VersioneListino, VoceListino
+from tana.sito.inizializza import crea_sito
+from tana.sito.models import HomePage
 
 ACC, TENDE = Area.ACCANTONAMENTO, Area.TENDE
 
@@ -28,17 +31,26 @@ U = Struttura.Uso
 STRUTTURE = (
     (
         "Dormitori e stanzette staff",
-        "Due dormitori e tre stanzette per lo staff. In emergenza o con forti piogge si possono "
-        "condividere per la sicurezza di chi è in tenda.",
+        "Due dormitori, fino a 50 persone, con bagni e docce con acqua calda, e tre stanzette "
+        "per lo staff. In emergenza o con forti piogge si possono condividere per la sicurezza "
+        "di chi è in tenda.",
         U.SOLO_ACCANTONAMENTO,
     ),
-    ("Cucina", "Condivisibile previo accordo tra i gruppi.", U.SOLO_ACCANTONAMENTO),
-    ("Refettorio", "Condivisibile previo accordo tra i gruppi.", U.SOLO_ACCANTONAMENTO),
-    ("Sala polifunzionale", "", U.SOLO_ACCANTONAMENTO),
+    (
+        "Cucina",
+        "Per gruppi fino a 50 persone. Condivisibile previo accordo tra i gruppi.",
+        U.SOLO_ACCANTONAMENTO,
+    ),
+    (
+        "Refettorio",
+        "Fino a 50 persone. Condivisibile previo accordo tra i gruppi.",
+        U.SOLO_ACCANTONAMENTO,
+    ),
+    ("Sala polifunzionale", "140 m².", U.SOLO_ACCANTONAMENTO),
     ("Sala laboratorio", "", U.SOLO_ACCANTONAMENTO),
     ("Bagni e docce interni", "", U.SOLO_ACCANTONAMENTO),
     ("Bagni esterni", "", U.CONDIVISA),
-    ("Arena con altare", "", U.CONDIVISA),
+    ("Arena con altare", "Con spiazzo e gradinata per 200 persone.", U.CONDIVISA),
     ("Area tende", "Sei piazzole.", U.SOLO_TENDE),
     ("Lavabi area tende", "", U.SOLO_TENDE),
     ("Frigorifero accantonamento", "", U.SOLO_ACCANTONAMENTO),
@@ -127,22 +139,40 @@ _ADMIN_DJANGO = tuple(
     for app, modello in (("base", "struttura"), ("listini", "categoria"))
     for azione in ("view", "add", "change", "delete")
 )
+# Editor del sito (P-15): Redazione, e anche amministratore e responsabile
+_EDITOR = ("wagtailadmin.access_admin", "sito.change_impostazionisito")
 PERMESSI_DEI_RUOLI: dict[str, tuple[str, ...]] = {
-    Ruolo.AMMINISTRATORE: ("prenotazioni.ricevi_notifiche_gestione", *_ADMIN_DJANGO),
-    Ruolo.RESPONSABILE: ("prenotazioni.ricevi_notifiche_gestione", *_ADMIN_DJANGO),
+    Ruolo.AMMINISTRATORE: ("prenotazioni.ricevi_notifiche_gestione", *_ADMIN_DJANGO, *_EDITOR),
+    Ruolo.RESPONSABILE: ("prenotazioni.ricevi_notifiche_gestione", *_ADMIN_DJANGO, *_EDITOR),
+    Ruolo.REDAZIONE: _EDITOR,
 }
+RUOLI_EDITOR = (Ruolo.AMMINISTRATORE, Ruolo.RESPONSABILE, Ruolo.REDAZIONE)
+PERMESSI_PAGINE = ("add", "change", "publish", "lock", "unlock")
+PERMESSI_ARCHIVIO = (
+    ("wagtailimages", "image"),
+    ("wagtaildocs", "document"),
+)
 
 
 class Command(BaseCommand):
     help = "Crea i dati iniziali di Tana se mancano (idempotente)."
 
+    def add_arguments(self, parser) -> None:
+        parser.add_argument(
+            "--senza-sito",
+            action="store_true",
+            help="Non crea le pagine del sito (test che non le usano: più veloci).",
+        )
+
     @transaction.atomic
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args, senza_sito: bool = False, **options) -> None:
         self.creati = 0
         aree = self._aree()
         self._strutture()
         listini = self._listini(aree)
         self._categorie(listini)
+        if not senza_sito:
+            self.creati += crea_sito()
         self._gruppi()
         Configurazione.corrente()
         self.stdout.write(f"Dati iniziali: {self.creati} elementi creati.")
@@ -226,4 +256,29 @@ class Command(BaseCommand):
                 app, codice = nome.split(".")
                 gruppo.permissions.add(
                     Permission.objects.get(content_type__app_label=app, codename=codice)
+                )
+            if ruolo in RUOLI_EDITOR:
+                self._editor(gruppo)
+
+    def _editor(self, gruppo: Group) -> None:
+        """Pagine del sito e archivio di immagini e documenti (P-15)."""
+        home = HomePage.objects.first()
+        if home is not None:
+            for tipo in PERMESSI_PAGINE:
+                GroupPagePermission.objects.get_or_create(
+                    group=gruppo,
+                    page=home,
+                    permission=Permission.objects.get(
+                        content_type__app_label="wagtailcore", codename=f"{tipo}_page"
+                    ),
+                )
+        radice = Collection.get_first_root_node()
+        for app, modello in PERMESSI_ARCHIVIO:
+            for azione in ("add", "change", "choose"):
+                GroupCollectionPermission.objects.get_or_create(
+                    group=gruppo,
+                    collection=radice,
+                    permission=Permission.objects.get(
+                        content_type__app_label=app, codename=f"{azione}_{modello}"
+                    ),
                 )

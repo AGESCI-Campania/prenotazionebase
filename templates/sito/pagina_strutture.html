@@ -1,0 +1,11 @@
+{% extends "sito/pagina_contenuto.html" %}
+{% block dopo_il_corpo %}
+  <div class="row g-7 mt-7">
+    {% for titolo, strutture in gruppi %}{% if strutture %}
+      <div class="md:col-4">
+        <h2 class="fs-lg">{{ titolo }}</h2>
+        <ul>{% for s in strutture %}<li><b>{{ s.nome }}</b>{% if s.descrizione %}<br><span class="small fg-2">{{ s.descrizione }}</span>{% endif %}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}{% endfor %}
+  </div>
+{% endblock %}

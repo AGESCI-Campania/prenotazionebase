@@ -1,0 +1,10 @@
+<dl>
+  <dt>Prenotazione</dt><dd>{{ p.numero }}</dd>
+  <dt>Gruppo</dt><dd>{{ p.gruppo|default:"—" }}</dd>
+  <dt>Categoria</dt><dd>{{ p.categoria }}{% if p.specifica_categoria %} ({{ p.specifica_categoria }}){% endif %}</dd>
+  <dt>Date</dt><dd>{% if p.arrivo == p.partenza %}{{ p.arrivo|date:"l j F Y"|lower }}{% else %}dal {{ p.arrivo|date:"l j F Y"|lower }} al {{ p.partenza|date:"l j F Y"|lower }}{% endif %}</dd>
+  {% for pr in presenze %}<dt>{{ pr.area }}</dt><dd>{{ pr.persone_previste }} persone</dd>{% endfor %}
+  {% for att in attivita %}<dt>{{ att.get_tipo_display|capfirst }}</dt><dd>{{ att.data|date:"j F Y"|lower }}, {{ att.persone_previste }} persone</dd>{% endfor %}
+  {% if p.esclusiva_concessa %}<dt>Uso esclusivo</dt><dd>concesso</dd>{% endif %}
+  {% if p.contatto %}<dt>Referente</dt><dd>{{ p.contatto.nome }}{% if p.contatto.telefono %} · {{ p.contatto.telefono }}{% endif %}</dd>{% endif %}
+</dl>

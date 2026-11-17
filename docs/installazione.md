@@ -178,10 +178,18 @@ docker compose exec web uv run python manage.py sendtestemail <indirizzo>
 
 ## 10. Configurazione iniziale nel backend
 
-Da `/django-admin/` → Configurazione: **IBAN, intestatario e causale del bonifico** (finché sono
-vuoti l'email di approvazione non mostra le coordinate), orizzonte delle prenotazioni.
-Nelle fasi successive: importi mancanti dei listini, contenuti delle pagine del sito (emergenze,
-negozi, informazioni interne).
+Da `/gestione/` → Configurazione: **IBAN, intestatario e causale del bonifico** (finché sono
+vuoti l'email di approvazione non mostra le coordinate), orizzonte delle prenotazioni; da Listini e
+versioni gli importi mancanti.
+
+Sito della base, da `/cms/` (editor Wagtail: Redazione, Amministratore, Responsabile):
+1. **Regolamento** (Info › Regolamento): nasce **in bozza** con il testo del regolamento di gennaio
+   2023; va riletto, allineato alle regole di Tana (es. acconto entro 7 giorni) e **pubblicato**. A
+   ogni pubblicazione Tana genera il PDF (archiviato in Documenti › Regolamento) e lo allega alle
+   email di conferma; finché è in bozza la pagina non è visibile e non si allega nulla.
+2. Testi segnati «Da completare» (storia, Gianni Sabatino, come arrivare, emergenze, negozi, info
+   per chi è in base) e foto dei riquadri della home.
+3. Impostazioni › Impostazioni del sito: email, telefono, Facebook, Instagram.
 
 ## 11. Import da SuperSaaS
 
@@ -201,7 +209,9 @@ e cancellarli dopo l'import.
 - [ ] `docker compose ps`: tutti i servizi `healthy`
 - [ ] login richiedente (registrazione email con verifica) e login Sestante
 - [ ] caricamento di una ricevuta e download solo da chi ne ha diritto (dalla F3)
-- [ ] email ricevute; PDF generati (dalla F3)
+- [ ] email ricevute; PDF di preventivo, conferma e consuntivo generati; regolamento pubblicato con il suo PDF
+- [ ] `systemctl status prenotazionebase-aggiorna.path` attivo; pagina Gestione › Aggiornamenti raggiungibile
+- [ ] PWA: «Installa app» proposto dal browser su telefono
 - [ ] backup notturno eseguito (`ls backups/`, `systemctl list-timers prenotazionebase-backup.timer`)
 - [ ] `scripts/aggiorna.sh` senza versioni nuove: "Tana è già alla versione …"
 
@@ -225,6 +235,25 @@ gestione) e toglie la manutenzione.
 - Se la versione nuova non risponde **torna da sola** alla precedente.
 - Se nel frattempo il database era già stato migrato **resta in manutenzione** e indica il backup da
   ripristinare (vedi sotto).
+
+### Aggiornamento dal web (P-20)
+
+Da `/gestione/aggiornamenti/` (solo amministrazione, con un accesso negli ultimi 5 minuti) si
+lancia lo stesso `aggiorna.sh` sull'ultima release, senza terminale. Come funziona, sul modello di
+Plancia 3.0:
+
+- Django scrive **solo** `aggiornamenti/richiesta.json` (bind mount di
+  `/opt/prenotazionebase/aggiornamenti`); il container non ha accesso a Docker;
+- la unit `prenotazionebase-aggiorna.path` (installata da `installa.sh` e `aggiorna.sh`, con sudo;
+  senza, stampano il comando per l'amministratore) vede il file e avvia
+  `prenotazionebase-aggiorna.service`, che esegue `scripts/esegui-aggiornamento.sh` come `agesci`;
+- il runner sposta la richiesta in `in-corso.json`, lancia `scripts/aggiorna.sh --si --stato-file
+  aggiornamenti/stato.json --id N --log aggiornamenti/log/…` e lascia l'esito in `stato.json`, che
+  la pagina mostra (resta raggiungibile anche in manutenzione);
+- log completi in `aggiornamenti/log/` (ultimi 20). Un `in-corso.json` rimasto dopo un'interruzione
+  blocca nuove richieste: controllare il log e rimuoverlo a mano.
+
+Verifica dopo l'installazione: `systemctl status prenotazionebase-aggiorna.path`.
 
 ### Backup e ripristino
 

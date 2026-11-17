@@ -1,0 +1,23 @@
+{% extends "pdf/base.html" %}
+{% load formati %}
+{% block titolo %}{{ titolo }} {{ p.numero }}{% endblock %}
+{% block contenuto %}
+<h1>Consuntivo e ricevuta</h1>
+<p class="nota">Documento del {{ oggi|date:"j F Y"|lower }}{% if p.versione_listino %} · listino {{ p.versione_listino }}{% endif %}</p>
+{% include "pdf/_riepilogo.html" %}
+<h2>Contributo a consuntivo</h2>
+{% include "pdf/_righe.html" with riepilogo=consuntivo %}
+<h2>Pagamenti ricevuti</h2>
+<table>
+  <thead><tr><th>Data</th><th>Tipo</th><th class="destra">Importo</th></tr></thead>
+  <tbody>
+    {% for pg in pagamenti %}<tr><td>{{ pg.data|date:"d/m/Y" }}</td><td>{{ pg.get_tipo_display|capfirst }}</td><td class="destra">{{ pg.importo_centesimi|euro }}</td></tr>{% empty %}<tr><td colspan="3">Nessun pagamento registrato.</td></tr>{% endfor %}
+  </tbody>
+</table>
+<table><tbody>
+  <tr><td>Totale del consuntivo</td><td class="destra">{{ consuntivo.totale|euro }}</td></tr>
+  <tr><td>Totale versato</td><td class="destra">− {{ versato|euro }}</td></tr>
+  <tr class="totale"><td>Ancora da versare</td><td class="destra">{{ da_versare|euro }}</td></tr>
+</tbody></table>
+<p class="nota">Riepilogo dei pagamenti ricevuti dalla base per questa prenotazione.</p>
+{% endblock %}

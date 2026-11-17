@@ -27,6 +27,12 @@ from .models import Prenotazione
 
 log = logging.getLogger("tana.notifiche")
 
+# Documenti allegati alle email al richiedente (D-19)
+ALLEGATI = {
+    "confermata": ("conferma", "regolamento"),
+    "chiusa": ("consuntivo",),
+}
+
 PREFISSO_OGGETTO = "[Base Aiello] "
 
 
@@ -114,15 +120,40 @@ def notifica(
             f"prenotazioni/email/{evento}.txt",
             _contesto(prenotazione, per_gestione=per_gestione, **contesto),
         )
-        messaggi.append(
-            EmailMessage(
-                PREFISSO_OGGETTO + descrizione.oggetto.format(numero=prenotazione.numero),
-                corpo,
-                to=destinatari,
-                reply_to=[settings.EMAIL_REPLY_TO],
-            )
+        email = EmailMessage(
+            PREFISSO_OGGETTO + descrizione.oggetto.format(numero=prenotazione.numero),
+            corpo,
+            to=destinatari,
+            reply_to=[settings.EMAIL_REPLY_TO],
         )
+        if not per_gestione:
+            for nome, contenuto in _allegati(prenotazione, evento):
+                email.attach(nome, contenuto, "application/pdf")
+        messaggi.append(email)
     transaction.on_commit(lambda: _invia(messaggi))
+
+
+def _allegati(prenotazione: Prenotazione, evento: str) -> list[tuple[str, bytes]]:
+    """PDF da allegare; se un PDF non si può generare l'email parte lo stesso."""
+    from tana.core.pdf import PdfNonDisponibile
+    from tana.sito.regolamento import pdf_in_vigore
+
+    from . import documenti
+
+    allegati = []
+    for tipo in ALLEGATI.get(evento, ()):
+        try:
+            if tipo == "regolamento":
+                regolamento = pdf_in_vigore()
+                if regolamento:
+                    allegati.append(regolamento)
+            else:
+                allegati.append(
+                    (documenti.nome_file(prenotazione, tipo), documenti.pdf(prenotazione, tipo))
+                )
+        except PdfNonDisponibile:
+            log.exception("Allegato %s non generato per %s", tipo, prenotazione.numero)
+    return allegati
 
 
 def _invia(messaggi: list[EmailMessage]) -> None:

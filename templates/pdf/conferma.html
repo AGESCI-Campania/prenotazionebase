@@ -1,0 +1,15 @@
+{% extends "pdf/base.html" %}
+{% load formati %}
+{% block titolo %}{{ titolo }} {{ p.numero }}{% endblock %}
+{% block contenuto %}
+<h1>Conferma di prenotazione</h1>
+<p class="nota">La prenotazione è confermata. Documento del {{ oggi|date:"j F Y"|lower }}.</p>
+{% include "pdf/_riepilogo.html" %}
+<h2>Arrivo e partenza</h2>
+<p>Arrivo dalle <b>{{ p.orario_arrivo_concordato|default:conf.orario_arrivo|time:"H:i" }}</b>{% if p.orario_arrivo_concordato %} (concordato){% endif %}, partenza entro le <b>{{ p.orario_partenza_concordato|default:conf.orario_partenza|time:"H:i" }}</b>{% if p.orario_partenza_concordato %} (concordata){% endif %}. Per arrivare prima o partire dopo accordatevi con il gruppo che lascia o che arriva.</p>
+<h2>Contributo</h2>
+{% include "pdf/_righe.html" with riepilogo=preventivo %}
+<p>Acconto versato: <b>{{ acconto_versato|euro }}</b>. Il saldo si versa a fine soggiorno.</p>
+{% if conf.iban %}<div class="riquadro">Bonifico{% if conf.intestatario_bonifico %} a {{ conf.intestatario_bonifico }}{% endif %} · IBAN {{ conf.iban }} · causale «{{ causale }}»</div>{% endif %}
+<p class="nota">Il regolamento della base è allegato all'email di conferma ed è pubblicato sul sito.</p>
+{% endblock %}

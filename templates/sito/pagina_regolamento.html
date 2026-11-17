@@ -1,0 +1,4 @@
+{% extends "sito/pagina_contenuto.html" %}
+{% block dopo_il_corpo %}
+  {% if page.pdf %}<p class="mt-7"><a class="btn-outline theme-primary" href="{{ page.pdf.url }}">Scarica il regolamento in PDF</a>{% if page.aggiornato_a %} <span class="small fg-2">aggiornato a {{ page.aggiornato_a }}</span>{% endif %}</p>{% endif %}
+{% endblock %}

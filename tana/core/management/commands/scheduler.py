@@ -7,7 +7,8 @@ Scadenze (sempre servizi di dominio):
 - richieste approvate senza ricevuta entro il termine → SCADUTA (D-13);
 - prenotazioni confermate con la partenza passata → SVOLTA (§4);
 - richieste di consenso senza risposta entro il termine → negate (D-06);
-- anonimizzazione dei dati personali dopo 10 anni (D-18).
+- anonimizzazione dei dati personali dopo 10 anni (D-18);
+- controllo giornaliero dell'ultima release per l'aggiornamento dal web (P-20).
 """
 
 import logging
@@ -19,6 +20,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import close_old_connections
 
+from tana.aggiornamenti.services import controllo_periodico
 from tana.prenotazioni.consensi import scadi_consensi
 from tana.prenotazioni.conservazione import anonimizza_scadute
 from tana.prenotazioni.flusso import scadi_acconti, segna_svolte
@@ -31,6 +33,7 @@ SCADENZE: list[Callable[[], object]] = [
     segna_svolte,
     scadi_consensi,
     anonimizza_scadute,
+    controllo_periodico,
 ]
 
 

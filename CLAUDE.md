@@ -33,8 +33,8 @@ importi o versioni. Le modifiche alla specifica le approva Andrea.
 | F3 | Flusso richiesta → approvazione → acconto → conferma, scadenze, email, login Sestante | **fatto** |
 | F4 | Area richiedente, consensi, messaggi | **fatto** |
 | F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | **fatto** |
-| F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | prossima |
-| F7 | Import SuperSaaS | |
+| F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | **fatto** (testi lunghi da Andrea) |
+| F7 | Import SuperSaaS | prossima |
 | F8 | Prova completa di installazione, aggiornamento, backup; messa in produzione | |
 
 Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
@@ -50,6 +50,8 @@ Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 - **django-allauth** (email con verifica obbligatoria, MFA, SSO Sestante via `openid_connect`),
   **django-axes**, **WhiteNoise**, **WeasyPrint** (PDF), **openpyxl** (Excel), **gunicorn**.
 - Niente Celery/Redis: le scadenze le esegue il servizio `scheduler` (`manage.py scheduler`).
+- **PDF sul Mac**: WeasyPrint vuole Pango di Homebrew; `mise.toml` imposta
+  `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib` (senza mise: esportarla prima di `uv run pytest`).
 - Interfaccia: mockup in <https://claude.ai/artifact/L1d4xoj1HZSuHkbP65uRUQ> (solo riferimento: valgono
   testi e colori, il markup è del tema). Classi Bootstrap 6.0.0-alpha.1 verificate sul CSS del CDN
   (es. non esiste `card-title`). Il footer del tema è un `{% include %}`: i suoi blocchi interni
@@ -80,6 +82,10 @@ tana/prenotazioni/ Prenotazione, PresenzaArea, Occupazione (exclusion constraint
                    conservazione.py: anonimizzazione dopo 10 anni (D-18, scheduler)
 tana/listini/      views.py: /listino/ (listini in vigore); services.nuova_versione
 tana/gestione/     area /gestione/ (views, forms), statistiche.py, export.py (xlsx/csv); templates/gestione/
+tana/sito/         Wagtail: HomePage, PaginaContenuto, PaginaStrutture, PaginaRegolamento (PDF alla
+                   pubblicazione), PaginaRiservata; blocchi P-16; inizializza.py + contenuti_iniziali.py
+tana/aggiornamenti/ aggiornamento dal web (P-20): release GitHub, richiesta.json ↔ stato.json
+tana/core/pdf.py   WeasyPrint (import pigro); documenti delle prenotazioni in tana/prenotazioni/documenti.py
 templates/         base.html (estende agesci_theme/base.html), core/manutenzione.html (statica)
 static/tana/       css/tana.css (palette), img/logo/*.svg (loghi della base, non ridisegnarli)
 deploy/            entrypoint.sh, nginx/ (Dockerfile + template dell'nginx interno)
@@ -94,7 +100,7 @@ Nuove app in `tana/<nome>/` con `label` esplicita. La logica sta nei **servizi**
 ```bash
 mise run install && mise run up && mise run migrate
 mise run dev                      # :8000 — sito /, editor /cms/, admin /django-admin/
-uv run pytest                     # test (PostgreSQL di sviluppo)
+uv run pytest                     # test (PostgreSQL di sviluppo; sul Mac serve la variabile DYLD dei PDF)
 uv run ruff check . && uv run ruff format . && uv run mypy .
 shellcheck -x scripts/*.sh deploy/entrypoint.sh
 uv run python manage.py scheduler --una-volta

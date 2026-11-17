@@ -1,0 +1,1 @@
+{% load wagtailcore_tags %}{% for blocco in corpo %}{% if blocco.block_type == "paragrafo" %}<div class="tana-paragrafo">{{ blocco.value|richtext }}</div>{% else %}{% include_block blocco %}{% endif %}{% endfor %}

@@ -14,6 +14,7 @@ urlpatterns = [
     path("<str:numero>/", views.dettaglio, name="dettaglio"),
     path("<str:numero>/ricevuta/", views.carica_ricevuta, name="carica_ricevuta"),
     path("<str:numero>/ricevute/<int:pk>/", views.ricevuta, name="ricevuta"),
+    path("<str:numero>/documenti/<str:tipo>/", views.documento, name="documento"),
     path("<str:numero>/annulla/", views.annulla, name="annulla"),
     path("<str:numero>/messaggi/", views.scrivi, name="scrivi"),
     path("<str:numero>/telefono/<str:altro>/", views.chiedi_telefono, name="chiedi_telefono"),

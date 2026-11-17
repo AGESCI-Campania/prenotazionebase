@@ -1,0 +1,13 @@
+{% extends "pdf/base.html" %}
+{% load wagtailcore_tags %}
+{% block titolo %}Regolamento della base{% endblock %}
+{% block contenuto %}
+<h1>{{ page.title }}</h1>
+<p class="nota">{% if page.aggiornato_a %}Aggiornato a {{ page.aggiornato_a }} · {% endif %}versione pubblicata il {{ data|date:"j F Y"|lower }}</p>
+{% for blocco in page.corpo %}
+  {% if blocco.block_type == "titolo" %}<h2>{{ blocco.value }}</h2>
+  {% elif blocco.block_type == "paragrafo" %}{{ blocco.value|richtext }}
+  {% elif blocco.block_type == "citazione" %}<blockquote>{{ blocco.value.testo }}{% if blocco.value.autore %} — {{ blocco.value.autore }}{% endif %}</blockquote>
+  {% endif %}
+{% endfor %}
+{% endblock %}

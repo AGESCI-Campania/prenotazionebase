@@ -18,6 +18,9 @@ from tana.prenotazioni.views_pubbliche import disponibilita
 
 urlpatterns = [
     path("healthz/", core_views.healthz, name="healthz"),
+    path("manifest.webmanifest", core_views.manifest, name="manifest"),
+    path("sw.js", core_views.service_worker, name="service_worker"),
+    path("senza-rete/", core_views.senza_rete, name="senza_rete"),
     path("django-admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("cms/", include(wagtailadmin_urls)),

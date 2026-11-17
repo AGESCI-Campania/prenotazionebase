@@ -444,6 +444,14 @@ def acconto_versato(prenotazione: Prenotazione) -> int:
     return somma or 0
 
 
+def totale_versato(prenotazione: Prenotazione) -> int:
+    """Tutti i pagamenti verificati (acconto e saldo)."""
+    somma = prenotazione.pagamenti.filter(stato=Pagamento.StatoPagamento.VERIFICATO).aggregate(
+        totale=Sum("importo_centesimi")
+    )["totale"]
+    return somma or 0
+
+
 def saldo(prenotazione: Prenotazione) -> int | None:
     """Saldo da incassare: totale del consuntivo meno l'acconto versato (§5.2)."""
     totale = riepilogo(prenotazione, Fase.CONSUNTIVO).totale

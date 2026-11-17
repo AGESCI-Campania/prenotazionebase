@@ -41,6 +41,12 @@ services:
     environment:
       <<: *app-env
       ESEGUI_MIGRAZIONI: "1"        # solo il web applica le migrazioni all'avvio (entrypoint)
+    volumes:
+      - ./logs:/app/logs
+      - tana_media:/app/media
+      - tana_privati:/app/privati
+      # Aggiornamento dal web (P-20): Django scrive solo richiesta.json, l'host la esegue
+      - ./aggiornamenti:/app/aggiornamenti
     healthcheck:
       # Host e X-Forwarded-Proto come li manda Caddy: altrimenti ALLOWED_HOSTS o il redirect HTTPS
       test:

@@ -27,10 +27,13 @@ INSTALLED_APPS = [
     "tana.listini",
     "tana.prenotazioni",
     "tana.gestione",
+    "tana.sito",
+    "tana.aggiornamenti",
     # Tema regionale (prima di allauth e dell'admin: sovrascrive i loro template)
     "agesci_theme",
     # Wagtail (sito della base, D-30)
     "wagtail.contrib.forms",
+    "wagtail.contrib.settings",
     "wagtail.contrib.redirects",
     "wagtail.embeds",
     "wagtail.sites",
@@ -93,6 +96,8 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "agesci_theme.context_processors.agesci_theme",
                 "tana.gestione.context_processors.menu",
+                "tana.sito.context_processors.menu",
+                "wagtail.contrib.settings.context_processors.settings",
             ],
         },
     }
@@ -161,6 +166,13 @@ WAGTAILADMIN_BASE_URL = BASE_URL
 WAGTAIL_I18N_ENABLED = False
 WAGTAILSEARCH_BACKENDS = {"default": {"BACKEND": "wagtail.search.backends.database"}}
 WAGTAILDOCS_EXTENSIONS = ["pdf"]
+# Editor (P-15) con il login di Tana (Sestante o superutente); password gestite da allauth
+WAGTAILADMIN_LOGIN_URL = "account_login"
+# Chi è già collegato ma non può entrare nell'editor vede la pagina di accesso (per cambiare
+# utente) invece di essere rimandato all'editor: niente ciclo di reindirizzamenti
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+WAGTAIL_PASSWORD_MANAGEMENT_ENABLED = False
+WAGTAIL_PASSWORD_RESET_ENABLED = False
 
 # --- allauth (D-15, D-28) ---------------------------------------------------------------
 ACCOUNT_LOGIN_METHODS = {"email"}
@@ -228,6 +240,11 @@ DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="Tana <prenotazioni@a
 SERVER_EMAIL = env.str("SERVER_EMAIL", default="prenotazioni@agescicampania.net")
 EMAIL_REPLY_TO = env.str("EMAIL_REPLY_TO", default="baseaiellodelsabato@campania.agesci.it")
 ADMINS = env.list("ADMIN_EMAILS", default=[])  # indirizzi, non più coppie (nome, email)
+
+# --- Aggiornamento dal web (P-20) -------------------------------------------------------
+# Bind mount di /opt/prenotazionebase/aggiornamenti: Django scrive solo richiesta.json
+AGGIORNAMENTI_DIR = BASE_DIR / "aggiornamenti"
+AGGIORNAMENTI_CONTROLLO_RELEASE = True  # controllo giornaliero dell'ultima release su GitHub
 
 # --- Scheduler (P-07, P-11) -------------------------------------------------------------
 SCHEDULER_INTERVALLO = env.int("SCHEDULER_INTERVALLO", default=300)  # secondi

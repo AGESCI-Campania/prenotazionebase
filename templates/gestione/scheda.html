@@ -135,6 +135,11 @@
     </div></div>
 
     <div class="card mt-5"><div class="card-body">
+      <h2 class="fs-lg">Documenti</h2>
+      <ul class="list-unstyled small mb-0">{% for tipo, nome in documenti %}<li class="mb-3"><a href="{% url 'prenotazioni:documento' p.numero tipo %}" target="_blank" rel="noopener">{{ nome }} (PDF)</a></li>{% endfor %}</ul>
+    </div></div>
+
+    <div class="card mt-5"><div class="card-body">
       <h2 class="fs-lg">Orari</h2>
       <p class="small">Standard: arrivo {{ conf.orario_arrivo|time:"H:i" }}, partenza {{ conf.orario_partenza|time:"H:i" }}.</p>
       {% if puo.pattuglia and modificabile %}

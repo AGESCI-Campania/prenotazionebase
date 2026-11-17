@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+{% block titolo_pagina %}{{ page.seo_title|default:page.title }} · {% endblock %}
+{% block head_pagina %}{% if page.riassunto %}<meta name="description" content="{{ page.riassunto }}">{% endif %}{% endblock %}
+{% block content %}
+<article class="tana-pagina">
+  <h1>{{ page.title }}</h1>
+  {% include "sito/_corpo.html" with corpo=page.corpo %}
+  {% block dopo_il_corpo %}{% endblock %}
+</article>
+{% endblock %}
