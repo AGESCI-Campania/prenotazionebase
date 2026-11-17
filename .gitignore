@@ -20,12 +20,12 @@ htmlcov/
 .env.prod
 
 # Server: backup (scripts/aggiorna.sh, scripts/backup.sh), log, aggiornamenti dal web
-backups/
-logs/
-aggiornamenti/
+/backups/
+/logs/
+/aggiornamenti/
 
 # Dati reali: export SuperSaaS e file di revisione dell'import (contengono dati personali)
-dati/
+/dati/
 *.csv
 *.xlsx
 !fixtures/*.csv
