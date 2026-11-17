@@ -443,6 +443,9 @@ Decisa il 17/11/2026 (prova completa del sistema, import compreso, prima dell'ap
 - Mentre è attiva **prenota solo la gestione** (Pattuglia, amministratore, responsabile); gli altri
   vedono al posto del modulo un messaggio di prenotazioni non ancora aperte. Il controllo è nel
   servizio che crea la richiesta. L'import (§7) si può provare.
+- **Registrazioni** con email e password **chiuse**: la pagina «Registrati» mostra il messaggio e
+  il pulsante SSO; il primo accesso con Sestante crea l'account normalmente. Gli account esistenti
+  entrano come sempre.
 - **Email**: alla gestione partono normalmente; al richiedente **solo verso utenti con un ruolo**
   (mai ai referenti veri, es. delle prenotazioni importate, nemmeno dalle scadenze dello
   scheduler); oggetto con «[DEMO]». Nelle pagine di gestione un avviso ricorda la modalità.

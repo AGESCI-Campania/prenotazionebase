@@ -1,6 +1,7 @@
 {% load socialaccount %}
 {% comment %}Accesso con i servizi esterni (Sestante) come pulsanti a tutta larghezza, come in Plancia.
-Il POST salta la pagina intermedia di conferma di allauth.{% endcomment %}
+Il POST salta la pagina intermedia di conferma di allauth. `senza_separatore`: senza la riga
+«oppure con email e password» (pagine senza il modulo).{% endcomment %}
 {% get_providers as socialaccount_providers %}
 {% if socialaccount_providers %}
   <div class="d-grid gap-3">
@@ -11,5 +12,5 @@ Il POST salta la pagina intermedia di conferma di allauth.{% endcomment %}
       </form>
     {% endfor %}
   </div>
-  <p class="tana-separatore small">oppure con email e password</p>
+  {% if not senza_separatore %}<p class="tana-separatore small">oppure con email e password</p>{% endif %}
 {% endif %}

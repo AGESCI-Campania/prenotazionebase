@@ -185,6 +185,7 @@ SOCIALACCOUNT_AUTO_SIGNUP = False  # auto-signup solo per Sestante, nell'adapter
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+ACCOUNT_ADAPTER = "tana.accounts.adapters.TanaAccountAdapter"
 SOCIALACCOUNT_ADAPTER = "tana.accounts.adapters.TanaSocialAccountAdapter"
 MFA_ADAPTER = "tana.accounts.adapters.TanaMFAAdapter"
 MFA_SUPPORTED_TYPES = ["totp", "recovery_codes"]

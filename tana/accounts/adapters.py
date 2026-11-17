@@ -7,6 +7,7 @@ l'esistenza di un account Sestante collegato.
 
 from typing import Any
 
+from allauth.account.adapter import DefaultAccountAdapter
 from allauth.core import context as allauth_context
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.mfa.adapter import DefaultMFAAdapter
@@ -52,12 +53,28 @@ def _rifiuta(request: Any, messaggio: str) -> None:
     raise ImmediateHttpResponse(HttpResponseRedirect(reverse("account_login")))
 
 
+class TanaAccountAdapter(DefaultAccountAdapter):
+    def is_open_for_signup(self, request: Any) -> bool:
+        # In modalità demo (D-32) niente registrazioni con email e password: prenota solo la
+        # gestione, che entra con Sestante
+        from tana.base.models import Configurazione
+
+        return not Configurazione.corrente().modalita_demo
+
+
 class TanaSocialAccountAdapter(DefaultSocialAccountAdapter):
     """Sestante: provisioning automatico, collegamento per email, ruoli globali dal claim
     `groups` e immagine del profilo dal claim `picture` a ogni login. Altri provider (se mai aggiunti): solo collegamento."""
 
     def is_auto_signup_allowed(self, request: Any, sociallogin: Any) -> bool:
         return sociallogin.account.provider == PROVIDER_SESTANTE
+
+    def is_open_for_signup(self, request: Any, sociallogin: Any) -> bool:
+        # Il primo accesso con Sestante crea l'account anche in demo (la registrazione con
+        # email e password invece è chiusa: TanaAccountAdapter)
+        if sociallogin.account.provider == PROVIDER_SESTANTE:
+            return True
+        return super().is_open_for_signup(request, sociallogin)
 
     def pre_social_login(self, request: Any, sociallogin: Any) -> None:
         if sociallogin.account.provider != PROVIDER_SESTANTE:

@@ -2,6 +2,7 @@ import pytest
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import storages
+from django.urls import reverse
 
 from tana.base.models import Area, Configurazione
 from tana.core.models import EventoStorico
@@ -86,3 +87,28 @@ def test_al_termine_si_cancella_tutto(
 
 def _area():
     return Area.objects.get(codice="ACC")
+
+
+def test_in_demo_registrazione_chiusa_tranne_sestante(admin, client, settings):
+    from tana.accounts.adapters import TanaSocialAccountAdapter
+    from tana.accounts.models import User
+    from tana.accounts.tests.test_ruoli_sso import PROVIDER_SESTANTE, richiesta, social_login
+
+    settings.SOCIALACCOUNT_PROVIDERS = PROVIDER_SESTANTE
+    pagina = client.get(reverse("account_signup")).content.decode()
+    # Fuori dalla demo: modulo aperto, con il pulsante SSO prima del modulo
+    assert pagina.index("Accedi con SSO AGESCI Campania") < pagina.index('name="password1"')
+    demo.attiva(utente=admin)
+    pagina = client.get(reverse("account_signup")).content.decode()
+    assert "Le registrazioni non sono ancora aperte" in pagina and "password1" not in pagina
+    assert "Accedi con SSO AGESCI Campania" in pagina and "oppure con email" not in pagina
+    dati = {
+        "email": "nuovo@example.org",
+        "password1": "una-Password-lunga1",
+        "password2": "una-Password-lunga1",
+    }
+    client.post(reverse("account_signup"), dati)
+    assert not User.objects.filter(email="nuovo@example.org").exists()
+    # Il primo accesso con Sestante crea comunque l'account
+    adapter = TanaSocialAccountAdapter()
+    assert adapter.is_open_for_signup(richiesta(), social_login("capo@example.org"))
