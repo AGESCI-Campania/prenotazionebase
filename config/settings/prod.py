@@ -61,6 +61,12 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {"semplice": {"format": "{asctime} {levelname} {name}: {message}", "style": "{"}},
+    "filters": {
+        "non_manutenzione": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": "ext://tana.core.log.non_manutenzione",
+        }
+    },
     "handlers": {
         "console": {"class": "logging.StreamHandler", "formatter": "semplice"},
         "file": {
@@ -70,7 +76,11 @@ LOGGING = {
             "backupCount": 5,
             "formatter": "semplice",
         },
-        "mail_admins": {"class": "django.utils.log.AdminEmailHandler", "level": "ERROR"},
+        "mail_admins": {
+            "class": "django.utils.log.AdminEmailHandler",
+            "level": "ERROR",
+            "filters": ["non_manutenzione"],
+        },
     },
     "root": {"handlers": ["console", "file"], "level": "INFO"},
     "loggers": {
