@@ -172,10 +172,10 @@ docker compose exec web uv run python manage.py sendtestemail <indirizzo>
 
 1. `https://<TANA_HOST>/accounts/login/` con il superutente di emergenza; configurare subito la MFA.
 2. Primo login con Sestante di un account di gestione.
-3. Assegnazione dei ruoli locali (Pattuglia, Amministratore, Responsabile, Redazione): per ora da
-   `/django-admin/` → Utenti → utente → Nomine (l'area della segreteria arriva in F5). Ogni ruolo
-   è anche un gruppo con lo stesso nome; il permesso «Riceve le notifiche di gestione» è assegnato
-   di default ad Amministratore e Responsabile e si sposta da Gruppi.
+3. Assegnazione dei ruoli locali (Pattuglia, Responsabile, Redazione) da `/gestione/utenti/`; gli
+   utenti di gestione compaiono dopo il loro primo accesso con Sestante. Ogni ruolo è anche un
+   gruppo con lo stesso nome; il permesso «Riceve le notifiche di gestione» è assegnato di default
+   ad Amministratore e Responsabile e si sposta da `/django-admin/` → Gruppi.
 4. Prove SSO del contratto: utente nuovo, utente esistente collegato per email, membro di
    `segreteria`, utente senza gruppi.
 
