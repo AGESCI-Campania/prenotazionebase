@@ -29,7 +29,8 @@ def ruoli_attivi(utente: User) -> set[str]:
 def allinea_gruppi(utente: User) -> None:
     """L'utente è nei gruppi dei ruoli con almeno una nomina attiva, e solo in quelli.
 
-    L'amministrazione entra anche nell'admin Django (strutture e categorie): `is_staff`.
+    Nell'admin Django entra solo il superutente tecnico (`is_staff`): strutture e categorie si
+    modificano nell'editor del sito e nella gestione.
     """
     attivi = ruoli_attivi(utente)
     for ruolo in Ruolo:
@@ -37,7 +38,7 @@ def allinea_gruppi(utente: User) -> None:
             utente.groups.add(gruppo(ruolo))
         else:
             utente.groups.remove(gruppo(ruolo))
-    staff = utente.is_superuser or bool(attivi & {Ruolo.AMMINISTRATORE, Ruolo.RESPONSABILE})
+    staff = utente.is_superuser
     if utente.is_staff != staff:
         utente.is_staff = staff
         utente.save(update_fields=["is_staff"])

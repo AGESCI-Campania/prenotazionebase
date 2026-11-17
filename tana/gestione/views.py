@@ -871,13 +871,19 @@ def utenti(request: HttpRequest) -> HttpResponse:
                 nomina(utente, form.cleaned_data["ruolo"], assegnata_da=request.user)
                 messages.success(request, f"Ruolo assegnato a {utente}.")
                 return redirect("gestione:utenti")
-    nomine = (
+    # Una riga per utente, con tutti i suoi ruoli (i permessi dei ruoli si sommano)
+    per_utente: dict[User, list[Nomina]] = defaultdict(list)
+    for n in (
         Nomina.objects.filter(attiva=True)
         .select_related("utente")
-        .order_by("ruolo", "utente__email")
-    )
+        .order_by("utente__email", "ruolo")
+    ):
+        per_utente[n.utente].append(n)
     return _render(
-        request, "gestione/utenti.html", "utenti", {"form": form, "nomine": nomine, "ruoli": Ruolo}
+        request,
+        "gestione/utenti.html",
+        "utenti",
+        {"form": form, "utenti": list(per_utente.items()), "ruoli": Ruolo},
     )
 
 

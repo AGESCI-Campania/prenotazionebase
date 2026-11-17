@@ -2,16 +2,18 @@
 {% block titolo_pagina %}Utenti e ruoli · {% endblock %}
 {% block content %}
 <h1>Utenti e ruoli</h1>
-<p class="fg-2">Ruoli locali di Tana, assegnati dalla segreteria agli account entrati con Sestante. I ruoli globali (amministratore, segreteria) arrivano da Sestante e si cambiano lì.</p>
+<p class="fg-2">Ruoli locali di Tana, assegnati dalla segreteria agli account entrati con Sestante. I ruoli globali (amministratore, segreteria) arrivano da Sestante e si cambiano lì. Chi ha più ruoli ha i permessi di tutti.</p>
 <div class="row g-7">
   <div class="lg:col-7">
     <div class="table-responsive"><table class="table">
-      <thead><tr><th>Utente</th><th>Ruolo</th><th></th></tr></thead>
+      <thead><tr><th>Utente</th><th>Ruoli</th></tr></thead>
       <tbody>
-        {% for n in nomine %}
-          <tr><td>{{ n.utente }}</td><td>{{ n.get_ruolo_display }}{% if n.da_sso %} <span class="badge theme-info">Sestante</span>{% endif %}</td>
-            <td class="text-end">{% if not n.da_sso %}<form method="post">{% csrf_token %}<button class="btn-subtle theme-danger" name="revoca" value="{{ n.pk }}">revoca</button></form>{% endif %}</td></tr>
-        {% empty %}<tr><td colspan="3" class="fg-2">Nessun ruolo assegnato.</td></tr>{% endfor %}
+        {% for utente, nomine in utenti %}
+          <tr><td>{{ utente }}</td>
+            <td><ul class="list-unstyled mb-0">{% for n in nomine %}
+              <li class="d-flex flex-wrap align-items-center gap-3">{{ n.get_ruolo_display }}{% if n.da_sso %} <span class="badge theme-info">Sestante</span>{% else %}<form method="post">{% csrf_token %}<button class="btn-subtle theme-danger" name="revoca" value="{{ n.pk }}" aria-label="Revoca {{ n.get_ruolo_display }} a {{ utente }}">revoca</button></form>{% endif %}</li>
+            {% endfor %}</ul></td></tr>
+        {% empty %}<tr><td colspan="2" class="fg-2">Nessun ruolo assegnato.</td></tr>{% endfor %}
       </tbody>
     </table></div>
   </div>

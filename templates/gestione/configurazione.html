@@ -21,6 +21,8 @@
   {% for field in form.hidden_fields %}{{ field }}{% endfor %}
   <button class="btn-solid theme-primary" type="submit">Salva</button>
 </div></form>
+{# Solo se attiva (per terminarla) o attivabile (nessuna prenotazione) #}
+{% if demo or not prenotazioni %}
 <div class="card mt-7"><div class="card-body">
   <h2 class="fs-lg">Modalità demo</h2>
   <p class="form-text">Per provare il sistema prima dell'apertura: mentre è attiva prenotano solo Pattuglia, amministratore e responsabile (gli altri vedono le prenotazioni non ancora aperte), si può provare l'import; le email alla gestione partono normalmente, quelle ai richiedenti solo verso utenti con un ruolo (mai ai referenti delle prenotazioni importate). Al termine si cancellano <b>tutte</b> le prenotazioni, con pagamenti, ricevute, messaggi e storico; account, listini, configurazione e date bloccate restano.</p>
@@ -32,10 +34,9 @@
       </div>
       <button class="btn-solid theme-danger" type="submit" name="azione" value="termina">Termina la demo</button>
     </form>
-  {% elif prenotazioni %}
-    <p class="mb-0">Si attiva solo quando non ci sono prenotazioni: ora ce ne sono {{ prenotazioni }}.</p>
   {% else %}
     <form method="post" action="{% url 'gestione:demo' %}">{% csrf_token %}<button class="btn-outline theme-primary" type="submit" name="azione" value="attiva">Attiva la modalità demo</button></form>
   {% endif %}
 </div></div>
+{% endif %}
 {% endblock %}

@@ -267,14 +267,13 @@ def test_nuova_versione_copia_le_voci():
     assert VersioneListino.objects.filter(listino=associativo).count() == 2
 
 
-def test_amministrazione_entra_nell_admin_django():
+def test_admin_django_solo_al_superutente():
     utente = User.objects.create_user("capo@example.org")
-    nomina(utente, Ruolo.PATTUGLIA)
-    assert not utente.is_staff
+    utente.is_staff = True  # come prima della v1.0.7
+    utente.save()
     nomina(utente, Ruolo.RESPONSABILE)
     utente.refresh_from_db()
-    assert utente.is_staff and utente.has_perm("base.change_struttura")
-    assert utente.has_perm("listini.add_categoria")
+    assert not utente.is_staff and utente.has_perm("base.change_struttura")
     revoca(utente, Ruolo.RESPONSABILE)
     utente.refresh_from_db()
     assert not utente.is_staff

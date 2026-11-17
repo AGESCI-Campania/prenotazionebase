@@ -9,11 +9,12 @@ from django.urls import reverse
 from openpyxl import load_workbook
 
 from tana.accounts.models import Nomina, Ruolo, User
+from tana.accounts.services import nomina
 from tana.base.models import Area, Configurazione
 from tana.gestione import statistiche
 from tana.listini.models import Categoria, VersioneListino
 from tana.prenotazioni import contributo, flusso
-from tana.prenotazioni.models import BloccoTecnico, Pagamento, Prenotazione, Stato
+from tana.prenotazioni.models import BloccoTecnico, Contatto, Pagamento, Prenotazione, Stato
 from tana.prenotazioni.services import sincronizza_occupazioni
 from tana.prenotazioni.tests.utils import EURO, richiesta, tra, utente_con
 
@@ -292,6 +293,12 @@ def test_ruoli_dalla_segreteria(segreteria):
     assert not Nomina.objects.filter(utente=utente, attiva=True).exists()
     c.post(reverse("gestione:utenti"), {"email": "nessuno@example.org", "ruolo": Ruolo.PATTUGLIA})
     assert Nomina.objects.filter(attiva=True).count() == 1  # solo quella della segreteria
+    # Più ruoli: una sola riga per l'utente
+    nomina(utente, Ruolo.PATTUGLIA)
+    nomina(utente, Ruolo.REDAZIONE)
+    pagina = c.get(reverse("gestione:utenti")).content.decode()
+    assert pagina.count("<td>capo@example.org</td>") == 1
+    assert "Pattuglia" in pagina and "Redazione" in pagina
 
 
 # --- Report -----------------------------------------------------------------------------
@@ -429,6 +436,10 @@ def test_modalita_demo_dalla_configurazione(admin, pattuglia, richiedente, conta
     c.post(url, {"azione": "termina", "conferma": "1"})
     assert not Prenotazione.objects.exists()
     assert not Configurazione.corrente().modalita_demo
+    # Con prenotazioni la demo non è attivabile: il riquadro non c'è (il contatto di prima
+    # è stato cancellato con la demo)
+    richiesta(richiedente, Contatto.objects.create(nome="Referente", email="r@example.org"))
+    assert "Modalità demo" not in c.get(reverse("gestione:configurazione")).content.decode()
 
 
 def test_link_nel_messaggio_di_blocco(richiedente):

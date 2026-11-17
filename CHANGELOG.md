@@ -5,6 +5,16 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Correzioni
+
+- Niente più email agli amministratori per i 503 durante gli aggiornamenti (es. `/manifest.webmanifest`, `/sw.js`): il logger `django` della configurazione di default di Django ne mandava una sua copia senza filtro, e gli altri errori arrivavano doppi.
+
+### Modifiche
+
+- Utenti e ruoli: una riga per utente con tutti i suoi ruoli.
+- Configurazione: il riquadro della modalità demo compare solo quando si può attivare (nessuna prenotazione) o è già attiva.
+- L'admin Django è riservato al superutente di emergenza: amministratore e responsabile non vi accedono più (strutture e categorie sono nell'editor del sito e nella gestione). Una migrazione toglie l'accesso agli account esistenti.
+
 ## v1.0.6 — 2026-11-17
 
 ### Novità

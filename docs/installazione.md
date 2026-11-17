@@ -177,7 +177,8 @@ docker compose exec web uv run python manage.py sendtestemail <indirizzo>
 3. Assegnazione dei ruoli locali (Pattuglia, Responsabile, Redazione) da `/gestione/utenti/`; gli
    utenti di gestione compaiono dopo il loro primo accesso con Sestante. Ogni ruolo è anche un
    gruppo con lo stesso nome; il permesso «Riceve le notifiche di gestione» è assegnato di default
-   ad Amministratore e Responsabile e si sposta da `/django-admin/` → Gruppi.
+   ad Amministratore e Responsabile e si sposta da `/django-admin/` → Gruppi (solo con il
+   superutente di emergenza: i ruoli non entrano nell'admin Django).
 4. Prove SSO del contratto: utente nuovo, utente esistente collegato per email, membro di
    `segreteria`, utente senza gruppi.
 

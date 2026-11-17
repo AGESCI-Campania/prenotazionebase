@@ -132,9 +132,9 @@ CATEGORIE = (
 
 
 # Permessi iniziali dei gruppi dei ruoli, assegnati solo quando il gruppo si crea: poi li
-# modifica l'amministratore (es. chi riceve le notifiche di gestione)
-# Strutture (snippet nell'editor del sito, D-12) e categorie (admin Django)
-_ADMIN_DJANGO = tuple(
+# modifica il superutente dall'admin Django (es. chi riceve le notifiche di gestione)
+# Strutture (snippet nell'editor del sito, D-12) e categorie (area di gestione)
+_STRUTTURE_E_CATEGORIE = tuple(
     f"{app}.{azione}_{modello}"
     for app, modello in (("base", "struttura"), ("listini", "categoria"))
     for azione in ("view", "add", "change", "delete")
@@ -142,8 +142,16 @@ _ADMIN_DJANGO = tuple(
 # Editor del sito (P-15): Redazione, e anche amministratore e responsabile
 _EDITOR = ("wagtailadmin.access_admin", "sito.change_impostazionisito")
 PERMESSI_DEI_RUOLI: dict[str, tuple[str, ...]] = {
-    Ruolo.AMMINISTRATORE: ("prenotazioni.ricevi_notifiche_gestione", *_ADMIN_DJANGO, *_EDITOR),
-    Ruolo.RESPONSABILE: ("prenotazioni.ricevi_notifiche_gestione", *_ADMIN_DJANGO, *_EDITOR),
+    Ruolo.AMMINISTRATORE: (
+        "prenotazioni.ricevi_notifiche_gestione",
+        *_STRUTTURE_E_CATEGORIE,
+        *_EDITOR,
+    ),
+    Ruolo.RESPONSABILE: (
+        "prenotazioni.ricevi_notifiche_gestione",
+        *_STRUTTURE_E_CATEGORIE,
+        *_EDITOR,
+    ),
     Ruolo.REDAZIONE: _EDITOR,
 }
 RUOLI_EDITOR = (Ruolo.AMMINISTRATORE, Ruolo.RESPONSABILE, Ruolo.REDAZIONE)

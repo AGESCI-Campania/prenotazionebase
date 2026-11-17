@@ -7,6 +7,8 @@ from pathlib import Path
 
 from django.utils.csp import CSP
 
+from tana.core.log import configurazione as configurazione_logging
+
 from .base import *  # noqa: F401,F403
 from .base import BASE_DIR, env
 
@@ -57,33 +59,4 @@ AXES_CLIENT_IP_CALLABLE = "tana.core.rete.ip_client_dietro_proxy"
 LOG_DIR = Path(env.str("LOG_DIR", default=str(BASE_DIR / "logs")))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {"semplice": {"format": "{asctime} {levelname} {name}: {message}", "style": "{"}},
-    "filters": {
-        "non_manutenzione": {
-            "()": "django.utils.log.CallbackFilter",
-            "callback": "ext://tana.core.log.non_manutenzione",
-        }
-    },
-    "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "semplice"},
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(LOG_DIR / "tana.log"),
-            "maxBytes": 5 * 1024 * 1024,
-            "backupCount": 5,
-            "formatter": "semplice",
-        },
-        "mail_admins": {
-            "class": "django.utils.log.AdminEmailHandler",
-            "level": "ERROR",
-            "filters": ["non_manutenzione"],
-        },
-    },
-    "root": {"handlers": ["console", "file"], "level": "INFO"},
-    "loggers": {
-        "django.request": {"handlers": ["mail_admins"], "level": "ERROR", "propagate": True}
-    },
-}
+LOGGING = configurazione_logging(LOG_DIR)
