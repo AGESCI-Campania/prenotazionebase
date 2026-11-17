@@ -1,6 +1,6 @@
 [project]
 name = "tana"
-version = "0.9.0"
+version = "0.9.1"
 description = "Tana - Prenotazioni e sito della Base Scout «Gianni Sabatino» di Aiello del Sabato, AGESCI Campania"
 readme = "README.md"
 license = "MIT"
@@ -35,7 +35,7 @@ dev = [
 [tool.uv]
 package = false
 # Il tema 3.x è una pre-release (Bootstrap 6 alpha): solo lui, non tutte le dipendenze
-prerelease = "if-necessary-or-explicit"
+prerelease = "explicit"
 
 [tool.ruff]
 line-length = 100

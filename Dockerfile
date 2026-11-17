@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 # Librerie di sistema per WeasyPrint (PDF) e Pillow
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libffi8 \
+        libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libharfbuzz-subset0 libffi8 \
         libjpeg62-turbo zlib1g fonts-dejavu \
     && rm -rf /var/lib/apt/lists/*
 

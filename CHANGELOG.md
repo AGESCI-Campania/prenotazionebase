@@ -5,6 +5,15 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v0.9.1 — 2026-11-17
+
+Seconda release di prova (F8): aggiornamento da v0.9.0 e ritorno indietro.
+
+### Correzioni
+- Immagine: `libharfbuzz-subset0` per WeasyPrint (senza, i PDF usano un ripiego deprecato).
+- uv: modalità pre-release `explicit` al posto di `if-necessary-or-explicit`, deprecata (il tema
+  resta alla versione alpha fissata).
+
 ## v0.9.0 — 2026-11-17
 
 Prima release di prova (F8): installazione, aggiornamento e backup su un server pulito.
