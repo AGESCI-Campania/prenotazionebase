@@ -1,0 +1,66 @@
+[project]
+name = "tana"
+version = "0.1.0"
+description = "Tana - Prenotazioni e sito della Base Scout «Gianni Sabatino» di Aiello del Sabato, AGESCI Campania"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Andrea Bruno" }]
+requires-python = ">=3.14"
+dependencies = [
+    "django>=6.1.3,<6.2",
+    "wagtail>=8.1,<9",
+    "django-agesci-campania-theme[allauth]==3.0.0a3",
+    "django-allauth[mfa,socialaccount]>=65.22.1",
+    "django-axes>=9.0",
+    "django-environ>=0.14",
+    "psycopg[binary]>=3.3.9",
+    "gunicorn>=27.0.1",
+    "whitenoise>=6.12",
+    "weasyprint>=70",
+    "openpyxl>=3.1",
+    "pillow>=13.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.5",
+    "pytest>=9.2",
+    "pytest-django>=4.14",
+    "factory-boy>=3.3",
+    "mypy>=2.4",
+    "django-stubs>=6.1.2",
+    "pre-commit>=4.7",
+]
+
+[tool.uv]
+package = false
+# Il tema 3.x è una pre-release (Bootstrap 6 alpha): solo lui, non tutte le dipendenze
+prerelease = "if-necessary-or-explicit"
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+extend-exclude = ["*/migrations/*", "docs/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+filterwarnings = ["ignore:No directory at:UserWarning"]
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+exclude = ["/migrations/"]
+
+[[tool.mypy.overrides]]
+module = [
+    "allauth.*", "axes.*", "environ.*", "openpyxl.*", "weasyprint.*", "wagtail.*",
+    "agesci_theme.*", "modelcluster.*", "modelsearch.*", "taggit.*", "treebeard.*",
+]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"

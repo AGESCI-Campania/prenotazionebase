@@ -1,0 +1,131 @@
+# Tana — produzione: stack completo dietro il reverse proxy Caddy di agesci-campania-web-frontend.
+# Unico ingresso: il servizio nginx (solo HTTP) sulla rete esterna agesci-proxy, alias tana-nginx;
+# nessuna porta pubblicata. Regole:
+# https://raw.githubusercontent.com/AGESCI-Campania/agesci-campania-web-frontend/main/docs/INTEGRAZIONE.md
+#
+# Installazione e aggiornamento: scripts/installa.sh e scripts/aggiorna.sh (variabili in .env,
+# creato da .env.template). Avvio al boot: unit systemd prenotazionebase.service
+# (docker compose up -d --wait). Guida: docs/installazione.md.
+
+x-app-env: &app-env
+  DJANGO_SETTINGS_MODULE: config.settings.prod
+  DATABASE_URL: postgres://${POSTGRES_USER:-tana}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD mancante in .env}@db:5432/${POSTGRES_DB:-tana}
+  MEDIA_ROOT: /app/media
+  PRIVATE_MEDIA_ROOT: /app/privati
+  LOG_DIR: /app/logs
+
+# Un'unica immagine, costruita dal servizio web e riusata dallo scheduler: mai da un registry.
+x-app: &app
+  image: tana:locale
+  pull_policy: never
+  env_file: [.env]
+  environment:
+    <<: *app-env
+  volumes:
+    - ./logs:/app/logs
+    - tana_media:/app/media
+    - tana_privati:/app/privati
+  depends_on:
+    db:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  web:
+    <<: *app
+    build:
+      context: .
+      args:
+        APP_UID: ${APP_UID:-1000}     # esportati da scripts/_tana.sh (uid/gid di agesci)
+        APP_GID: ${APP_GID:-1000}
+    environment:
+      <<: *app-env
+      ESEGUI_MIGRAZIONI: "1"        # solo il web applica le migrazioni all'avvio (entrypoint)
+    healthcheck:
+      # Host e X-Forwarded-Proto come li manda Caddy: altrimenti ALLOWED_HOSTS o il redirect HTTPS
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import os, urllib.request
+          host = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")[0].strip()
+          req = urllib.request.Request("http://127.0.0.1:8000/healthz/", headers={"Host": host, "X-Forwarded-Proto": "https"})
+          urllib.request.urlopen(req, timeout=5)
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s            # primo avvio: migrazioni
+
+  scheduler:
+    <<: *app
+    command: uv run python manage.py scheduler
+    depends_on:
+      web:
+        condition: service_healthy  # parte a migrazioni applicate
+    healthcheck:
+      # Il file di battito deve essere più recente di 3 intervalli (SCHEDULER_INTERVALLO)
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import os, sys, time
+          f = os.environ.get("SCHEDULER_BATTITO", "/tmp/tana-scheduler-battito")
+          limite = 3 * int(os.environ.get("SCHEDULER_INTERVALLO", "300"))
+          sys.exit(0 if os.path.exists(f) and time.time() - os.path.getmtime(f) < limite else 1)
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  nginx:
+    build:
+      context: deploy/nginx
+    image: tana-nginx:locale
+    pull_policy: never
+    environment:
+      NGINX_ENTRYPOINT_LOCAL_RESOLVERS: "1"   # vedi deploy/nginx/default.conf.template
+    volumes:
+      - tana_media:/srv/media:ro
+      - tana_privati:/srv/privati:ro
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      default:
+      agesci-proxy:
+        aliases:
+          - tana-nginx
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/nginx-health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  db:
+    image: postgres:18.7-trixie
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tana}
+      POSTGRES_USER: ${POSTGRES_USER:-tana}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD mancante in .env}
+    volumes:
+      # Dalla 18 i dati stanno in /var/lib/postgresql/18/docker (PGDATA): si monta la cartella sopra
+      - tana_db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  tana_db:
+  tana_media:
+  tana_privati:
+
+networks:
+  agesci-proxy:
+    external: true

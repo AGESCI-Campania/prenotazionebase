@@ -1,0 +1,26 @@
+# Contesto di build dell'immagine: niente segreti, dati o artefatti locali
+.git
+.env
+.env.*
+!.env.template
+!.env.dev.example
+.venv
+.idea
+.vscode
+.DS_Store
+**/__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov
+backups
+logs
+media
+privati
+staticfiles
+aggiornamenti
+dati
+tmp
+.claude
+*.csv
+*.xlsx

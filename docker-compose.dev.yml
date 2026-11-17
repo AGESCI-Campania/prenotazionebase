@@ -1,0 +1,29 @@
+# Sviluppo: solo PostgreSQL (e Mailpit) in container; Django gira sull'host
+# (uv run python manage.py runserver). Mailpit: http://localhost:8025, SMTP localhost:1025.
+services:
+  db:
+    image: postgres:18.7-trixie
+    container_name: tana_dev_db
+    environment:
+      POSTGRES_DB: tana
+      POSTGRES_USER: tana
+      POSTGRES_PASSWORD: tana
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - tana_dev_db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tana -d tana"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.33.1
+    container_name: tana_dev_mail
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+volumes:
+  tana_dev_db:

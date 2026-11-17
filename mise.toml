@@ -1,0 +1,52 @@
+# mise (facoltativo) - https://mise.jdx.dev — in alternativa Python 3.14 + uv di sistema.
+[tools]
+python = "3.14"
+uv = "latest"
+
+[env]
+# Docker o Podman: su alcune macchine `docker` è solo un alias interattivo e nei task non esiste.
+# $COMPOSE va usato senza virgolette, così la shell lo divide in due parole.
+COMPOSE = "{{ exec(command='command -v docker >/dev/null 2>&1 && echo docker compose || echo podman compose') }}"
+
+[tasks.install]
+description = "Dipendenze con uv e .env.dev di sviluppo"
+run = ["uv sync", "test -f .env.dev || cp .env.dev.example .env.dev"]
+
+[tasks.up]
+description = "Avvia PostgreSQL e Mailpit di sviluppo"
+run = "$COMPOSE -f docker-compose.dev.yml up -d"
+
+[tasks.down]
+description = "Ferma i servizi di sviluppo"
+run = "$COMPOSE -f docker-compose.dev.yml down"
+
+[tasks.migrate]
+run = "uv run python manage.py migrate"
+
+[tasks.makemigrations]
+run = "uv run python manage.py makemigrations"
+
+[tasks.dev]
+description = "Server di sviluppo su :8000"
+run = "uv run python manage.py runserver 0.0.0.0:8000"
+
+[tasks.scheduler]
+description = "Un giro delle scadenze automatiche"
+run = "uv run python manage.py scheduler --una-volta"
+
+[tasks.lint]
+run = ["uv run ruff check .", "uv run ruff format --check .", "uv run mypy ."]
+
+[tasks.format]
+run = ["uv run ruff check --fix .", "uv run ruff format ."]
+
+[tasks.test]
+run = "uv run pytest"
+
+[tasks.shellcheck]
+description = "Controllo degli script del server"
+run = "shellcheck -x scripts/*.sh deploy/entrypoint.sh"
+
+[tasks.build-prod]
+description = "Costruisce le immagini di produzione in locale (prova)"
+run = ["$COMPOSE build web", "$COMPOSE build nginx"]

@@ -1,0 +1,41 @@
+# Tana - nginx interno, solo HTTP. TLS, certificati e redirect HTTPS li gestisce Caddy
+# (agesci-campania-web-frontend), che raggiunge questo container come tana-nginx:80.
+#
+# Template dell'immagine ufficiale nginx (envsubst sulle variabili d'ambiente definite):
+# NGINX_LOCAL_RESOLVERS è il DNS del runtime container (NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1 nel
+# compose). Con il resolver e proxy_pass su variabile nginx ri-risolve "web" ogni 10 s: quando
+# aggiorna.sh ricrea il container web (nuovo IP) non resta un indirizzo vecchio in cache (502).
+resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+
+server {
+    listen 80;
+    server_name _;
+
+    # Limite effettivo degli upload (ricevute dei bonifici, immagini e PDF di Wagtail)
+    client_max_body_size 20m;
+
+    location = /nginx-health {
+        access_log off;
+        return 200 "ok\n";
+    }
+
+    # Media pubblici: solo immagini e documenti di Wagtail (volume tana_media)
+    location /media/ {
+        alias /srv/media/;
+        expires 7d;
+    }
+
+    # Allegati privati (ricevute): mai accessibili direttamente, solo con X-Accel-Redirect
+    # dopo il controllo dei permessi in Django (P-14)
+    location /protetti/ {
+        internal;
+        alias /srv/privati/;
+    }
+
+    # Tutto il resto a Django (pagine di Tana, sito Wagtail, statici con WhiteNoise)
+    location / {
+        set $app http://web:8000;
+        proxy_pass $app;
+        include /etc/nginx/templates/proxy-django.inc;
+    }
+}

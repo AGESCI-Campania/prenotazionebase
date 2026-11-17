@@ -1,0 +1,9 @@
+{% extends "agesci_theme/base.html" %}
+{% load static %}
+{# Base di tutte le pagine di Tana (applicative e del sito Wagtail): tema regionale + palette della base (P-08) #}
+{% block title %}{% block titolo_pagina %}{% endblock %}{{ agesci_theme_nome }}{% endblock %}
+{% block extra_head %}
+  <link href="{% static 'tana/css/tana.css' %}" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="{% static 'tana/img/logo/lupo-base-aiello.svg' %}">
+  {% block head_pagina %}{% endblock %}
+{% endblock %}
