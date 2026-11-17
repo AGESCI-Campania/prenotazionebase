@@ -157,6 +157,12 @@ class VoceListino(models.Model):
             raise ValidationError({"area": "Le attività in giornata non hanno un'area."})
         if not in_giornata and self.area_id is None:
             raise ValidationError({"area": "Indica l'area del campo o del bivacco."})
+        # Il conteggio (giorni o notti) dipende dall'unità: uguale in tutte le stagioni
+        altre = VoceListino.objects.filter(
+            versione_id=self.versione_id, attivita=self.attivita, area=self.area
+        ).exclude(pk=self.pk)
+        if altre.exclude(unita=self.unita).exists():
+            raise ValidationError({"unita": "Usa la stessa unità delle altre stagioni."})
 
     def _verifica_versione_modificabile(self) -> None:
         versioni = {self.versione_id}

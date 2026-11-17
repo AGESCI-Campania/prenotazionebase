@@ -29,8 +29,8 @@ importi o versioni. Le modifiche alla specifica le approva Andrea.
 | --- | --- | --- |
 | F0 | Impianto: progetto, tema, compose, script, unit systemd, guida di installazione, CI | **fatto** |
 | F1 | Modello dati, vincoli di non sovrapposizione, configurazione, listini iniziali | **fatto** |
-| F2 | Preventivo e consuntivo, test sugli esempi del §5.4 | prossima |
-| F3 | Flusso richiesta → approvazione → acconto → conferma, scadenze, email, login Sestante | |
+| F2 | Preventivo e consuntivo, test sugli esempi del §5.4 | **fatto** |
+| F3 | Flusso richiesta → approvazione → acconto → conferma, scadenze, email, login Sestante | prossima |
 | F4 | Area richiedente, consensi, messaggi | |
 | F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | |
 | F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | |
@@ -64,6 +64,7 @@ tana/accounts/     User con login via email (AUTH_USER_MODEL = "accounts.User")
 tana/base/         Area, Struttura, Configurazione (singleton)
 tana/listini/      Listino, VersioneListino (immutabile se usata), VoceListino, Categoria; versione_applicabile (D-09)
 tana/prenotazioni/ Prenotazione, PresenzaArea, Occupazione (exclusion constraint), BloccoTecnico, consensi, importi, pagamenti, messaggi
+                   contributo.py: preventivo, consuntivo, acconto, saldo, rettifiche (§5) — unica fonte degli importi
 templates/         base.html (estende agesci_theme/base.html), core/manutenzione.html (statica)
 static/tana/       css/tana.css (palette), img/logo/*.svg (loghi della base, non ridisegnarli)
 deploy/            entrypoint.sh, nginx/ (Dockerfile + template dell'nginx interno)

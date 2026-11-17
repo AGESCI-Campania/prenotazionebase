@@ -5,6 +5,16 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### F2 — preventivo e consuntivo
+- `tana.prenotazioni.contributo`: preventivo (§5.1) giorno per giorno con le stagioni, bivacco a
+  notti per i soggiorni di una notte, attività in giornata, voci "da definire" (P-04), listino
+  associativo per le categorie prioritarie non ancora concesse (P-06), versione congelata.
+- Acconto con soglia di esenzione e arrotondamento al centesimo; consuntivo con le persone
+  effettive (previste dove mancano) e la versione del preventivo; saldo.
+- Valorizzazione delle voci mancanti, voci libere e modifica della quota (D-24) con "deciso da"
+  e motivazione nello storico; preventivo congelato dopo l'acconto.
+- Prenotazione: data della richiesta (D-09). Test sugli esempi del §5.4.
+
 ### F1 — modello dati
 - App `base` (aree, strutture, configurazione), `listini` (listini con versioni e voci in
   centesimi, categorie) e `prenotazioni` (prenotazioni, presenze, occupazioni, blocchi tecnici,

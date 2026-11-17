@@ -9,7 +9,7 @@ tende), che saranno dismessi.
 - **Stato:** analisi chiusa (risposte della Pattuglia e di Andrea del 10/11/2026; sintesi v0.3
   inviata alla Pattuglia), aggiornata il 13/11/2026 per il nuovo server e il dominio
   `agescicampania.net`, il 14–15/11 per il sito in Wagtail (sintesi v0.4), il 17/11/2026 per
-  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. In sviluppo: F0 e F1 fatte.
+  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. In sviluppo: F0, F1 e F2 fatte.
 - **Repository:** `AGESCI-Campania/prenotazionebase` (il pacchetto Python resta `tana`). Licenza MIT, © Andrea Bruno.
 - **Hosting:** nuovo server dedicato Ubuntu 26.04, installazione pulita senza Virtualmin né Apache;
   Docker Compose in `/opt/prenotazionebase` (utente `agesci`), dietro il reverse proxy Caddy comune;
@@ -524,6 +524,25 @@ versato.
 
 Gli esempi per gli extra associativi dipendono dalle voci del listino extra associativo, ancora da
 configurare (D-08).
+
+### 5.5 Scelte di F2 (Andrea, 17/11/2026)
+- **Listino ordinario** di P-06: l'**associativo**, per tutte le categorie prioritarie chieste e non
+  ancora concesse.
+- **Bivacco automatico**: ogni soggiorno di **una sola notte** in un'area è un bivacco (a notti);
+  da due notti in su è un campo (a giorni). Il bivacco in tenda, senza voce, risulta "da definire".
+- Il conteggio a giorni o a notti segue l'**unità della voce** (uguale in tutte le stagioni di una
+  voce): il «pernotto extra associativo» è il campo in accantonamento a persona/notte. Il bivacco
+  extra associativo **non** usa il pernotto: resta "da definire" finché la gestione non lo inserisce.
+- **Voci da definire** (P-04): righe senza prezzo; l'amministratore le valorizza con "deciso da" e
+  motivazione, e il prezzo resta anche se il preventivo si ricalcola.
+- **Acconto** arrotondato **al centesimo** (il mezzo centesimo per eccesso); zero per le sole
+  attività in giornata.
+- **Consuntivo**: dove mancano le persone effettive si usano le previste e la riga è segnata come
+  stimata.
+- **Modifica della quota** (D-24): una riga di rettifica per la differenza, così il totale calcolato
+  resta visibile; una nuova modifica sostituisce la precedente.
+- La prenotazione ha una **data della richiesta** (D-09), di default il giorno di creazione; per lo
+  storico importato è quella reale.
 
 ---
 

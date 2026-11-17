@@ -11,8 +11,10 @@ from django.contrib.postgres.constraints import ExclusionConstraint
 from django.contrib.postgres.fields import ArrayField, DateRangeField, RangeOperators
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 
 from tana.core.storage import storage_privato
+from tana.listini.models import Attivita, VoceListino
 
 
 class Stato(models.TextChoices):
@@ -109,6 +111,11 @@ class Prenotazione(models.Model):
         verbose_name="unità presenti",
         default=list,
         blank=True,
+    )
+    data_richiesta = models.DateField(
+        "data della richiesta",
+        default=timezone.localdate,
+        help_text="Sceglie la versione di listino (D-09); per lo storico importato è quella reale.",
     )
     arrivo = models.DateField()
     partenza = models.DateField()
@@ -329,8 +336,14 @@ class RichiestaConsenso(models.Model):
 
 
 class RigaImporto(models.Model):
-    """Riga del preventivo o del consuntivo (§5). Le rettifiche dell'amministratore (D-24)
-    richiedono "deciso da" e motivazione (P-03)."""
+    """Riga del preventivo o del consuntivo (§5).
+
+    - calcolata: dal listino (si rigenera a ogni ricalcolo); prezzo vuoto se la voce manca nel
+      listino ("da definire", P-04) finché l'amministratore non la valorizza;
+    - voce libera: inserita a mano (sovrapprezzi, pellet, forfait, danni);
+    - rettifica: differenza che porta il totale all'importo deciso (D-24).
+    Rettifiche e valorizzazioni richiedono "deciso da" e motivazione (P-03).
+    """
 
     class Fase(models.TextChoices):
         PREVENTIVO = "PREVENTIVO", "preventivo"
@@ -349,12 +362,22 @@ class RigaImporto(models.Model):
         help_text="Vuota per le voci libere (sovrapprezzi, pellet, forfait, danni).",
     )
     descrizione = models.CharField(max_length=200)
+    # Chiave della voce di listino (anche quando manca): attività × area × stagione × unità
+    attivita = models.CharField("attività", max_length=20, choices=Attivita.choices, blank=True)
     area = models.ForeignKey(
         "base.Area", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
+    stagione = models.CharField(max_length=10, choices=VoceListino.Stagione.choices, blank=True)
+    unita = models.CharField("unità", max_length=20, choices=VoceListino.Unita.choices, blank=True)
     quantita = models.PositiveIntegerField("quantità", default=1)
-    prezzo_centesimi = models.IntegerField("prezzo unitario (centesimi)")
-    importo_centesimi = models.IntegerField("importo (centesimi)")
+    prezzo_centesimi = models.IntegerField(
+        "prezzo unitario (centesimi)", null=True, blank=True, help_text="Vuoto: da definire."
+    )
+    importo_centesimi = models.IntegerField("importo (centesimi)", null=True, blank=True)
+    calcolata = models.BooleanField(default=False, help_text="Generata dal listino.")
+    stimata = models.BooleanField(
+        default=False, help_text="Consuntivo con le persone previste al posto delle effettive."
+    )
     rettifica = models.BooleanField(default=False)
     deciso_da = models.CharField("deciso da", max_length=200, blank=True)
     motivazione = models.TextField(blank=True)
@@ -372,10 +395,23 @@ class RigaImporto(models.Model):
                 condition=Q(rettifica=False) | (~Q(deciso_da="") & ~Q(motivazione="")),
                 name="rettifica_con_decisione",
             ),
+            models.CheckConstraint(
+                condition=Q(prezzo_centesimi__isnull=True, importo_centesimi__isnull=True)
+                | Q(prezzo_centesimi__isnull=False, importo_centesimi__isnull=False),
+                name="riga_prezzo_e_importo_insieme",
+            ),
+            models.CheckConstraint(
+                condition=Q(calcolata=True) | Q(prezzo_centesimi__isnull=False),
+                name="riga_manuale_con_prezzo",
+            ),
         )
 
     def __str__(self) -> str:
         return self.descrizione
+
+    @property
+    def da_definire(self) -> bool:
+        return self.importo_centesimi is None
 
 
 def _percorso_ricevuta(pagamento: Pagamento, nome: str) -> str:

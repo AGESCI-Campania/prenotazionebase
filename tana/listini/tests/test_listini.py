@@ -2,6 +2,7 @@ import datetime
 import io
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError
 
@@ -164,3 +165,11 @@ def test_voce_unica_anche_senza_area(dati_iniziali):
             unita=VoceListino.Unita.PERSONA_GIORNO,
             importo_centesimi=400,
         )
+
+
+def test_stessa_unita_in_tutte_le_stagioni(dati_iniziali):
+    estiva = VoceListino.objects.get(versione__listino__tipo="ASSOCIATIVO", stagione="ESTIVA")
+    estiva.unita = VoceListino.Unita.PERSONA_NOTTE
+    with pytest.raises(ValidationError) as errore:
+        estiva.full_clean()
+    assert "unita" in errore.value.message_dict
