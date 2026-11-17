@@ -1,0 +1,15 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}{{ c }} · {% endblock %}
+{% block content %}
+<h1>{{ c }}</h1>
+<form method="post" class="card"><div class="card-body">{% csrf_token %}
+  {% include "gestione/_campi.html" %}
+  <button class="btn-solid theme-primary" type="submit">Salva</button>
+  <a class="ms-5" href="{% url 'gestione:categorie' %}">Torna alle categorie</a>
+</div></form>
+{% if usata %}
+  <p class="fg-2 mt-5">Categoria usata da almeno una prenotazione: non si può eliminare.</p>
+{% else %}
+  <form method="post" class="mt-5">{% csrf_token %}<button class="btn-outline theme-danger" type="submit" name="elimina" value="1">Elimina la categoria</button></form>
+{% endif %}
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends "gestione/base.html" %}
-{% block titolo_pagina %}Blocchi tecnici · {% endblock %}
+{% block titolo_pagina %}Date bloccate · {% endblock %}
 {% block content %}
-<h1>Blocchi tecnici</h1>
+<h1>Date bloccate</h1>
 <p class="fg-2">Date non prenotabili per manutenzione: nel calendario pubblico risultano non disponibili e restano fuori dalle statistiche.</p>
 <div class="row g-7">
   <div class="lg:col-7">
@@ -11,11 +11,11 @@
           <span><b>{{ b.area }}</b> · {{ b.dal|date:"d/m/Y" }}–{{ b.al|date:"d/m/Y" }}<br><span class="small fg-2">{{ b.motivo }}</span></span>
           <form method="post">{% csrf_token %}<button class="btn-outline theme-danger" name="elimina" value="{{ b.pk }}">Togli</button></form>
         </div>
-      {% empty %}<p class="fg-2">Nessun blocco.</p>{% endfor %}
+      {% empty %}<p class="fg-2">Nessuna data bloccata.</p>{% endfor %}
     </div>
   </div>
   <div class="lg:col-5">
-    <form method="post" class="card"><div class="card-body">{% csrf_token %}<h2 class="fs-lg">Nuovo blocco</h2>{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Blocca le date</button></div></form>
+    <form method="post" class="card"><div class="card-body">{% csrf_token %}<h2 class="fs-lg">Blocca altre date</h2>{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Blocca le date</button></div></form>
   </div>
 </div>
 {% endblock %}

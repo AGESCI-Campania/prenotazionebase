@@ -29,7 +29,7 @@ from tana.base.models import Area, Configurazione
 from tana.core.pdf import PdfNonDisponibile
 from tana.listini.models import Categoria
 
-from . import consensi, contributo, disponibilita, documenti, flusso, messaggi
+from . import consensi, contributo, demo, disponibilita, documenti, flusso, messaggi
 from .forms import (
     AnnullaForm,
     MessaggioForm,
@@ -369,11 +369,12 @@ def nuova(request: HttpRequest, passo: int = 1) -> HttpResponse:
     if passo not in (1, 2, 3):
         raise Http404
     conf = Configurazione.corrente()
-    if conf.prenotazioni_bloccate:  # D-31
+    bloccate = conf.messaggio_blocco if conf.prenotazioni_bloccate else ""  # D-31
+    if not bloccate and not demo.puo_prenotare(request.user):  # D-32
+        bloccate = demo.MESSAGGIO_DEMO
+    if bloccate:
         return render(
-            request,
-            "prenotazioni/nuova.html",
-            {"sezione": "prenotazioni", "bloccate": conf.messaggio_blocco},
+            request, "prenotazioni/nuova.html", {"sezione": "prenotazioni", "bloccate": bloccate}
         )
     richiedente = PassoRichiedente(_dati(request, "1")) if _dati(request, "1") else None
     if passo > 1 and not (richiedente and richiedente.is_valid()):

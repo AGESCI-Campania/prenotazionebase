@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Categoria, Listino, VersioneListino, VoceListino
+from .models import Listino, VersioneListino, VoceListino
 
 
 class VoceListinoInline(admin.TabularInline):
@@ -36,9 +36,3 @@ class VersioneListinoAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return (obj is None or not obj.in_uso()) and super().has_delete_permission(request, obj)
-
-
-@admin.register(Categoria)
-class CategoriaAdmin(admin.ModelAdmin):
-    list_display = ("nome", "codice", "prioritaria", "listino_default", "richiede_specifica")
-    list_filter = ("prioritaria", "listino_default")

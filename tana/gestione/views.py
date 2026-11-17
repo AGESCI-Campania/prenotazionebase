@@ -14,7 +14,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.backends.postgresql.psycopg_any import DateRange
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -28,9 +28,9 @@ from tana.aggiornamenti import services as servizi_aggiornamenti
 from tana.aggiornamenti.models import ReleaseGitHub, RichiestaAggiornamento
 from tana.base.models import Area, Configurazione
 from tana.core.services import storico
-from tana.listini.models import Listino, VersioneListino
+from tana.listini.models import Categoria, Listino, VersioneListino
 from tana.listini.services import nuova_versione
-from tana.prenotazioni import consensi, contributo, documenti, flusso, messaggi
+from tana.prenotazioni import consensi, contributo, demo, documenti, flusso, messaggi
 from tana.prenotazioni.models import (
     BloccoTecnico,
     Occupazione,
@@ -43,11 +43,13 @@ from tana.prenotazioni.models import (
 from tana.prenotazioni.services import crea_blocco, elimina_blocco
 from tana.prenotazioni.views_pubbliche import MESI, _mese
 
-from . import export, statistiche
+from . import export, grafici, statistiche
 from .forms import (
     ApprovaForm,
     BloccoForm,
+    CategoriaForm,
     ConfigurazioneForm,
+    DatiVersioneForm,
     ExportForm,
     ModificaForm,
     MotivoForm,
@@ -99,7 +101,14 @@ def _contatori() -> dict[str, int]:
 
 # Sezione del menu laterale aperta per la voce attiva (le altre restano chiuse)
 SEZIONI_MENU = {
-    "configurazione": {"blocchi", "listini", "configurazione", "aggiornamenti", "utenti"},
+    "configurazione": {
+        "blocchi",
+        "listini",
+        "categorie",
+        "configurazione",
+        "aggiornamenti",
+        "utenti",
+    },
     "report": {"statistiche", "export"},
 }
 
@@ -119,6 +128,7 @@ def _render(
             "contatori_totale": sum(contatori.values()),
             "voce_attiva": voce,
             "sezione_attiva": _sezione(voce),
+            "demo": Configurazione.corrente().modalita_demo,
             "puo": {
                 "pattuglia": permessi.e_pattuglia(utente),
                 "amministrazione": permessi.e_amministrazione(utente),
@@ -718,7 +728,7 @@ def blocchi(request: HttpRequest) -> HttpResponse:
             except ValidationError as errore:
                 _errori(request, errore)
             else:
-                messages.success(request, "Blocco tecnico inserito.")
+                messages.success(request, "Date bloccate.")
                 return redirect("gestione:blocchi")
     elenco = BloccoTecnico.objects.select_related("area").filter(
         al__gte=timezone.localdate() - datetime.timedelta(days=365)
@@ -733,7 +743,26 @@ def configurazione(request: HttpRequest) -> HttpResponse:
         form.save()
         messages.success(request, "Configurazione salvata.")
         return redirect("gestione:configurazione")
-    return _render(request, "gestione/configurazione.html", "configurazione", {"form": form})
+    contesto = {"form": form, "prenotazioni": Prenotazione.objects.count()}
+    return _render(request, "gestione/configurazione.html", "configurazione", contesto)
+
+
+@require_POST
+@accesso(permessi.e_amministrazione)
+def modalita_demo(request: HttpRequest) -> HttpResponse:
+    """Attiva o termina la modalità demo (D-32)."""
+    try:
+        if request.POST.get("azione") == "attiva":
+            demo.attiva(utente=request.user)
+            messages.success(request, "Modalità demo attivata.")
+        elif request.POST.get("conferma"):
+            numero = demo.termina(utente=request.user)
+            messages.success(request, f"Demo terminata: {numero} prenotazioni cancellate.")
+        else:
+            messages.error(request, "Conferma la cancellazione di tutte le prenotazioni.")
+    except ValidationError as errore:
+        _errori(request, errore)
+    return redirect("gestione:configurazione")
 
 
 @accesso(permessi.e_amministrazione)
@@ -755,20 +784,70 @@ def listini(request: HttpRequest) -> HttpResponse:
 def versione(request: HttpRequest, pk: int) -> HttpResponse:
     v = get_object_or_404(VersioneListino.objects.select_related("listino"), pk=pk)
     in_uso = v.in_uso()
-    formset = VociFormSet(request.POST or None, instance=v)
-    if request.method == "POST":
-        if in_uso:
-            messages.error(request, "Versione già usata da una prenotazione: non si modifica.")
-        elif formset.is_valid():
-            try:
-                formset.save()
-            except ValidationError as errore:
-                _errori(request, errore)
-            else:
-                messages.success(request, "Voci salvate.")
-                return redirect("gestione:versione", pk=pk)
+    azione = request.POST.get("azione", "voci") if request.method == "POST" else None
+    # Copia a parte: con dati non validi il titolo della pagina resta quello salvato
+    copia = VersioneListino.objects.get(pk=pk)
+    dati = DatiVersioneForm(request.POST if azione == "dati" else None, instance=copia)
+    formset = VociFormSet(request.POST if azione == "voci" else None, instance=v)
+    if azione and in_uso:
+        messages.error(request, "Versione già usata da una prenotazione: non si modifica.")
+    elif azione == "elimina":
+        v.delete()
+        messages.success(request, f"Versione {v} eliminata.")
+        return redirect("gestione:listini")
+    elif azione == "dati" and dati.is_valid():
+        dati.save()
+        messages.success(request, "Nome e date salvati.")
+        return redirect("gestione:versione", pk=pk)
+    elif azione == "voci" and formset.is_valid():
+        try:
+            formset.save()
+        except ValidationError as errore:
+            _errori(request, errore)
+        else:
+            messages.success(request, "Voci salvate.")
+            return redirect("gestione:versione", pk=pk)
     return _render(
-        request, "gestione/versione.html", "listini", {"v": v, "formset": formset, "in_uso": in_uso}
+        request,
+        "gestione/versione.html",
+        "listini",
+        {"v": v, "dati": dati, "formset": formset, "in_uso": in_uso},
+    )
+
+
+@accesso(permessi.e_amministrazione)
+def categorie(request: HttpRequest) -> HttpResponse:
+    form = CategoriaForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        categoria = form.save()
+        messages.success(request, f"Categoria «{categoria}» creata.")
+        return redirect("gestione:categorie")
+    elenco = Categoria.objects.select_related("listino_default").annotate(
+        usata=Count("prenotazioni")
+    )
+    return _render(
+        request, "gestione/categorie.html", "categorie", {"categorie": elenco, "form": form}
+    )
+
+
+@accesso(permessi.e_amministrazione)
+def categoria(request: HttpRequest, pk: int) -> HttpResponse:
+    c = get_object_or_404(Categoria, pk=pk)
+    usata = c.prenotazioni.exists()
+    if request.method == "POST" and "elimina" in request.POST:
+        if usata:
+            messages.error(request, "Categoria usata da almeno una prenotazione: non si elimina.")
+        else:
+            c.delete()
+            messages.success(request, f"Categoria «{c}» eliminata.")
+            return redirect("gestione:categorie")
+    form = CategoriaForm(request.POST or None, instance=c)
+    if request.method == "POST" and "elimina" not in request.POST and form.is_valid():
+        form.save()
+        messages.success(request, "Categoria salvata.")
+        return redirect("gestione:categorie")
+    return _render(
+        request, "gestione/categoria.html", "categorie", {"c": c, "form": form, "usata": usata}
     )
 
 
@@ -812,12 +891,35 @@ def statistiche_anno(request: HttpRequest) -> HttpResponse:
         anno = int(request.GET.get("anno", oggi.year))
     except ValueError:
         anno = oggi.year
+    s = statistiche.calcola(anno)
+    mesi = statistiche.MESI
+    presenze = grafici.barre(
+        mesi,
+        [
+            grafici.Serie("previste", [p for _, p, _ in s.presenze_mensili]),
+            grafici.Serie("effettive", [e for _, _, e in s.presenze_mensili]),
+        ],
+        titolo=f"Presenze per mese nel {anno}, previste ed effettive",
+    )
+    occupazione = {
+        area: grafici.barre(
+            mesi,
+            [grafici.Serie("occupazione", [100 * n / notti for _, n, notti in valori], colore=2)],
+            titolo=f"Occupazione per mese nel {anno}: {area}",
+            formato=lambda v: f"{v:.0f}%",
+            massimo=100,
+            larghezza=420,
+        )
+        for area, valori in s.occupazione.items()
+    }
     return _render(
         request,
         "gestione/statistiche.html",
         "statistiche",
         {
-            "s": statistiche.calcola(anno),
+            "s": s,
+            "grafico_presenze": presenze,
+            "grafici_occupazione": occupazione,
             "mesi": statistiche.MESI,
             "giorni_comodato": statistiche.GIORNI_COMODATO,
             "anni": range(oggi.year + 1, 2021, -1),

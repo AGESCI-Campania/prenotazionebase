@@ -18,7 +18,7 @@ from tana.base.models import Area, Configurazione
 from tana.core.services import registra_decisione, registra_evento
 from tana.listini.models import Categoria
 
-from . import consensi, contributo, notifiche
+from . import consensi, contributo, demo, notifiche
 from .models import (
     AttivitaGiornaliera,
     Contatto,
@@ -107,6 +107,8 @@ def invia_richiesta(
     conf = Configurazione.corrente()
     if conf.prenotazioni_bloccate:
         raise ValidationError(conf.messaggio_blocco)  # D-31: anche per la gestione
+    if conf.modalita_demo and not permessi.e_pattuglia(utente):
+        raise ValidationError(demo.MESSAGGIO_DEMO)  # D-32: in demo prenota solo la gestione
     gestione = da_gestione
     presenze = {codice: persone for codice, persone in (presenze or {}).items() if persone}
     attivita = attivita or []

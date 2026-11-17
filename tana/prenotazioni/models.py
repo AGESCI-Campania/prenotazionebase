@@ -234,8 +234,8 @@ class BloccoTecnico(models.Model):
     creato_il = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "blocco tecnico"
-        verbose_name_plural = "blocchi tecnici"
+        verbose_name = "date bloccate"
+        verbose_name_plural = "date bloccate"
         ordering = ("-dal",)
         constraints = (
             models.CheckConstraint(condition=Q(al__gte=models.F("dal")), name="blocco_al_dopo_dal"),
@@ -251,7 +251,7 @@ class Occupazione(models.Model):
     class Tipo(models.TextChoices):
         PRENOTAZIONE = "PRENOTAZIONE", "prenotazione"
         ESCLUSIVA = "ESCLUSIVA", "esclusiva"  # area tende senza persone (D-03)
-        BLOCCO = "BLOCCO", "blocco tecnico"
+        BLOCCO = "BLOCCO", "date bloccate"
 
     tipo = models.CharField(max_length=20, choices=Tipo.choices)
     area = models.ForeignKey("base.Area", on_delete=models.PROTECT, related_name="occupazioni")

@@ -4,6 +4,9 @@ gestione.
 La gestione è la casella della base (EMAIL_REPLY_TO) più gli utenti con il permesso
 `prenotazioni.ricevi_notifiche_gestione`, assegnabile ai ruoli dall'admin. Le email partono solo
 a transazione confermata.
+
+In modalità demo (D-32) le email al richiedente partono solo verso utenti con un ruolo: i
+referenti veri (es. delle prenotazioni importate) non ricevono nulla. Oggetto con «[DEMO]».
 """
 
 import logging
@@ -85,6 +88,22 @@ def destinatari_gestione() -> list[str]:
     return _unici([i for i in indirizzi if i])
 
 
+def _solo_utenti_con_ruolo(indirizzi: list[str]) -> list[str]:
+    con_ruolo = {
+        e.lower()
+        for e in User.objects.filter(
+            Q(nomine__attiva=True) | Q(is_superuser=True), is_active=True
+        ).values_list("email", flat=True)
+    }
+    tenuti = [i for i in indirizzi if i.lower() in con_ruolo]
+    if len(tenuti) < len(indirizzi):
+        log.info(
+            "Modalità demo: email al richiedente non inviate a %d indirizzi",
+            len(indirizzi) - len(tenuti),
+        )
+    return tenuti
+
+
 def _unici(indirizzi: list[str]) -> list[str]:
     visti: dict[str, str] = {}
     for indirizzo in indirizzi:
@@ -109,9 +128,13 @@ def notifica(
         al_richiedente = descrizione.al_richiedente
     if alla_gestione is None:
         alla_gestione = descrizione.alla_gestione
+    demo = Configurazione.corrente().modalita_demo
+    al_titolare = destinatari_richiedente(prenotazione)
+    if demo:
+        al_titolare = _solo_utenti_con_ruolo(al_titolare)
     messaggi = []
     for per_gestione, attivo, destinatari in (
-        (False, al_richiedente, destinatari_richiedente(prenotazione)),
+        (False, al_richiedente, al_titolare),
         (True, alla_gestione, destinatari_gestione()),
     ):
         if not attivo or not destinatari:
@@ -121,7 +144,9 @@ def notifica(
             _contesto(prenotazione, per_gestione=per_gestione, **contesto),
         )
         email = EmailMessage(
-            PREFISSO_OGGETTO + descrizione.oggetto.format(numero=prenotazione.numero),
+            ("[DEMO] " if demo else "")
+            + PREFISSO_OGGETTO
+            + descrizione.oggetto.format(numero=prenotazione.numero),
             corpo,
             to=destinatari,
             reply_to=[settings.EMAIL_REPLY_TO],

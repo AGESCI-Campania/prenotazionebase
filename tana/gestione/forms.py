@@ -9,6 +9,7 @@ from django import forms
 from tana.accounts.models import Ruolo
 from tana.base.models import Area, Configurazione
 from tana.listini.models import Categoria, Listino, VersioneListino, VoceListino
+from tana.listini.services import controlla_date
 from tana.prenotazioni.models import Pagamento, Prenotazione
 
 
@@ -225,12 +226,34 @@ def _numero(suffisso: str) -> InputConAdorno:
 class ConfigurazioneForm(forms.ModelForm):
     # Blocco delle prenotazioni (D-31), in cima alla pagina
     BLOCCO = ("prenotazioni_bloccate", "messaggio_blocco")
-    # Campi della stagione invernale, mostrati affiancati nel template
-    STAGIONE_INVERNALE = (
-        "inverno_dal_giorno",
-        "inverno_dal_mese",
-        "inverno_al_giorno",
-        "inverno_al_mese",
+    # Gruppi di campi affiancati nel template: (titolo, descrizione, campi, classi della colonna)
+    GRUPPI = (
+        (
+            "Stagione invernale",
+            "Periodo che si ripete ogni anno: le tariffe invernali si applicano giorno per "
+            "giorno ai soggiorni che vi cadono.",
+            ("inverno_dal_giorno", "inverno_dal_mese", "inverno_al_giorno", "inverno_al_mese"),
+            "col-6 lg:col-3",
+        ),
+        (
+            "Acconto",
+            "",
+            ("acconto_percentuale", "acconto_giorni", "soglia_esenzione_giorni"),
+            "md:col-4",
+        ),
+        ("Orari standard", "", ("orario_arrivo", "orario_partenza"), "col-6"),
+        (
+            "Bonifico dell'acconto",
+            "Dati del conto: compaiono nell'email di approvazione e nel PDF di conferma.",
+            ("iban", "intestatario_bonifico", "causale_bonifico"),
+            "lg:col-4",
+        ),
+        (
+            "Richieste e dati",
+            "",
+            ("consenso_giorni", "orizzonte_massimo", "anni_conservazione"),
+            "lg:col-4",
+        ),
     )
 
     class Meta:
@@ -272,7 +295,11 @@ class ConfigurazioneForm(forms.ModelForm):
             "inverno_dal_mese": "Dal mese",
             "inverno_al_giorno": "Al giorno (incluso)",
             "inverno_al_mese": "Al mese",
-            "soglia_esenzione_giorni": "Soglia di esenzione dall'acconto",
+            "acconto_percentuale": "Percentuale",
+            "acconto_giorni": "Giorni per caricare la ricevuta",
+            "soglia_esenzione_giorni": "Esenti i soggiorni fino a",
+            "orario_arrivo": "Arrivo",
+            "orario_partenza": "Partenza",
         }
         help_texts = {
             "acconto_percentuale": "Quota del preventivo da versare come acconto con il "
@@ -292,9 +319,6 @@ class ConfigurazioneForm(forms.ModelForm):
             "si sposta in avanti quando si pubblica il nuovo listino.",
             "anni_conservazione": "Dopo questi anni dalla partenza i dati personali della "
             "prenotazione si anonimizzano (restano date, presenze e importi).",
-            "iban": "Conto su cui versare l'acconto: compare nell'email di approvazione e nel "
-            "PDF di conferma.",
-            "intestatario_bonifico": "Intestatario del conto, mostrato insieme all'IBAN.",
             "causale_bonifico": "{numero} e {gruppo} si sostituiscono con i dati della "
             "prenotazione.",
         }
@@ -302,11 +326,14 @@ class ConfigurazioneForm(forms.ModelForm):
     def campi_blocco(self) -> list[forms.BoundField]:
         return [self[nome] for nome in self.BLOCCO]
 
-    def campi_stagione(self) -> list[forms.BoundField]:
-        return [self[nome] for nome in self.STAGIONE_INVERNALE]
+    def gruppi(self) -> list[dict[str, Any]]:
+        return [
+            {"titolo": t, "descrizione": d, "campi": [self[n] for n in campi], "colonna": c}
+            for t, d, campi, c in self.GRUPPI
+        ]
 
     def altri_campi(self) -> list[forms.BoundField]:
-        a_parte = self.BLOCCO + self.STAGIONE_INVERNALE
+        a_parte = set(self.BLOCCO).union(*(campi for _, _, campi, _ in self.GRUPPI))
         return [c for c in self.visible_fields() if c.name not in a_parte]
 
 
@@ -321,6 +348,21 @@ class VersioneForm(forms.Form):
         required=False,
         empty_label="Nessuna (versione vuota)",
     )
+
+
+class DatiVersioneForm(forms.ModelForm):
+    """Nome e date di una versione non ancora usata (per correggere un errore di inserimento)."""
+
+    class Meta:
+        model = VersioneListino
+        fields = ("nome", "pubblicata_il", "valida_dal")
+        widgets = {"pubblicata_il": SelettoreData(), "valida_dal": SelettoreData()}
+
+    def clean(self) -> dict[str, Any]:
+        dati: dict[str, Any] = super().clean() or {}
+        if dati.get("pubblicata_il") and dati.get("valida_dal"):
+            controlla_date(dati["pubblicata_il"], dati["valida_dal"])
+        return dati
 
 
 class VoceForm(forms.ModelForm):
@@ -343,6 +385,35 @@ class VoceForm(forms.ModelForm):
 VociFormSet = forms.inlineformset_factory(
     VersioneListino, VoceListino, form=VoceForm, extra=1, can_delete=True
 )
+
+
+class CategoriaForm(forms.ModelForm):
+    class Meta:
+        model = Categoria
+        fields = (
+            "nome",
+            "codice",
+            "listino_default",
+            "prioritaria",
+            "richiede_specifica",
+            "ordine",
+        )
+        labels = {"richiede_specifica": "Richiede la specifica"}
+        help_texts = {
+            "nome": "Come la vede chi prenota, nel modulo di richiesta.",
+            "codice": "Identificativo breve (lettere minuscole, numeri e trattini), usato anche "
+            "dall'import di SuperSaaS: dopo la creazione non si cambia.",
+            "listino_default": "Listino proposto per le prenotazioni di questa categoria.",
+            "prioritaria": "Ha la priorità prevista dal regolamento sulle date richieste.",
+            "richiede_specifica": "Chi prenota deve scrivere di quale associazione o ente si tratta.",
+            "ordine": "Posizione nell'elenco: prima i numeri più bassi.",
+        }
+        widgets = {"ordine": forms.NumberInput(attrs={"min": 0})}
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["codice"].disabled = True
 
 
 class NominaForm(forms.Form):

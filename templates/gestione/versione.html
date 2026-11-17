@@ -2,9 +2,21 @@
 {% block titolo_pagina %}{{ v }} · {% endblock %}
 {% block content %}
 <h1>{{ v }}</h1>
-<p class="fg-2">Pubblicata il {{ v.pubblicata_il|date:"d/m/Y" }}, valida dal {{ v.valida_dal|date:"d/m/Y" }}.{% if in_uso %} Già usata da almeno una prenotazione: le voci non si modificano.{% endif %}</p>
+<p class="fg-2">Pubblicata il {{ v.pubblicata_il|date:"d/m/Y" }}, valida dal {{ v.valida_dal|date:"d/m/Y" }}.{% if in_uso %} Già usata da almeno una prenotazione: non si modifica più.{% endif %}</p>
+{% if not in_uso %}
+  <form method="post" class="card mb-5"><div class="card-body">{% csrf_token %}
+    <h2 class="fs-lg">Nome e date</h2>
+    <p class="form-text">Per correggere un errore di inserimento, finché nessuna prenotazione usa questa versione.</p>
+    {{ dati.non_field_errors }}
+    <div class="row g-5">
+      {% for field in dati %}<div class="md:col-4">{% include "prenotazioni/_campo.html" %}</div>{% endfor %}
+    </div>
+    <button class="btn-solid theme-primary" type="submit" name="azione" value="dati">Salva nome e date</button>
+  </div></form>
+  <h2 class="fs-lg">Voci</h2>
+{% endif %}
 <form method="post">
-  {% csrf_token %}{{ formset.management_form }}{{ formset.non_form_errors }}
+  {% csrf_token %}<input type="hidden" name="azione" value="voci">{{ formset.management_form }}{{ formset.non_form_errors }}
   {% for form in formset %}
     <div class="card mb-5"><div class="card-body">
       {{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
@@ -16,4 +28,7 @@
   {% if not in_uso %}<button class="btn-solid theme-primary" type="submit">Salva le voci</button>{% endif %}
   <a class="ms-5" href="{% url 'gestione:listini' %}">Torna ai listini</a>
 </form>
+{% if not in_uso %}
+  <form method="post" class="mt-5">{% csrf_token %}<button class="btn-outline theme-danger" type="submit" name="azione" value="elimina">Elimina la versione</button></form>
+{% endif %}
 {% endblock %}

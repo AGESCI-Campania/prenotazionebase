@@ -39,6 +39,11 @@ def listini_in_vigore(
     return risultato
 
 
+def controlla_date(pubblicata_il: datetime.date, valida_dal: datetime.date) -> None:
+    if valida_dal < pubblicata_il:
+        raise ValidationError({"valida_dal": "La validità non può precedere la pubblicazione."})
+
+
 @transaction.atomic
 def nuova_versione(
     listino: Listino,
@@ -51,8 +56,7 @@ def nuova_versione(
 ) -> VersioneListino:
     """Nuova versione di un listino (D-09), con le voci copiate da una versione esistente da
     modificare prima dell'uso (le versioni usate non si toccano più)."""
-    if valida_dal < pubblicata_il:
-        raise ValidationError({"valida_dal": "La validità non può precedere la pubblicazione."})
+    controlla_date(pubblicata_il, valida_dal)
     versione = VersioneListino.objects.create(
         listino=listino, nome=nome, pubblicata_il=pubblicata_il, valida_dal=valida_dal, note=note
     )

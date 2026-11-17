@@ -5,6 +5,22 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Novità
+
+- Modalità demo (Configurazione): si attiva solo senza prenotazioni; mentre è attiva prenota solo la gestione e le email ai richiedenti partono solo verso utenti con un ruolo (oggetto «[DEMO]»); al termine, con conferma, si cancellano tutte le prenotazioni con i loro dati e la numerazione riparte.
+
+### Modifiche
+
+- Statistiche: grafico e tabella delle presenze per mese (previste ed effettive) e grafici della percentuale di occupazione per mese di ogni area.
+- Configurazione: acconto, orari standard e dati del bonifico su una riga, come la stagione invernale; «Orizzonte massimo» diventa «Prenotazioni aperte fino a».
+- Nel messaggio di blocco delle prenotazioni gli indirizzi web diventano link.
+- «Blocchi tecnici» si chiamano ora «Date bloccate» in tutta l'interfaccia.
+- Listini: nella pagina di una versione non ancora usata da nessuna prenotazione si correggono nome, data di pubblicazione e inizio di validità, e la versione si può eliminare.
+- Categorie modificabili nell'area di gestione (Configurazione › Categorie) invece che nell'admin Django: creazione, modifica (il codice resta quello iniziale) ed eliminazione delle categorie mai usate.
+- Editor del sito: voce «Gestione prenotazioni» nel menu per tornare all'area di gestione.
+- Editor del sito: il logo della base al posto di quello di Wagtail nella barra laterale, e come favicon.
+- Login con Sestante: l'immagine del profilo caricata su Sestante diventa quella dell'editor del sito (solo per chi vi accede; un'immagine caricata a mano nell'editor prevale). Serve il blueprint del provider aggiornato in Sestante (scope `avatar`).
+
 ## v1.0.5 — 2026-11-17
 
 ### Novità

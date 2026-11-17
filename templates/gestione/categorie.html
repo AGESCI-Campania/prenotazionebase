@@ -1,0 +1,20 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}Categorie · {% endblock %}
+{% block content %}
+<h1>Categorie</h1>
+<p class="fg-2">Chi prenota sceglie una categoria (associazione o ente): da questa dipendono il listino proposto e la priorità del regolamento.</p>
+<div class="row g-7">
+  <div class="lg:col-7">
+    <div class="list-group">
+      {% for c in categorie %}
+        <a class="list-group-item" href="{% url 'gestione:categoria' c.pk %}">{{ c.nome }} · {{ c.listino_default }}{% if c.prioritaria %} <span class="badge theme-primary">prioritaria</span>{% endif %}{% if c.richiede_specifica %} <span class="badge theme-secondary">con specifica</span>{% endif %}{% if c.usata %} <span class="badge theme-secondary">in uso</span>{% endif %}</a>
+      {% empty %}
+        <p>Nessuna categoria.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="lg:col-5">
+    <form method="post" class="card"><div class="card-body">{% csrf_token %}<h2 class="fs-lg">Nuova categoria</h2>{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Crea</button></div></form>
+  </div>
+</div>
+{% endblock %}

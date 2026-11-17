@@ -4,7 +4,7 @@
 {% block content %}
 <h1>Nuova richiesta di prenotazione</h1>
 {% if bloccate %}
-<div class="alert theme-warning mt-5">{{ bloccate|linebreaksbr }}</div>
+<div class="alert theme-warning mt-5">{{ bloccate|urlize|linebreaksbr }}</div>
 {% else %}
 <div class="mt-5 mb-7">{% ag_stepper steps=passi current=passo %}</div>
 

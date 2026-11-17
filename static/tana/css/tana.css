@@ -202,3 +202,15 @@
   border-top: 1px solid currentColor;
   opacity: 0.35;
 }
+
+/* Grafici delle statistiche (tana.gestione.grafici): SVG generato sul server */
+.tana-grafico { display: block; width: 100%; height: auto; margin-block: 0.5rem 1rem; }
+.tana-grafico__griglia { stroke: currentColor; stroke-opacity: 0.12; stroke-width: 1; }
+.tana-grafico__base { stroke: currentColor; stroke-opacity: 0.45; stroke-width: 1; }
+.tana-grafico__asse { fill: currentColor; fill-opacity: 0.7; font-size: 11px; }
+.tana-grafico__serie-1 { fill: var(--tana-verde-chiaro, #80c077); background: var(--tana-verde-chiaro, #80c077); }
+.tana-grafico__serie-2 { fill: var(--ag-primary, #076633); background: var(--ag-primary, #076633); }
+.tana-grafico path:hover { opacity: 0.8; }
+.tana-legenda { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin: 0; padding: 0; list-style: none; }
+.tana-legenda li { display: flex; align-items: center; gap: 0.4rem; }
+.tana-legenda__segno { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 0.2rem; }

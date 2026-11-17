@@ -2,9 +2,9 @@
 {% block titolo_pagina %}Prenotazione per la gestione · {% endblock %}
 {% block content %}
 <h1>Prenotazione per conto della gestione</h1>
-<p class="fg-2">Per date riservate a eventi prioritari (Fo.Ca., eventi regionali, Comune), anche senza contatti e oltre l'orizzonte delle prenotazioni. Nasce in esame e va approvata come le altre.</p>
+<p class="fg-2">Per date riservate a eventi prioritari (Fo.Ca., eventi regionali, Comune), anche senza contatti e oltre la data fino a cui sono aperte le prenotazioni. Nasce in esame e va approvata come le altre.</p>
 {% if bloccate %}
-<div class="alert theme-warning">Le prenotazioni sono bloccate (Configurazione): {{ bloccate|linebreaksbr }}</div>
+<div class="alert theme-warning">Le prenotazioni sono bloccate (Configurazione): {{ bloccate|urlize|linebreaksbr }}</div>
 {% else %}
 <form method="post" class="card"><div class="card-body">{% csrf_token %}{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Inserisci</button></div></form>
 {% endif %}

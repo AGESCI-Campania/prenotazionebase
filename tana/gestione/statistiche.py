@@ -44,6 +44,8 @@ class Statistiche:
     categorie: list[RigaCategoria]
     giorni_comune: int
     occupazione: dict[str, list[tuple[str, int, int]]]  # area → (mese, notti occupate, notti)
+    # Per mese: (mese, presenze previste, presenze effettive registrate), persone × giorni
+    presenze_mensili: list[tuple[str, int, int]] = field(default_factory=list)
 
     @property
     def totale(self) -> RigaCategoria:
@@ -66,6 +68,16 @@ def _giorni_nell_anno(arrivo: datetime.date, partenza: datetime.date, anno: int)
     return max((fine - inizio).days + 1, 0)
 
 
+def _giorni_per_mese(arrivo: datetime.date, partenza: datetime.date, anno: int) -> dict[int, int]:
+    """Giorni del soggiorno (arrivo e partenza inclusi) nell'anno, per mese."""
+    giorni: dict[int, int] = defaultdict(int)
+    giorno = max(arrivo, datetime.date(anno, 1, 1))
+    while giorno <= min(partenza, datetime.date(anno, 12, 31)):
+        giorni[giorno.month] += 1
+        giorno += datetime.timedelta(days=1)
+    return giorni
+
+
 def calcola(anno: int) -> Statistiche:
     aree = list(Area.objects.all())
     righe = {c.pk: RigaCategoria(categoria=c) for c in Categoria.objects.all()}
@@ -76,7 +88,13 @@ def calcola(anno: int) -> Statistiche:
         .prefetch_related("presenze__area", "attivita_giornaliere")
     )
     giorni_comune = 0
+    previste, effettive = [0] * 12, [0] * 12
     for p in prenotazioni:
+        for presenza in p.presenze.all():
+            for mese, giorni_mese in _giorni_per_mese(p.arrivo, p.partenza, anno).items():
+                previste[mese - 1] += presenza.persone_previste * giorni_mese
+                if presenza.persone_effettive is not None:
+                    effettive[mese - 1] += presenza.persone_effettive * giorni_mese
         riga = righe[p.categoria_id]
         giorni = _giorni_nell_anno(p.arrivo, p.partenza, anno)
         # Una prenotazione a cavallo d'anno si conta nell'anno dell'arrivo
@@ -112,6 +130,7 @@ def calcola(anno: int) -> Statistiche:
         categorie=[r for r in righe.values() if r.prenotazioni or r.presenze or r.incassi],
         giorni_comune=giorni_comune,
         occupazione=_occupazione(anno, aree),
+        presenze_mensili=list(zip(MESI, previste, effettive, strict=True)),
     )
 
 

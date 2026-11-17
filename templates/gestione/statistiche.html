@@ -22,11 +22,33 @@
   <h2 class="fs-lg">Settimana del Comune</h2>
   <p class="mb-0">Giorni usati dal Comune di Aiello del Sabato nel {{ s.anno }}: <b>{{ s.giorni_comune }}</b> su {{ giorni_comodato }} del comodato{% if s.giorni_comune > giorni_comodato %} — <span class="fg-danger">oltre la settimana annua: forfait</span>{% endif %}.</p>
 </div></div>
-<h2 class="fs-lg mt-7">Occupazione per mese (notti occupate)</h2>
+<h2 class="fs-lg mt-7">Presenze per mese</h2>
+<p class="small fg-2">Persone × giorni. Effettive: solo le prenotazioni con le presenze registrate nel consuntivo.</p>
+<ul class="tana-legenda small">
+  <li><span class="tana-legenda__segno tana-grafico__serie-1"></span>Previste</li>
+  <li><span class="tana-legenda__segno tana-grafico__serie-2"></span>Effettive</li>
+</ul>
+{{ grafico_presenze }}
 <div class="table-responsive">
   <table class="table small">
-    <thead><tr><th>Area</th>{% for mese in mesi %}<th class="text-end">{{ mese }}</th>{% endfor %}</tr></thead>
-    <tbody>{% for area, mesi in s.occupazione.items %}<tr><td>{{ area }}</td>{% for mese, n, totale in mesi %}<td class="text-end">{{ n }}/{{ totale }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    <thead><tr><th>Presenze</th>{% for mese in mesi %}<th class="text-end">{{ mese }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      <tr><td>Previste</td>{% for mese, previste, effettive in s.presenze_mensili %}<td class="text-end">{{ previste }}</td>{% endfor %}</tr>
+      <tr><td>Effettive</td>{% for mese, previste, effettive in s.presenze_mensili %}<td class="text-end">{{ effettive }}</td>{% endfor %}</tr>
+    </tbody>
+  </table>
+</div>
+<h2 class="fs-lg mt-7">Occupazione per mese</h2>
+<p class="small fg-2">Percentuale delle notti del mese in cui l'area è occupata da una prenotazione (le date bloccate non contano).</p>
+<div class="row g-5">
+  {% for area, grafico in grafici_occupazione.items %}
+    <div class="lg:col-6"><h3 class="fs-md fw-semibold">{{ area }}</h3>{{ grafico }}</div>
+  {% endfor %}
+</div>
+<div class="table-responsive">
+  <table class="table small">
+    <thead><tr><th>Notti occupate</th>{% for mese in mesi %}<th class="text-end">{{ mese }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for area, valori in s.occupazione.items %}<tr><td>{{ area }}</td>{% for mese, n, totale in valori %}<td class="text-end">{{ n }}/{{ totale }}</td>{% endfor %}</tr>{% endfor %}</tbody>
   </table>
 </div>
 {% endblock %}

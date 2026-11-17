@@ -211,7 +211,8 @@ if SOCIAL_SESTANTE_CLIENT_ID:
                 "secret": SOCIAL_SESTANTE_CLIENT_SECRET,
                 "settings": {
                     "server_url": SOCIAL_SESTANTE_SERVER_URL,
-                    "scope": ["openid", "profile", "email"],
+                    # avatar: immagine del profilo (claim `picture`, tana.accounts.avatar)
+                    "scope": ["openid", "profile", "email", "avatar"],
                 },
             }
         ]

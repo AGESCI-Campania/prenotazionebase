@@ -87,6 +87,24 @@ def test_strutture_nell_editor_solo_per_l_amministrazione():
     assert c.get("/cms/snippets/base/struttura/").status_code in (302, 403)
 
 
+def test_logo_della_base_nell_editor():
+    redazione = User.objects.create_user("redazione@example.org")
+    nomina(redazione, Ruolo.REDAZIONE)
+    c = Client()
+    c.force_login(redazione)
+    html = c.get("/cms/").content.decode()
+    assert (
+        "tana/img/logo/lupo-base-aiello"
+        in html.split("data-wagtail-sidebar-branding-logo")[1][:300]
+    )
+    # La redazione non entra nella gestione: niente voce di ritorno
+    assert "Gestione prenotazioni" not in html
+    amministratore = User.objects.create_user("amministratore@example.org")
+    nomina(amministratore, Ruolo.AMMINISTRATORE)
+    c.force_login(amministratore)
+    assert "Gestione prenotazioni" in c.get("/cms/").content.decode()
+
+
 def test_pagina_riservata(client, richiedente, contatto, admin):
     url = "/info/per-chi-e-in-base/"
     assert client.get(url).status_code == 403

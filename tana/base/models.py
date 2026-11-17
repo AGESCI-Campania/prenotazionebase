@@ -110,8 +110,12 @@ class Configurazione(models.Model):
     messaggio_blocco = models.TextField(
         "messaggio di blocco",
         default="Le prenotazioni sono momentaneamente sospese. Riprova tra qualche giorno.",
-        help_text="Mostrato al posto del modulo di richiesta mentre le prenotazioni sono bloccate.",
+        help_text="Mostrato al posto del modulo di richiesta mentre le prenotazioni sono bloccate. "
+        "Gli indirizzi web (https://…) diventano link.",
     )
+    # Modalità demo (D-32): prova del sistema prima dell'apertura; si attiva e si termina solo
+    # con i servizi di tana.prenotazioni.demo (alla fine si cancellano tutte le prenotazioni)
+    modalita_demo = models.BooleanField("modalità demo", default=False, editable=False)
     # Stagione invernale ricorrente (D-08): di default dal 1/11 al 15/3, estremi inclusi
     inverno_dal_giorno = models.PositiveSmallIntegerField(
         default=1, validators=[MinValueValidator(1), MaxValueValidator(31)]
@@ -151,7 +155,7 @@ class Configurazione(models.Model):
     orario_partenza = models.TimeField("orario di partenza", default=orario_partenza_standard)
     # Orizzonte massimo (D-25)
     orizzonte_massimo = models.DateField(
-        "orizzonte massimo",
+        "prenotazioni aperte fino a",
         default=datetime.date(2027, 9, 30),
         help_text="Non si accettano richieste con data di arrivo successiva.",
     )

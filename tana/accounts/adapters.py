@@ -16,6 +16,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
+from .avatar import allinea_avatar, estrai_picture
 from .models import User
 from .services import allinea_ruoli_globali
 
@@ -53,7 +54,7 @@ def _rifiuta(request: Any, messaggio: str) -> None:
 
 class TanaSocialAccountAdapter(DefaultSocialAccountAdapter):
     """Sestante: provisioning automatico, collegamento per email, ruoli globali dal claim
-    `groups` a ogni login. Altri provider (se mai aggiunti): solo collegamento."""
+    `groups` e immagine del profilo dal claim `picture` a ogni login. Altri provider (se mai aggiunti): solo collegamento."""
 
     def is_auto_signup_allowed(self, request: Any, sociallogin: Any) -> bool:
         return sociallogin.account.provider == PROVIDER_SESTANTE
@@ -68,6 +69,8 @@ class TanaSocialAccountAdapter(DefaultSocialAccountAdapter):
                 "Il tuo account SSO AGESCI Campania non ha un indirizzo email: chiedi alla "
                 "Segreteria regionale di aggiungerlo.",
             )
+        # Prima di ogni salvataggio dell'account: il data-URI dell'immagine non va in extra_data
+        sociallogin.picture_sestante = estrai_picture(sociallogin.account.extra_data)
         # Sestante verifica le email dei suoi utenti: niente nuova conferma
         for indirizzo in sociallogin.email_addresses:
             indirizzo.verified = True
@@ -83,11 +86,16 @@ class TanaSocialAccountAdapter(DefaultSocialAccountAdapter):
                 sociallogin.connect(request, utenti[0])
         if sociallogin.is_existing:
             allinea_ruoli_globali(sociallogin.user, _groups(sociallogin.account.extra_data))
+            allinea_avatar(sociallogin.user, sociallogin.picture_sestante)
 
     def save_user(self, request: Any, sociallogin: Any, form: Any = None) -> Any:
+        da_sestante = sociallogin.account.provider == PROVIDER_SESTANTE
+        if da_sestante and not hasattr(sociallogin, "picture_sestante"):
+            sociallogin.picture_sestante = estrai_picture(sociallogin.account.extra_data)
         utente = super().save_user(request, sociallogin, form=form)
-        if sociallogin.account.provider == PROVIDER_SESTANTE:
+        if da_sestante:
             allinea_ruoli_globali(utente, _groups(sociallogin.account.extra_data))
+            allinea_avatar(utente, sociallogin.picture_sestante)
         return utente
 
 

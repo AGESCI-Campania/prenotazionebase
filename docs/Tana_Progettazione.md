@@ -366,7 +366,7 @@ già Tana); implementazione di riferimento: Plancia (`docs/guide/sso_sestante.md
 - **Credenziali** `SOCIAL_SESTANTE_CLIENT_ID` / `SOCIAL_SESTANTE_CLIENT_SECRET` solo in `.env`;
   vuote = pulsante nascosto e app comunque avviabile; `installa.sh` le elenca tra i passi manuali.
 - **Blueprint** `blueprints/provider-tana.yaml` (provider confidential, authorization code, `sub`
-  hashed, scope openid/profile/email; application con slug e launch URL): lo **prepara l'agente** e
+  hashed, scope openid/profile/email/avatar; application con slug e launch URL): lo **prepara l'agente** e
   lo consegna ad Andrea, che lo aggiunge al repo `sestante` e lo applica. Mai modificare quel repo
   né creare provider a mano. Aggiornare anche il registro delle piattaforme del contratto SSO.
 - **Primo login**: collegamento per email (case-insensitive) a un utente esistente, altrimenti
@@ -376,6 +376,9 @@ già Tana); implementazione di riferimento: Plancia (`docs/guide/sso_sestante.md
   `da_sso=True`): `admin-multipiattaforma` → **Amministratore**, `segreteria` → **Segreteria
   regionale**. I ruoli locali (Pattuglia, Amministratore assegnato in Tana, Responsabile, Redazione)
   li assegna la segreteria in Tana (P-12) e il flusso SSO non li tocca mai.
+- **Immagine del profilo** (scope `avatar`, contratto § 5.1): a ogni login SSO il claim `picture`
+  di `userinfo` diventa l'immagine del profilo dell'editor del sito, solo per chi vi accede (dati
+  minimi); un'immagine caricata a mano nell'editor prevale; il data-URI non resta in `extra_data`.
 - **MFA**: la fa Sestante; Tana non la richiede a chi è entrato con Sestante **in questa sessione**
   (metodo di autenticazione della sessione, mai l'esistenza di un account collegato). Il superutente
   tecnico locale di emergenza (P-13) ha la MFA TOTP obbligatoria.
@@ -432,6 +435,23 @@ Decisa il 17/11/2026 (giro di prova prima dell'import, e in futuro ogni chiusura
   gestione); il resto del sito non cambia.
 - Le prenotazioni già presenti seguono il flusso normale (approvazione, acconto, conferma,
   scadenze). L'import dello storico (§7) non è toccato dal blocco.
+- Gli indirizzi web scritti nel messaggio diventano link.
+
+### D-32 — Modalità demo
+Decisa il 17/11/2026 (prova completa del sistema, import compreso, prima dell'apertura).
+- Si **attiva** dalla Configurazione (amministrazione) **solo se non ci sono prenotazioni**.
+- Mentre è attiva **prenota solo la gestione** (Pattuglia, amministratore, responsabile); gli altri
+  vedono al posto del modulo un messaggio di prenotazioni non ancora aperte. Il controllo è nel
+  servizio che crea la richiesta. L'import (§7) si può provare.
+- **Email**: alla gestione partono normalmente; al richiedente **solo verso utenti con un ruolo**
+  (mai ai referenti veri, es. delle prenotazioni importate, nemmeno dalle scadenze dello
+  scheduler); oggetto con «[DEMO]». Nelle pagine di gestione un avviso ricorda la modalità.
+- Si **termina** dalla Configurazione con una conferma esplicita: si cancellano **tutte** le
+  prenotazioni con presenze, importi, pagamenti e ricevute, messaggi, consensi, contatti, il loro
+  storico e la numerazione (le prenotazioni vere ripartono da AAAA-001). Restano account e ruoli,
+  listini, categorie, configurazione e date bloccate. Attivazione e termine vanno nello storico
+  della Configurazione.
+- Se D-31 (blocco) è attivo prevale il blocco: nessuno prenota.
 
 ---
 
@@ -528,9 +548,11 @@ Scelte di F4 (Andrea, 17/11/2026):
 
 Scelte di F5 (Andrea, 17/11/2026):
 - **Area di gestione** `/gestione/` con la barra laterale del mockup 4. Blocchi tecnici, versioni di
-  listino (con copia delle voci) e configurazione si modificano lì; le **categorie nell'admin
-  Django**, aperto all'amministrazione (`is_staff` e permessi su quei modelli); le **strutture
-  nell'editor del sito** (D-12, dal 17/11/2026).
+  listino (con copia delle voci; nome e date correggibili, ed eliminazione, finché non usate),
+  configurazione e **categorie** (dal 17/11/2026: codice fisso
+  dopo la creazione, eliminazione solo se nessuna prenotazione la usa) si modificano lì; le
+  **strutture nell'editor del sito** (D-12, dal 17/11/2026), che ha una voce per tornare alla
+  gestione.
 - **Modifica** di date e persone dall'amministrazione in ogni stato attivo, anche dopo l'acconto
   (P-02): il preventivo congelato resta e le differenze vanno nel consuntivo. Un acconto deciso
   all'approvazione (importo o esenzione) non si ricalcola; se diventa dovuto parte il termine.

@@ -23,7 +23,9 @@ class DateOccupate(ValidationError):
     """Le date chieste si sovrappongono a un'occupazione attiva della stessa area."""
 
     def __init__(self) -> None:
-        super().__init__("Le date scelte si sovrappongono a un'altra prenotazione o a un blocco.")
+        super().__init__(
+            "Le date scelte si sovrappongono a un'altra prenotazione o a date bloccate."
+        )
 
 
 @transaction.atomic
@@ -128,7 +130,7 @@ def elimina_blocco(blocco: BloccoTecnico, *, utente: Any = None) -> None:
     """Toglie un blocco tecnico: le date tornano libere."""
     registra_evento(
         blocco.area,
-        "blocco tecnico tolto",
+        "date sbloccate",
         utente=utente,
         prima={"dal": blocco.dal.isoformat(), "al": blocco.al.isoformat(), "motivo": blocco.motivo},
     )

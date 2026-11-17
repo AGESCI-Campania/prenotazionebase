@@ -339,6 +339,20 @@ def test_statistiche(anno_svolto, admin):
     assert "oltre la settimana annua" in pagina and "1.344,00 €" in pagina
 
 
+def test_grafici_delle_statistiche(anno_svolto, admin):
+    svolta, _ = anno_svolto
+    svolta.presenze.update(persone_effettive=20)
+    s = statistiche.calcola(2027)
+    mensili = {m: (p, e) for m, p, e in s.presenze_mensili}
+    # 19-24 luglio (6 giorni) con 28 previste e 20 effettive; Comune 1-9 agosto senza consuntivo
+    assert mensili["lug"] == (28 * 6, 20 * 6)
+    assert mensili["ago"] == (28 * 9, 0)
+    pagina = cliente_di(admin).get(reverse("gestione:statistiche"), {"anno": 2027}).content.decode()
+    assert pagina.count('<svg class="tana-grafico"') == 3  # presenze + una per area
+    assert "lug · previste: 168" in pagina and "lug · effettive: 120" in pagina
+    assert "ago · occupazione: 26%" in pagina  # 8 notti su 31
+
+
 def test_export(anno_svolto, admin):
     c = cliente_di(admin)
     risposta = c.get(
@@ -368,6 +382,86 @@ def test_menu_a_sezioni(prenotazione, admin, pattuglia):
     pagina = cliente_di(pattuglia).get(elenco).content.decode()
     assert pagina.count('name="tana-menu"') == 2  # niente Configurazione per la Pattuglia
     assert f'active" href="{elenco}"' in pagina
+
+
+def test_correzione_di_una_versione(prenotazione, admin):
+    c = cliente_di(admin)
+    usata = prenotazione.versione_listino
+    nuova = VersioneListino.objects.create(
+        listino=usata.listino,
+        nome="2099",
+        pubblicata_il=datetime.date(2099, 9, 1),
+        valida_dal=datetime.date(2099, 1, 1),
+    )
+    url = reverse("gestione:versione", args=[nuova.pk])
+    dati = {"azione": "dati", "nome": "2100", "pubblicata_il": "2099-09-01"}
+    # Validità prima della pubblicazione: rifiutata
+    c.post(url, {**dati, "valida_dal": "2099-01-01"})
+    nuova.refresh_from_db()
+    assert nuova.nome == "2099"
+    assert c.post(url, {**dati, "valida_dal": "2100-01-01"}).status_code == 302
+    nuova.refresh_from_db()
+    assert (nuova.nome, nuova.valida_dal) == ("2100", datetime.date(2100, 1, 1))
+    c.post(url, {"azione": "elimina"})
+    assert not VersioneListino.objects.filter(pk=nuova.pk).exists()
+    # Una versione usata non si corregge né si elimina
+    url = reverse("gestione:versione", args=[usata.pk])
+    assert "Salva nome e date" not in c.get(url).content.decode()
+    c.post(url, {**dati, "valida_dal": "2100-01-01"})
+    c.post(url, {"azione": "elimina"})
+    usata.refresh_from_db()
+    assert usata.nome != "2100"
+
+
+def test_modalita_demo_dalla_configurazione(admin, pattuglia, richiedente, contatto):
+    url = reverse("gestione:demo")
+    c = cliente_di(admin)
+    assert cliente_di(pattuglia).post(url, {"azione": "attiva"}).status_code == 403
+    c.post(url, {"azione": "attiva"})
+    assert Configurazione.corrente().modalita_demo
+    assert "Modalità demo:" in c.get(reverse("gestione:cruscotto")).content.decode()
+    pagina = cliente_di(richiedente).get(reverse("prenotazioni:nuova")).content.decode()
+    assert "prova del sistema" in pagina
+    richiesta(pattuglia, contatto)
+    # Senza conferma non si cancella niente
+    c.post(url, {"azione": "termina"})
+    assert Prenotazione.objects.exists()
+    c.post(url, {"azione": "termina", "conferma": "1"})
+    assert not Prenotazione.objects.exists()
+    assert not Configurazione.corrente().modalita_demo
+
+
+def test_link_nel_messaggio_di_blocco(richiedente):
+    Configurazione.objects.filter(pk=1).update(
+        prenotazioni_bloccate=True, messaggio_blocco="Dettagli su https://example.org/avviso"
+    )
+    pagina = cliente_di(richiedente).get(reverse("prenotazioni:nuova")).content.decode()
+    assert '<a href="https://example.org/avviso"' in pagina
+
+
+def test_categorie(prenotazione, admin, pattuglia):
+    url = reverse("gestione:categorie")
+    assert cliente_di(pattuglia).get(url).status_code == 403
+    c = cliente_di(admin)
+    listino = prenotazione.categoria.listino_default
+    risposta = c.post(
+        url, {"nome": "Scuola", "codice": "scuola", "listino_default": listino.pk, "ordine": 9}
+    )
+    assert risposta.status_code == 302
+    nuova = Categoria.objects.get(codice="scuola")
+    scheda = reverse("gestione:categoria", args=[nuova.pk])
+    # Il codice non cambia dopo la creazione
+    dati = {"nome": "Scuole", "codice": "altro", "listino_default": listino.pk, "ordine": 9}
+    assert c.post(scheda, dati).status_code == 302
+    nuova.refresh_from_db()
+    assert (nuova.nome, nuova.codice) == ("Scuole", "scuola")
+    assert "Categorie" in c.get(url).content.decode()
+    c.post(scheda, {"elimina": "1"})
+    assert not Categoria.objects.filter(pk=nuova.pk).exists()
+    # Una categoria usata non si elimina
+    usata = reverse("gestione:categoria", args=[prenotazione.categoria.pk])
+    c.post(usata, {"elimina": "1"})
+    assert Categoria.objects.filter(pk=prenotazione.categoria.pk).exists()
 
 
 def test_moduli_con_le_prenotazioni_bloccate(admin, richiedente):

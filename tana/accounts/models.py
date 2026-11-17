@@ -38,6 +38,10 @@ class UserManager(BaseUserManager["User"]):
 class User(AbstractUser):
     username = None  # type: ignore[assignment]
     email = models.EmailField("email", unique=True)
+    # Immagine del profilo dell'editor arrivata da Sestante (tana.accounts.avatar): nome del file
+    # salvato e impronta del contenuto, per riconoscerla e riscriverla solo quando cambia
+    avatar_sestante = models.CharField(max_length=255, blank=True, editable=False)
+    avatar_sestante_sha256 = models.CharField(max_length=64, blank=True, editable=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS: ClassVar[list[str]] = []
