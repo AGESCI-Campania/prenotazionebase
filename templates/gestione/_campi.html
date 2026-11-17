@@ -1,0 +1,1 @@
+{{ form.non_field_errors }}{% for field in form.visible_fields %}{% include "prenotazioni/_campo.html" %}{% endfor %}{% for field in form.hidden_fields %}{{ field }}{% endfor %}

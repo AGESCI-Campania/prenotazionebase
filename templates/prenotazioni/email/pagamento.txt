@@ -1,0 +1,3 @@
+{% load formati %}{% autoescape off %}Abbiamo registrato un pagamento ({{ pagamento.get_tipo_display }}) di {{ pagamento.importo_centesimi|euro }} del {{ pagamento.data|date:"j F Y"|lower }}.
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

@@ -1,0 +1,6 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}La prenotazione è stata modificata dalla gestione.{% else %}La gestione della base ha modificato la tua prenotazione.{% endif %}{% if motivo %}
+Motivo: {{ motivo }}{% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% if p.stato == "APPROVATA" and p.acconto_centesimi %}
+Acconto da versare: {{ p.acconto_centesimi|euro }} entro il {{ p.scadenza_acconto|date:"j F Y, H:i"|lower }}.
+{% endif %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

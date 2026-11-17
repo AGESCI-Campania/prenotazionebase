@@ -1,0 +1,6 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}Configurazione · {% endblock %}
+{% block content %}
+<h1>Configurazione</h1>
+<form method="post" class="card"><div class="card-body">{% csrf_token %}{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Salva</button></div></form>
+{% endblock %}

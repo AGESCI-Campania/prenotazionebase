@@ -27,13 +27,20 @@ def ruoli_attivi(utente: User) -> set[str]:
 
 
 def allinea_gruppi(utente: User) -> None:
-    """L'utente è nei gruppi dei ruoli con almeno una nomina attiva, e solo in quelli."""
+    """L'utente è nei gruppi dei ruoli con almeno una nomina attiva, e solo in quelli.
+
+    L'amministrazione entra anche nell'admin Django (strutture e categorie): `is_staff`.
+    """
     attivi = ruoli_attivi(utente)
     for ruolo in Ruolo:
         if ruolo in attivi:
             utente.groups.add(gruppo(ruolo))
         else:
             utente.groups.remove(gruppo(ruolo))
+    staff = utente.is_superuser or bool(attivi & {Ruolo.AMMINISTRATORE, Ruolo.RESPONSABILE})
+    if utente.is_staff != staff:
+        utente.is_staff = staff
+        utente.save(update_fields=["is_staff"])
 
 
 @transaction.atomic

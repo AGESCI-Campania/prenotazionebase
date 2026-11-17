@@ -10,13 +10,14 @@ from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 
+from tana.accounts import permessi
 from tana.base.models import Area, Configurazione
-from tana.core.services import registra_decisione
+from tana.core.services import registra_decisione, registra_evento
 from tana.listini.models import Attivita, Categoria, Listino, VersioneListino, VoceListino
 from tana.listini.services import versione_applicabile
 
@@ -327,8 +328,9 @@ def aggiorna_preventivo(prenotazione: Prenotazione, *, utente: Any = None) -> Ri
 
 
 @transaction.atomic
-def aggiorna_consuntivo(prenotazione: Prenotazione, *, utente: Any = None) -> Riepilogo:
+def aggiorna_consuntivo(prenotazione: Prenotazione, *, utente: Any) -> Riepilogo:
     """Ricalcola e salva le righe del consuntivo con la versione del preventivo (§5.2)."""
+    _richiedi(permessi.e_pattuglia(utente))
     righe = calcola(prenotazione, Fase.CONSUNTIVO)
     _salva_righe(prenotazione, Fase.CONSUNTIVO, righe, utente)
     return riepilogo(prenotazione, Fase.CONSUNTIVO)
@@ -448,7 +450,65 @@ def saldo(prenotazione: Prenotazione) -> int | None:
     return None if totale is None else totale - acconto_versato(prenotazione)
 
 
-# --- Interventi dell'amministratore -----------------------------------------------------
+# --- Interventi della gestione ---------------------------------------------------------
+
+
+def _richiedi(condizione: bool) -> None:
+    if not condizione:
+        raise PermissionDenied("Non hai i permessi per questa operazione.")
+
+
+def _puo_voce_libera(utente: Any, fase: str, decisione: Any) -> bool:
+    if fase == Fase.PREVENTIVO or decisione:
+        return permessi.e_amministrazione(utente)
+    return permessi.e_pattuglia(utente)
+
+
+@transaction.atomic
+def rimuovi_voce_libera(riga: RigaImporto, *, utente: Any) -> None:
+    """Toglie una voce libera (con gli stessi permessi con cui si aggiunge)."""
+    _richiedi(_puo_voce_libera(utente, riga.fase, riga.deciso_da))
+    if riga.calcolata or riga.rettifica:
+        raise ValidationError("Si tolgono solo le voci libere.")
+    if riga.fase == Fase.PREVENTIVO and preventivo_congelato(riga.prenotazione):
+        raise PreventivoCongelato
+    registra_evento(
+        riga.prenotazione,
+        f"voce libera tolta: {riga.descrizione}",
+        utente=utente,
+        prima={"importo_centesimi": riga.importo_centesimi, "fase": riga.fase},
+    )
+    riga.delete()
+
+
+@transaction.atomic
+def imposta_presenze_effettive(
+    prenotazione: Prenotazione,
+    *,
+    utente: Any,
+    presenze: dict[str, int | None],
+    attivita: dict[int, int | None],
+) -> Riepilogo:
+    """Persone effettive per area (codice) e per attività in giornata (pk), poi ricalcolo del
+    consuntivo (§5.2). Vuoto: si usano le previste."""
+    _richiedi(permessi.e_pattuglia(utente))
+    if prenotazione.stato not in {Stato.CONFERMATA, Stato.SVOLTA, Stato.CHIUSA}:
+        raise ValidationError("Il consuntivo si compila per le prenotazioni confermate o svolte.")
+    for presenza in prenotazione.presenze.select_related("area"):
+        if presenza.area.codice in presenze:
+            presenza.persone_effettive = presenze[presenza.area.codice]
+            presenza.save(update_fields=["persone_effettive"])
+    for att in prenotazione.attivita_giornaliere.all():
+        if att.pk in attivita:
+            att.persone_effettive = attivita[att.pk]
+            att.save(update_fields=["persone_effettive"])
+    registra_evento(
+        prenotazione,
+        "presenze effettive",
+        utente=utente,
+        dopo={"presenze": presenze, "attivita": {str(k): v for k, v in attivita.items()}},
+    )
+    return aggiorna_consuntivo(prenotazione, utente=utente)
 
 
 @transaction.atomic
@@ -456,6 +516,7 @@ def valorizza_riga(
     riga: RigaImporto, *, prezzo_centesimi: int, utente: Any, deciso_da: str, motivazione: str
 ) -> RigaImporto:
     """Prezzo di una voce da definire (P-04), con "deciso da" e motivazione (P-03)."""
+    _richiedi(permessi.e_amministrazione(utente))
     if not riga.calcolata or riga.voce_id is not None:
         raise ValidationError("Si valorizzano solo le voci mancanti nel listino.")
     if riga.fase == Fase.PREVENTIVO and preventivo_congelato(riga.prenotazione):
@@ -486,14 +547,16 @@ def aggiungi_voce_libera(
     prezzo_centesimi: int,
     quantita: int = 1,
     area: Area | None = None,
-    utente: Any = None,
+    utente: Any,
     deciso_da: str = "",
     motivazione: str = "",
 ) -> RigaImporto:
     """Voce libera (§5.1 punto 5): sovrapprezzo dell'esclusiva, pellet, forfait, danni.
 
-    Con "deciso da" la voce è una decisione discrezionale (D-14) e va nello storico.
+    Nel consuntivo la aggiunge la Pattuglia; nel preventivo, o con "deciso da" (decisione
+    discrezionale, D-14, nello storico), solo l'amministrazione.
     """
+    _richiedi(_puo_voce_libera(utente, fase, deciso_da or motivazione))
     if fase == Fase.PREVENTIVO and preventivo_congelato(prenotazione):
         raise PreventivoCongelato
     if deciso_da or motivazione:
@@ -532,6 +595,7 @@ def modifica_quota(
 ) -> Riepilogo:
     """Porta il totale di una fase all'importo deciso, anche zero (D-24): una riga di
     rettifica per la differenza; il totale calcolato resta visibile."""
+    _richiedi(permessi.e_amministrazione(utente))
     if fase == Fase.PREVENTIVO and preventivo_congelato(prenotazione):
         raise PreventivoCongelato
     if totale_centesimi < 0:

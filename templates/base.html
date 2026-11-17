@@ -14,6 +14,7 @@
   <li class="nav-item"><a href="{% url 'listino' %}" class="nav-link{% if sezione == 'listino' %} active{% endif %}">Listino prezzi</a></li>
   {% if request.user.is_authenticated %}
     <li class="nav-item"><a href="{% url 'prenotazioni:elenco' %}" class="nav-link{% if sezione == 'prenotazioni' %} active{% endif %}">Le mie prenotazioni</a></li>
+    {% if menu_gestione %}<li class="nav-item"><a href="{% url 'gestione:cruscotto' %}" class="nav-link{% if voce_attiva %} active{% endif %}">Gestione</a></li>{% endif %}
   {% endif %}
 {% endblock %}
 
@@ -23,6 +24,7 @@
   <li><a href="{% url 'listino' %}" class="nav-link">Listino prezzi</a></li>
   {% if request.user.is_authenticated %}
     <li><a href="{% url 'prenotazioni:elenco' %}" class="nav-link">Le mie prenotazioni</a></li>
+    {% if menu_gestione %}<li><a href="{% url 'gestione:cruscotto' %}" class="nav-link">Gestione</a></li>{% endif %}
     <li><a href="{% url 'account_logout' %}" class="nav-link">Esci</a></li>
   {% else %}
     <li><a href="{% url 'account_login' %}" class="nav-link">Accedi</a></li>

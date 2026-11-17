@@ -121,9 +121,15 @@ CATEGORIE = (
 
 # Permessi iniziali dei gruppi dei ruoli, assegnati solo quando il gruppo si crea: poi li
 # modifica l'amministratore (es. chi riceve le notifiche di gestione)
+# Strutture e categorie si modificano nell'admin Django (F5)
+_ADMIN_DJANGO = tuple(
+    f"{app}.{azione}_{modello}"
+    for app, modello in (("base", "struttura"), ("listini", "categoria"))
+    for azione in ("view", "add", "change", "delete")
+)
 PERMESSI_DEI_RUOLI: dict[str, tuple[str, ...]] = {
-    Ruolo.AMMINISTRATORE: ("prenotazioni.ricevi_notifiche_gestione",),
-    Ruolo.RESPONSABILE: ("prenotazioni.ricevi_notifiche_gestione",),
+    Ruolo.AMMINISTRATORE: ("prenotazioni.ricevi_notifiche_gestione", *_ADMIN_DJANGO),
+    Ruolo.RESPONSABILE: ("prenotazioni.ricevi_notifiche_gestione", *_ADMIN_DJANGO),
 }
 
 

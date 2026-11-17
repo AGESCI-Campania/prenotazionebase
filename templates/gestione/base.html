@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{# Area di gestione (mockup 4): barra laterale riscritta intera, il partial del tema è un include #}
+{% block sidebar %}
+<button class="ag-sidebar__mobile-toggle lg:d-none" type="button" data-bs-toggle="drawer" data-bs-target="#agSidebar" aria-controls="agSidebar" aria-label="Apri il menu della gestione">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/></svg>
+</button>
+<dialog class="ag-sidebar ag-sidebar--light lg:drawer drawer-start" id="agSidebar" tabindex="-1" aria-label="Menu della gestione">
+  <button class="ag-sidebar__close lg:d-none" type="button" data-bs-dismiss="drawer" aria-label="Chiudi il menu">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z"/></svg>
+  </button>
+  <ul class="ag-sidebar__nav">
+    <li class="tana-sidebar__sezione">Prenotazioni</li>
+    {% include "gestione/_voce.html" with nome="cruscotto" url_nome="gestione:cruscotto" etichetta="Cruscotto" %}
+    {% include "gestione/_voce.html" with nome="RICHIESTA" url_nome="gestione:elenco" etichetta="Da approvare" conteggio=contatori.da_approvare query="?elenco=da_approvare" %}
+    {% include "gestione/_voce.html" with nome="acconti" url_nome="gestione:elenco" etichetta="Acconti da verificare" conteggio=contatori.acconti query="?elenco=acconti" %}
+    {% include "gestione/_voce.html" with nome="consensi" url_nome="gestione:elenco" etichetta="Consensi in attesa" conteggio=contatori.consensi query="?elenco=consensi" %}
+    {% include "gestione/_voce.html" with nome="consuntivi" url_nome="gestione:elenco" etichetta="Consuntivi" conteggio=contatori.consuntivi query="?elenco=consuntivi" %}
+    {% include "gestione/_voce.html" with nome="messaggi" url_nome="gestione:elenco" etichetta="Messaggi senza risposta" conteggio=contatori.messaggi query="?elenco=messaggi" %}
+    {% include "gestione/_voce.html" with nome="tutte" url_nome="gestione:elenco" etichetta="Tutte le prenotazioni" query="?elenco=tutte" %}
+    {% include "gestione/_voce.html" with nome="calendario" url_nome="gestione:calendario" etichetta="Calendario" %}
+    {% include "gestione/_voce.html" with nome="arrivi" url_nome="gestione:arrivi" etichetta="Arrivi e partenze" %}
+    {% if puo.amministrazione %}
+      <li class="tana-sidebar__sezione">Configurazione</li>
+      {% include "gestione/_voce.html" with nome="blocchi" url_nome="gestione:blocchi" etichetta="Blocchi tecnici" %}
+      {% include "gestione/_voce.html" with nome="listini" url_nome="gestione:listini" etichetta="Listini e versioni" %}
+      {% include "gestione/_voce.html" with nome="configurazione" url_nome="gestione:configurazione" etichetta="Configurazione" %}
+      <li><a class="ag-sidebar__nav-link" href="{% url 'admin:base_struttura_changelist' %}"><span class="ag-sidebar__label">Strutture e categorie</span></a></li>
+    {% endif %}
+    {% if puo.ruoli %}
+      {% include "gestione/_voce.html" with nome="utenti" url_nome="gestione:utenti" etichetta="Utenti e ruoli" %}
+    {% endif %}
+    <li class="tana-sidebar__sezione">Report</li>
+    {% include "gestione/_voce.html" with nome="statistiche" url_nome="gestione:statistiche" etichetta="Statistiche" %}
+    {% include "gestione/_voce.html" with nome="export" url_nome="gestione:export" etichetta="Export contabilità" %}
+  </ul>
+</dialog>
+{% endblock %}

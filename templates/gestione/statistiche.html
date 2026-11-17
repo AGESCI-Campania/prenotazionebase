@@ -1,0 +1,32 @@
+{% extends "gestione/base.html" %}
+{% load formati %}
+{% block titolo_pagina %}Statistiche {{ s.anno }} · {% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-5">
+  <h1 class="mb-0">Statistiche {{ s.anno }}</h1>
+  <form method="get" class="d-flex gap-3"><select class="form-control" name="anno" aria-label="Anno">{% for a in anni %}<option value="{{ a }}"{% if a == s.anno %} selected{% endif %}>{{ a }}</option>{% endfor %}</select><button class="btn-outline theme-primary" type="submit">Mostra</button></form>
+</div>
+<p class="small fg-2 mt-3">Prenotazioni confermate, svolte e chiuse. Presenze = persone × giorni (effettive se registrate). Importi: consuntivo, o preventivo se non ancora compilato. Incassi: pagamenti verificati nell'anno.</p>
+<div class="table-responsive mt-5">
+  <table class="table small">
+    <thead><tr><th>Categoria</th><th class="text-end">Prenotazioni</th>{% for area in s.aree %}<th class="text-end">Presenze {{ area.nome|lower }}</th>{% endfor %}<th class="text-end">Ospiti in giornata</th><th class="text-end">Importi</th><th class="text-end">Incassi</th></tr></thead>
+    <tbody>
+      {% for r in s.categorie %}
+        <tr><td>{{ r.categoria }}</td><td class="text-end">{{ r.prenotazioni }}</td>{% for area in s.aree %}<td class="text-end">{% for nome, n in r.presenze.items %}{% if nome == area.nome %}{{ n }}{% endif %}{% endfor %}</td>{% endfor %}<td class="text-end">{{ r.ospiti }}</td><td class="text-end">{{ r.importi|euro }}{% if r.importi_da_definire %} (+{{ r.importi_da_definire }} da definire){% endif %}</td><td class="text-end">{{ r.incassi|euro }}</td></tr>
+      {% empty %}<tr><td colspan="8" class="fg-2">Nessuna prenotazione nell'anno.</td></tr>{% endfor %}
+      {% with t=s.totale %}<tr class="fw-bold"><td>Totale</td><td class="text-end">{{ t.prenotazioni }}</td>{% for area in s.aree %}<td class="text-end">{% for nome, n in t.presenze.items %}{% if nome == area.nome %}{{ n }}{% endif %}{% endfor %}</td>{% endfor %}<td class="text-end">{{ t.ospiti }}</td><td class="text-end">{{ t.importi|euro }}</td><td class="text-end">{{ t.incassi|euro }}</td></tr>{% endwith %}
+    </tbody>
+  </table>
+</div>
+<div class="card mt-7"><div class="card-body">
+  <h2 class="fs-lg">Settimana del Comune</h2>
+  <p class="mb-0">Giorni usati dal Comune di Aiello del Sabato nel {{ s.anno }}: <b>{{ s.giorni_comune }}</b> su {{ giorni_comodato }} del comodato{% if s.giorni_comune > giorni_comodato %} — <span class="fg-danger">oltre la settimana annua: forfait</span>{% endif %}.</p>
+</div></div>
+<h2 class="fs-lg mt-7">Occupazione per mese (notti occupate)</h2>
+<div class="table-responsive">
+  <table class="table small">
+    <thead><tr><th>Area</th>{% for mese in mesi %}<th class="text-end">{{ mese }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for area, mesi in s.occupazione.items %}<tr><td>{{ area }}</td>{% for mese, n, totale in mesi %}<td class="text-end">{{ n }}/{{ totale }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

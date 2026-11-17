@@ -1,0 +1,16 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}Arrivi e partenze · {% endblock %}
+{% block content %}
+<h1>Arrivi e partenze</h1>
+<nav class="d-flex gap-3 mb-7" aria-label="Periodo">
+  <a class="{% if periodo == 'oggi' %}btn-solid{% else %}btn-outline{% endif %} theme-primary" href="?periodo=oggi">Oggi</a>
+  <a class="{% if periodo == 'settimana' %}btn-solid{% else %}btn-outline{% endif %} theme-primary" href="?periodo=settimana">7 giorni</a>
+  <a class="{% if periodo == 'mese' %}btn-solid{% else %}btn-outline{% endif %} theme-primary" href="?periodo=mese">Mese</a>
+</nav>
+{% for giorno, voci in giornate %}
+  <h2 class="fs-md fg-2 mt-7">{{ giorno|date:"l j F"|lower|capfirst }}</h2>
+  {% for v in voci %}{% include "gestione/_arrivo.html" %}{% endfor %}
+{% empty %}
+  <p class="fg-2">Nessun arrivo o partenza nel periodo.</p>
+{% endfor %}
+{% endblock %}

@@ -156,11 +156,22 @@ class Prenotazione(models.Model):
         blank=True,
         help_text="Fissato all'approvazione; zero se non dovuto o esentato.",
     )
+    acconto_deciso = models.BooleanField(
+        "acconto deciso",
+        default=False,
+        help_text="Importo o esenzione decisi all'approvazione (D-14): le modifiche non lo ricalcolano.",
+    )
     scadenza_acconto = models.DateTimeField(
         "scadenza dell'acconto",
         null=True,
         blank=True,
         help_text="Senza ricevuta entro questa data la prenotazione scade.",
+    )
+    # Orari concordati per arrivo e partenza (D-04, D-26): li propone il richiedente o la Pattuglia
+    orario_arrivo_concordato = models.TimeField("arrivo concordato", null=True, blank=True)
+    orario_partenza_concordato = models.TimeField("partenza concordata", null=True, blank=True)
+    anonimizzata_il = models.DateTimeField(
+        "anonimizzata il", null=True, blank=True, editable=False, help_text="D-18."
     )
     id_supersaas = models.CharField(
         "id SuperSaaS", max_length=50, unique=True, null=True, blank=True, editable=False

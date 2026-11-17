@@ -1,0 +1,21 @@
+{% load formati %}
+<div class="card mb-5"><div class="card-body">
+  <div class="d-flex justify-content-between align-items-center gap-3">
+    <a href="{% url 'gestione:scheda' v.p.numero %}"><b>{{ v.p.gruppo|default:v.p.numero }}</b></a>
+    {% if v.movimento == "ARRIVA" %}<span class="badge theme-success">Arriva</span>{% elif v.movimento == "PARTE" %}<span class="badge theme-secondary">Parte</span>{% else %}<span class="badge theme-info">In giornata</span>{% endif %}
+  </div>
+  <div class="small fg-2">
+    {% if v.attivita %}{{ v.attivita.get_tipo_display|capfirst }} · {{ v.attivita.persone_previste }} persone
+      {% for c in v.consensi %}· consenso {{ c.get_stato_display }}{% endfor %}
+    {% else %}{% for pr in v.presenze %}{{ pr.area }} {{ pr.persone_previste }} persone{% if not forloop.last %} · {% endif %}{% endfor %}
+      · {% if v.movimento == "ARRIVA" %}arrivo{% else %}partenza{% endif %} {{ v.orario|time:"H:i" }}{% if v.concordato %} (concordato){% else %} (standard){% endif %}
+      {% if v.p.esclusiva_concessa %}· uso esclusivo{% endif %}{% endif %}
+  </div>
+  <div class="small fg-2">Acconto versato {{ v.versato|euro }}{% if v.da_incassare %} · da incassare {{ v.da_incassare|euro }}{% endif %}{% if v.p.note %} · {{ v.p.note|truncatechars:80 }}{% endif %}</div>
+  <div class="d-flex flex-wrap gap-3 mt-3">
+    {% if v.p.contatto.telefono %}<a class="btn-outline theme-primary" href="tel:{{ v.p.contatto.telefono }}">Referente</a>{% endif %}
+    {% if v.p.capo_responsabile.telefono %}<a class="btn-outline theme-primary" href="tel:{{ v.p.capo_responsabile.telefono }}">Capo resp.</a>{% endif %}
+    {% if v.p.contatto.email %}<a class="btn-outline theme-primary" href="mailto:{{ v.p.contatto.email }}">Email</a>{% endif %}
+    {% if v.movimento == "PARTE" %}<a class="btn-outline theme-primary" href="{% url 'gestione:consuntivo' v.p.numero %}">Consuntivo</a>{% endif %}
+  </div>
+</div></div>

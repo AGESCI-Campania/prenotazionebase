@@ -1,0 +1,33 @@
+{% extends "gestione/base.html" %}
+{% load formati %}
+{% block titolo_pagina %}{{ titolo }} · {% endblock %}
+{% block content %}
+<h1>{{ titolo }}</h1>
+{% if tipo == "tutte" %}
+  <form method="get" class="d-flex flex-wrap gap-3 align-items-end mb-7">
+    <input type="hidden" name="elenco" value="tutte">
+    <div class="form-field"><label for="q">Cerca</label><input class="form-control" id="q" name="q" value="{{ q }}" placeholder="Numero, gruppo, referente"></div>
+    <div class="form-field"><label for="stato">Stato</label><select class="form-control" id="stato" name="stato"><option value="">Tutti</option>{% for valore, nome in stati %}<option value="{{ valore }}"{% if valore == stato %} selected{% endif %}>{{ nome|capfirst }}</option>{% endfor %}</select></div>
+    <button class="btn-solid theme-primary" type="submit">Filtra</button>
+  </form>
+{% endif %}
+<div class="table-responsive">
+  <table class="table">
+    <thead><tr><th>Numero</th><th>Gruppo</th><th>Categoria</th><th>Date</th><th>Stato</th>{% if tipo == "acconti" %}<th>Acconto</th>{% endif %}</tr></thead>
+    <tbody>
+      {% for p in prenotazioni %}
+        <tr>
+          <td><a href="{% url 'gestione:scheda' p.numero %}">{{ p.numero }}</a></td>
+          <td>{{ p.gruppo|default:"—" }}</td>
+          <td class="small">{{ p.categoria }}</td>
+          <td class="small">{% if p.arrivo == p.partenza %}{{ p.arrivo|date:"d/m/Y" }}{% else %}{{ p.arrivo|date:"d/m" }}–{{ p.partenza|date:"d/m/Y" }}{% endif %}</td>
+          <td>{% include "prenotazioni/_stato.html" %}</td>
+          {% if tipo == "acconti" %}<td class="small">{{ p.acconto_centesimi|euro }}{% if p.pk in in_verifica %} · <span class="badge theme-warning">ricevuta da verificare</span>{% elif p.scadenza_acconto %} · entro {{ p.scadenza_acconto|date:"d/m" }}{% endif %}</td>{% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="fg-2">Nessuna prenotazione.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

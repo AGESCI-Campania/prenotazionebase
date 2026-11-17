@@ -1,0 +1,7 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}Export · {% endblock %}
+{% block content %}
+<h1>Export per la contabilità</h1>
+<p class="fg-2">Prenotazioni con arrivo nel periodo (preventivo, consuntivo, acconto versato, saldo) oppure incassi verificati nel periodo. Importi in euro.</p>
+<form method="get" class="card"><div class="card-body">{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Scarica</button></div></form>
+{% endblock %}

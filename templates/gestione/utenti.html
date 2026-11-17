@@ -1,0 +1,22 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}Utenti e ruoli · {% endblock %}
+{% block content %}
+<h1>Utenti e ruoli</h1>
+<p class="fg-2">Ruoli locali di Tana, assegnati dalla segreteria agli account entrati con Sestante. I ruoli globali (amministratore, segreteria) arrivano da Sestante e si cambiano lì.</p>
+<div class="row g-7">
+  <div class="lg:col-7">
+    <div class="table-responsive"><table class="table">
+      <thead><tr><th>Utente</th><th>Ruolo</th><th></th></tr></thead>
+      <tbody>
+        {% for n in nomine %}
+          <tr><td>{{ n.utente }}</td><td>{{ n.get_ruolo_display }}{% if n.da_sso %} <span class="badge theme-info">Sestante</span>{% endif %}</td>
+            <td class="text-end">{% if not n.da_sso %}<form method="post">{% csrf_token %}<button class="btn-subtle theme-danger" name="revoca" value="{{ n.pk }}">revoca</button></form>{% endif %}</td></tr>
+        {% empty %}<tr><td colspan="3" class="fg-2">Nessun ruolo assegnato.</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+  <div class="lg:col-5">
+    <form method="post" class="card"><div class="card-body">{% csrf_token %}<h2 class="fs-lg">Assegna un ruolo</h2>{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Assegna</button></div></form>
+  </div>
+</div>
+{% endblock %}

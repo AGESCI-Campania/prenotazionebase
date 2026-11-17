@@ -7,7 +7,7 @@ Scadenze (sempre servizi di dominio):
 - richieste approvate senza ricevuta entro il termine → SCADUTA (D-13);
 - prenotazioni confermate con la partenza passata → SVOLTA (§4);
 - richieste di consenso senza risposta entro il termine → negate (D-06);
-- F5: anonimizzazione dei dati personali dopo 10 anni (D-18).
+- anonimizzazione dei dati personali dopo 10 anni (D-18).
 """
 
 import logging
@@ -20,12 +20,18 @@ from django.core.management.base import BaseCommand, CommandParser
 from django.db import close_old_connections
 
 from tana.prenotazioni.consensi import scadi_consensi
+from tana.prenotazioni.conservazione import anonimizza_scadute
 from tana.prenotazioni.flusso import scadi_acconti, segna_svolte
 
 log = logging.getLogger("tana.scheduler")
 
 # Elenco delle scadenze: funzioni senza argomenti, idempotenti
-SCADENZE: list[Callable[[], object]] = [scadi_acconti, segna_svolte, scadi_consensi]
+SCADENZE: list[Callable[[], object]] = [
+    scadi_acconti,
+    segna_svolte,
+    scadi_consensi,
+    anonimizza_scadute,
+]
 
 
 def esegui_scadenze() -> None:

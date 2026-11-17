@@ -32,8 +32,8 @@ importi o versioni. Le modifiche alla specifica le approva Andrea.
 | F2 | Preventivo e consuntivo, test sugli esempi del §5.4 | **fatto** |
 | F3 | Flusso richiesta → approvazione → acconto → conferma, scadenze, email, login Sestante | **fatto** |
 | F4 | Area richiedente, consensi, messaggi | **fatto** |
-| F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | prossima |
-| F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | |
+| F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | **fatto** |
+| F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | prossima |
 | F7 | Import SuperSaaS | |
 | F8 | Prova completa di installazione, aggiornamento, backup; messa in produzione | |
 
@@ -77,7 +77,9 @@ tana/prenotazioni/ Prenotazione, PresenzaArea, Occupazione (exclusion constraint
                    notifiche.py + templates/prenotazioni/email/*.txt: email a richiedente e gestione (D-19)
                    consensi.py (D-06), messaggi.py (D-16, telefoni), disponibilita.py (calendario, D-17)
                    views.py + urls.py: area del richiedente /prenotazioni/; views_pubbliche.py: /disponibilita/
-tana/listini/      views.py: /listino/ (listini in vigore)
+                   conservazione.py: anonimizzazione dopo 10 anni (D-18, scheduler)
+tana/listini/      views.py: /listino/ (listini in vigore); services.nuova_versione
+tana/gestione/     area /gestione/ (views, forms), statistiche.py, export.py (xlsx/csv); templates/gestione/
 templates/         base.html (estende agesci_theme/base.html), core/manutenzione.html (statica)
 static/tana/       css/tana.css (palette), img/logo/*.svg (loghi della base, non ridisegnarli)
 deploy/            entrypoint.sh, nginx/ (Dockerfile + template dell'nginx interno)

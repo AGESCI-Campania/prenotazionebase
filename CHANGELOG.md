@@ -5,6 +5,21 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### F5 — area di gestione, statistiche, export
+- `/gestione/` con barra laterale e contatori: cruscotto, elenchi (da approvare, acconti, consensi,
+  consuntivi, messaggi senza risposta, tutte), calendario con i nomi, arrivi e partenze per il
+  telefono (D-26).
+- Scheda della prenotazione: approvazione con concessioni e acconto, rifiuto, annullamento,
+  modifica di date e persone, voci da definire, voci libere, modifica della quota, ricevute,
+  pagamenti, orari concordati, messaggi con il gruppo, storico. Consuntivo con presenze
+  effettive, voci, saldo e chiusura.
+- Prenotazioni per conto della gestione (prioritarie, anche senza contatti e oltre l'orizzonte).
+- Blocchi tecnici, versioni di listino con copia delle voci, configurazione (anche IBAN e causale),
+  ruoli assegnati dalla segreteria; strutture e categorie nell'admin Django per l'amministrazione.
+- Statistiche per anno e export Excel/CSV di prenotazioni e incassi.
+- Anonimizzazione dei dati personali dopo 10 anni nello scheduler (D-18).
+- Controlli dei permessi nel calcolo degli importi; orari concordati anche dal richiedente.
+
 ### F4 — area del richiedente, consensi, messaggi
 - Nuova richiesta in tre passi (gruppo e referenti, soggiorno, riepilogo) con preventivo e
   disponibilità in tempo reale, calcolati con le stesse regole dell'invio.

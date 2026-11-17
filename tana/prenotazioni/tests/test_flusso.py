@@ -194,7 +194,7 @@ def test_percorso_completo(email, richiedente, contatto, admin, pattuglia):
     assert prenotazione.stato == Stato.SVOLTA
     with pytest.raises(ValidationError):
         flusso.chiudi(prenotazione, utente=pattuglia)
-    contributo.aggiorna_consuntivo(prenotazione)
+    contributo.aggiorna_consuntivo(prenotazione, utente=pattuglia)
     email(flusso.chiudi, prenotazione, utente=pattuglia)
     assert prenotazione.stato == Stato.CHIUSA
     consuntivo = email.inviate[-1]

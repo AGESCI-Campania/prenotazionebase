@@ -2,7 +2,10 @@
 
 import datetime
 
-from .models import Listino, VersioneListino
+from django.core.exceptions import ValidationError
+from django.db import transaction
+
+from .models import Listino, VersioneListino, VoceListino
 
 
 def versione_applicabile(
@@ -34,3 +37,34 @@ def listini_in_vigore(
         prossima = pubblicate.filter(valida_dal__gt=oggi).order_by("valida_dal").first()
         risultato.append((listino, corrente, prossima))
     return risultato
+
+
+@transaction.atomic
+def nuova_versione(
+    listino: Listino,
+    *,
+    nome: str,
+    pubblicata_il: datetime.date,
+    valida_dal: datetime.date,
+    copia_da: VersioneListino | None = None,
+    note: str = "",
+) -> VersioneListino:
+    """Nuova versione di un listino (D-09), con le voci copiate da una versione esistente da
+    modificare prima dell'uso (le versioni usate non si toccano più)."""
+    if valida_dal < pubblicata_il:
+        raise ValidationError({"valida_dal": "La validità non può precedere la pubblicazione."})
+    versione = VersioneListino.objects.create(
+        listino=listino, nome=nome, pubblicata_il=pubblicata_il, valida_dal=valida_dal, note=note
+    )
+    if copia_da is not None:
+        for voce in copia_da.voci.all():
+            VoceListino.objects.create(
+                versione=versione,
+                attivita=voce.attivita,
+                area=voce.area,
+                stagione=voce.stagione,
+                unita=voce.unita,
+                importo_centesimi=voce.importo_centesimi,
+                descrizione=voce.descrizione,
+            )
+    return versione

@@ -12,6 +12,7 @@ from django.db.backends.postgresql.psycopg_any import DateRange
 from django.utils import timezone
 
 from tana.base.models import Area
+from tana.core.services import registra_evento
 
 from .models import STATI_ATTIVI, BloccoTecnico, ContatoreNumeri, Occupazione, Prenotazione
 
@@ -120,3 +121,15 @@ def crea_blocco(
 
     _salva_occupazioni(operazione)
     return risultato[0]
+
+
+@transaction.atomic
+def elimina_blocco(blocco: BloccoTecnico, *, utente: Any = None) -> None:
+    """Toglie un blocco tecnico: le date tornano libere."""
+    registra_evento(
+        blocco.area,
+        "blocco tecnico tolto",
+        utente=utente,
+        prima={"dal": blocco.dal.isoformat(), "al": blocco.al.isoformat(), "motivo": blocco.motivo},
+    )
+    blocco.delete()

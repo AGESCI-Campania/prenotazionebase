@@ -9,7 +9,7 @@ tende), che saranno dismessi.
 - **Stato:** analisi chiusa (risposte della Pattuglia e di Andrea del 10/11/2026; sintesi v0.3
   inviata alla Pattuglia), aggiornata il 13/11/2026 per il nuovo server e il dominio
   `agescicampania.net`, il 14–15/11 per il sito in Wagtail (sintesi v0.4), il 17/11/2026 per
-  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. In sviluppo: F0–F4 fatte.
+  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. In sviluppo: F0–F5 fatte.
 - **Repository:** `AGESCI-Campania/prenotazionebase` (il pacchetto Python resta `tana`). Licenza MIT, © Andrea Bruno.
 - **Hosting:** nuovo server dedicato Ubuntu 26.04, installazione pulita senza Virtualmin né Apache;
   Docker Compose in `/opt/prenotazionebase` (utente `agesci`), dietro il reverse proxy Caddy comune;
@@ -510,6 +510,27 @@ Scelte di F4 (Andrea, 17/11/2026):
 - Calendario pubblico (D-17) e pagina dei listini in vigore (con la versione successiva già
   pubblicata) fanno parte della F4. Riferimento grafico: i mockup del 15/11/2026.
 - Ogni prenotazione ha anche il **capo responsabile** (D-18, D-26), oltre al referente.
+
+Scelte di F5 (Andrea, 17/11/2026):
+- **Area di gestione** `/gestione/` con la barra laterale del mockup 4. Blocchi tecnici, versioni di
+  listino (con copia delle voci) e configurazione si modificano lì; **strutture e categorie
+  nell'admin Django**, aperto all'amministrazione (`is_staff` e permessi su quei modelli).
+- **Modifica** di date e persone dall'amministrazione in ogni stato attivo, anche dopo l'acconto
+  (P-02): il preventivo congelato resta e le differenze vanno nel consuntivo. Un acconto deciso
+  all'approvazione (importo o esenzione) non si ricalcola; se diventa dovuto parte il termine.
+- **Orari concordati** (D-26): li propone il richiedente o la Pattuglia; l'altra parte riceve
+  un'email.
+- **Statistiche** per **anno solare**: prenotazioni, presenze (persone × giorni) per area, ospiti
+  in giornata, importi e incassi per categoria; giorni del Comune rispetto alla settimana del
+  comodato; notti occupate per area e mese. **Export** Excel e CSV di prenotazioni e incassi per
+  periodo libero.
+- **Anonimizzazione** (D-18) dal 1° gennaio dell'undicesimo anno dopo quello della partenza:
+  contatti svuotati (se non servono ad altre prenotazioni), utente scollegato, note, messaggi,
+  richieste di telefono e ricevute cancellati; restano numero, categoria, gruppo, date, presenze,
+  importi e pagamenti. La esegue lo scheduler.
+- Permessi sugli importi: valorizzazioni, modifiche della quota e voci del preventivo solo
+  all'amministrazione; voci del consuntivo, presenze effettive e pagamenti anche alla Pattuglia.
+  Gli arrivi e le partenze mostrano solo prenotazioni approvate, confermate o in corso.
 
 ---
 

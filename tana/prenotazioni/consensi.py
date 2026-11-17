@@ -55,12 +55,19 @@ def termine(data: datetime.date, adesso: datetime.datetime | None = None) -> dat
 
 
 def chiedi_consensi(prenotazione: Prenotazione) -> list[RichiestaConsenso]:
-    """Domande di consenso per le attività in giornata della richiesta (alla creazione)."""
+    """Domande di consenso per le attività in giornata della richiesta: alla creazione e dopo
+    una modifica delle date (solo a chi ha prenotato prima e non è già stato interpellato)."""
     adesso = timezone.now()
     scadenze: dict[int, datetime.datetime] = {}
     esistenti: dict[int, Prenotazione] = {}
+    gia_chiesti = set(
+        prenotazione.consensi_chiesti.values_list("prenotazione_esistente", flat=True)
+    )
     for attivita in prenotazione.attivita_giornaliere.all():
-        for presente in presenti(attivita.data, escludi=prenotazione):
+        prima = presenti(attivita.data, escludi=prenotazione).filter(
+            creata_il__lt=prenotazione.creata_il
+        )
+        for presente in prima.exclude(pk__in=gia_chiesti):
             scadenza = termine(attivita.data, adesso)
             scadenze[presente.pk] = min(scadenze.get(presente.pk, scadenza), scadenza)
             esistenti[presente.pk] = presente

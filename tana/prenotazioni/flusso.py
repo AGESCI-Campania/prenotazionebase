@@ -244,6 +244,7 @@ def approva(
     giorni = Configurazione.corrente().acconto_giorni
     prenotazione.approvata_il = adesso
     prenotazione.acconto_centesimi = acconto
+    prenotazione.acconto_deciso = acconto != previsto
     prenotazione.scadenza_acconto = adesso + datetime.timedelta(days=giorni) if acconto else None
     _cambia_stato(
         prenotazione, Stato.APPROVATA, utente=utente, azione="approvata", acconto_centesimi=acconto
@@ -452,6 +453,179 @@ def chiudi(prenotazione: Prenotazione, *, utente: Any) -> Prenotazione:
         saldo=saldo,
     )
     return prenotazione
+
+
+# --- Interventi della gestione ---------------------------------------------------------
+
+STATI_MODIFICABILI = frozenset({Stato.RICHIESTA, Stato.APPROVATA, Stato.CONFERMATA})
+
+
+def _fotografia(prenotazione: Prenotazione) -> dict[str, Any]:
+    return {
+        "arrivo": prenotazione.arrivo.isoformat(),
+        "partenza": prenotazione.partenza.isoformat(),
+        "presenze": {p.area.codice: p.persone_previste for p in prenotazione.presenze.all()},
+        "attivita": [
+            [a.data.isoformat(), a.tipo, a.persone_previste]
+            for a in prenotazione.attivita_giornaliere.order_by("data", "pk")
+        ],
+    }
+
+
+@transaction.atomic
+def modifica(
+    prenotazione: Prenotazione,
+    *,
+    utente: Any,
+    arrivo: datetime.date,
+    partenza: datetime.date,
+    presenze: dict[str, int],
+    attivita: list[tuple[datetime.date, str, int]],
+    motivo: str = "",
+) -> Prenotazione:
+    """Cambia date, persone e attività in giornata (amministrazione, anche dopo l'acconto: P-02).
+
+    Le date nuove devono essere libere (vincolo del database). Finché il preventivo non è
+    congelato si ricalcolano preventivo e, per le approvate, l'acconto, salvo che sia stato
+    deciso a mano all'approvazione; se diventa dovuto parte il termine per la ricevuta. Dopo
+    l'acconto il preventivo resta e le differenze vanno nel consuntivo.
+    """
+    _richiedi(permessi.e_amministrazione(utente))
+    _blocca(prenotazione)
+    if prenotazione.stato not in STATI_MODIFICABILI:
+        raise TransizioneNonValida(prenotazione, "modificare")
+    presenze = {codice: n for codice, n in presenze.items() if n}
+    if not presenze and not attivita:
+        raise ValidationError("Indica le persone in almeno un'area o un'attività in giornata.")
+    if partenza < arrivo or (presenze and partenza == arrivo):
+        raise ValidationError({"partenza": "La partenza deve essere dopo l'arrivo."})
+    for data, _, _ in attivita:
+        if not arrivo <= data <= partenza:
+            raise ValidationError({"attivita": "Le attività devono cadere nel periodo."})
+    if prenotazione.esclusiva_concessa and set(presenze) != {Area.ACCANTONAMENTO}:
+        raise ValidationError("L'esclusiva concessa vale solo con il solo accantonamento.")
+    prima = _fotografia(prenotazione)
+    prenotazione.arrivo, prenotazione.partenza = arrivo, partenza
+    prenotazione.save()
+    prenotazione.presenze.exclude(area__codice__in=presenze).delete()
+    aree = {a.codice: a for a in Area.objects.filter(codice__in=presenze)}
+    for codice, persone in presenze.items():
+        PresenzaArea.objects.update_or_create(
+            prenotazione=prenotazione, area=aree[codice], defaults={"persone_previste": persone}
+        )
+    prenotazione.attivita_giornaliere.all().delete()
+    for data, tipo, persone in attivita:
+        AttivitaGiornaliera.objects.create(
+            prenotazione=prenotazione, data=data, tipo=tipo, persone_previste=persone
+        )
+    sincronizza_occupazioni(prenotazione)
+    if not contributo.preventivo_congelato(prenotazione):
+        contributo.aggiorna_preventivo(prenotazione, utente=utente)
+        # L'acconto deciso all'approvazione (importo o esenzione) resta com'è
+        if prenotazione.stato == Stato.APPROVATA and not prenotazione.acconto_deciso:
+            prenotazione.acconto_centesimi = contributo.acconto_previsto(prenotazione)
+            if not prenotazione.acconto_centesimi:
+                prenotazione.scadenza_acconto = None
+            elif prenotazione.scadenza_acconto is None:
+                giorni = Configurazione.corrente().acconto_giorni
+                prenotazione.scadenza_acconto = timezone.now() + datetime.timedelta(days=giorni)
+            prenotazione.save(update_fields=["acconto_centesimi", "scadenza_acconto"])
+    if prenotazione.stato == Stato.RICHIESTA:
+        consensi.chiedi_consensi(prenotazione)
+    registra_evento(
+        prenotazione,
+        "modificata",
+        utente=utente,
+        prima=prima,
+        dopo={**_fotografia(prenotazione), "motivo": motivo.strip()},
+    )
+    notifiche.notifica(prenotazione, "modificata", motivo=motivo.strip())
+    return prenotazione
+
+
+@transaction.atomic
+def imposta_orari(
+    prenotazione: Prenotazione,
+    *,
+    utente: Any,
+    arrivo: datetime.time | None,
+    partenza: datetime.time | None,
+) -> Prenotazione:
+    """Orari concordati (D-26): li propone il richiedente o la Pattuglia; avvisa l'altra parte."""
+    titolare = permessi.e_titolare(utente, prenotazione)
+    _richiedi(titolare or permessi.e_pattuglia(utente))
+    if prenotazione.stato not in STATI_MODIFICABILI:
+        raise TransizioneNonValida(prenotazione, "cambiare gli orari")
+    prima = {
+        "arrivo": str(prenotazione.orario_arrivo_concordato or ""),
+        "partenza": str(prenotazione.orario_partenza_concordato or ""),
+    }
+    prenotazione.orario_arrivo_concordato = arrivo
+    prenotazione.orario_partenza_concordato = partenza
+    prenotazione.save(update_fields=["orario_arrivo_concordato", "orario_partenza_concordato"])
+    registra_evento(
+        prenotazione,
+        "orari concordati",
+        utente=utente,
+        prima=prima,
+        dopo={"arrivo": str(arrivo or ""), "partenza": str(partenza or "")},
+    )
+    notifiche.notifica(
+        prenotazione,
+        "orari",
+        al_richiedente=not titolare,
+        alla_gestione=titolare,
+        da_gestione=not titolare,
+    )
+    return prenotazione
+
+
+@transaction.atomic
+def registra_pagamento(
+    prenotazione: Prenotazione,
+    *,
+    utente: Any,
+    tipo: str,
+    importo_centesimi: int,
+    data: datetime.date,
+) -> Pagamento:
+    """Pagamento ricevuto e verificato dalla Pattuglia (saldo, o acconto senza ricevuta caricata):
+    un acconto su una prenotazione approvata la conferma."""
+    _richiedi(permessi.e_pattuglia(utente))
+    _blocca(prenotazione)
+    if importo_centesimi <= 0:
+        raise ValidationError({"importo_centesimi": "L'importo deve essere positivo."})
+    if prenotazione.stato not in STATI_MODIFICABILI | {Stato.SVOLTA, Stato.CHIUSA}:
+        raise TransizioneNonValida(prenotazione, "registrare un pagamento")
+    pagamento = Pagamento.objects.create(
+        prenotazione=prenotazione,
+        tipo=tipo,
+        importo_centesimi=importo_centesimi,
+        data=data,
+        stato=StatoPagamento.VERIFICATO,
+        registrato_da=utente,
+        verificato_da=utente,
+        verificato_il=timezone.now(),
+    )
+    registra_evento(
+        prenotazione,
+        f"pagamento registrato ({pagamento.get_tipo_display()})",
+        utente=utente,
+        dopo={"importo_centesimi": importo_centesimi, "data": data.isoformat()},
+    )
+    if tipo == Pagamento.Tipo.ACCONTO and prenotazione.stato == Stato.APPROVATA:
+        prenotazione.scadenza_acconto = None
+        _cambia_stato(
+            prenotazione,
+            Stato.CONFERMATA,
+            utente=utente,
+            azione="confermata (acconto registrato)",
+            acconto_versato=importo_centesimi,
+        )
+        notifiche.notifica(prenotazione, "confermata", pagamento=pagamento)
+    else:
+        notifiche.notifica(prenotazione, "pagamento", pagamento=pagamento)
+    return pagamento
 
 
 # --- Scadenze (servizio scheduler, P-07) ------------------------------------------------

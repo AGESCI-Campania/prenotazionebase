@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "tana.base",
     "tana.listini",
     "tana.prenotazioni",
+    "tana.gestione",
     # Tema regionale (prima di allauth e dell'admin: sovrascrive i loro template)
     "agesci_theme",
     # Wagtail (sito della base, D-30)
@@ -91,6 +92,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "agesci_theme.context_processors.agesci_theme",
+                "tana.gestione.context_processors.menu",
             ],
         },
     }

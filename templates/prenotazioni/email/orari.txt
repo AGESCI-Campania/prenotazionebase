@@ -1,0 +1,5 @@
+{% load formati %}{% autoescape off %}{% if da_gestione %}La Pattuglia della base ha indicato gli orari concordati{% else %}Il gruppo ha indicato gli orari concordati{% endif %} per la prenotazione {{ p.numero }}:
+- arrivo: {% if p.orario_arrivo_concordato %}{{ p.orario_arrivo_concordato|time:"H:i" }}{% else %}orario standard ({{ conf.orario_arrivo|time:"H:i" }}){% endif %}
+- partenza: {% if p.orario_partenza_concordato %}{{ p.orario_partenza_concordato|time:"H:i" }}{% else %}orario standard ({{ conf.orario_partenza|time:"H:i" }}){% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

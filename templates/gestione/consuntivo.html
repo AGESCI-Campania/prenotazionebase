@@ -1,0 +1,49 @@
+{% extends "gestione/base.html" %}
+{% load formati %}
+{% block titolo_pagina %}Consuntivo {{ p.numero }} · {% endblock %}
+{% block content %}
+<h1>Consuntivo · prenotazione {{ p.numero }}</h1>
+<p class="fg-2">{{ p.gruppo }} · {{ p.arrivo|date:"j F"|lower }} – {{ p.partenza|date:"j F Y"|lower }}{% if p.versione_listino %} · listino {{ p.versione_listino }}{% endif %}</p>
+<div class="row g-7 mt-3">
+  <div class="lg:col-8">
+    <div class="card"><div class="card-body">
+      <h2 class="fs-lg">Presenze effettive</h2>
+      <form method="post">{% csrf_token %}{% include "gestione/_campi.html" %}
+        <p class="small fg-2">Vuoto: si usano le persone previste (riga segnata).</p>
+        <button class="btn-solid theme-primary" type="submit">{% if consuntivo.righe %}Ricalcola il consuntivo{% else %}Prepara il consuntivo{% endif %}</button>
+      </form>
+    </div></div>
+    {% if consuntivo.righe %}
+      <div class="card mt-5"><div class="card-body">
+        <h2 class="fs-lg">Voci</h2>
+        {% include "gestione/_righe.html" with riepilogo=consuntivo fase="CONSUNTIVO" modificabile=True %}
+        <details class="mt-5"><summary>Aggiungi una voce (pellet, danni, sovrapprezzi)</summary>
+          <form method="post" action="{% url 'gestione:azione' p.numero 'voce' %}" class="mt-3">{% csrf_token %}<input type="hidden" name="fase" value="CONSUNTIVO"><input type="hidden" name="torna" value="{{ request.path }}">{% include "gestione/_campi.html" with form=voce_form %}<button class="btn-outline theme-primary" type="submit">Aggiungi</button></form>
+        </details>
+        {% if puo.amministrazione %}
+          <details class="mt-5"><summary>Modifica la quota del consuntivo</summary>
+            <form method="post" action="{% url 'gestione:azione' p.numero 'quota' %}" class="mt-3">{% csrf_token %}<input type="hidden" name="fase" value="CONSUNTIVO"><input type="hidden" name="torna" value="{{ request.path }}">{% include "gestione/_campi.html" with form=quota_form %}<button class="btn-outline theme-primary" type="submit">Modifica la quota</button></form>
+          </details>
+        {% endif %}
+      </div></div>
+    {% endif %}
+  </div>
+  <div class="lg:col-4">
+    <div class="card"><div class="card-body">
+      <table class="table mb-0"><tbody>
+        <tr><td>Totale</td><td class="text-end">{{ consuntivo.totale|euro }}</td></tr>
+        <tr><td>Acconto versato</td><td class="text-end">− {{ acconto_versato|euro }}</td></tr>
+        <tr class="fw-bold"><td>Saldo dovuto</td><td class="text-end">{{ saldo|euro }}</td></tr>
+      </tbody></table>
+      {% if p.stato == "SVOLTA" and consuntivo.righe %}
+        <form method="post" action="{% url 'gestione:chiudi' p.numero %}" class="mt-5">{% csrf_token %}<button class="btn-solid theme-primary w-100" type="submit">Chiudi e invia al gruppo</button></form>
+      {% endif %}
+      <details class="mt-5"><summary>Registra il pagamento del saldo</summary>
+        <form method="post" action="{% url 'gestione:azione' p.numero 'pagamento' %}" class="mt-3">{% csrf_token %}<input type="hidden" name="torna" value="{{ request.path }}">{% include "gestione/_campi.html" with form=pagamento_form %}<button class="btn-outline theme-primary" type="submit">Registra</button></form>
+      </details>
+      <p class="small fg-2 mt-5">Il gruppo riceve il consuntivo per email alla chiusura. Gli importi entrano nell'export per la contabilità.</p>
+    </div></div>
+    <a class="d-block mt-5" href="{% url 'gestione:scheda' p.numero %}">Torna alla scheda</a>
+  </div>
+</div>
+{% endblock %}

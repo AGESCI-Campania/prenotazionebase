@@ -1,0 +1,191 @@
+{% extends "gestione/base.html" %}
+{% load formati %}
+{% block titolo_pagina %}{{ p.numero }} · Gestione · {% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-5">
+  <h1 class="mb-0">Prenotazione {{ p.numero }}</h1>
+  {% include "prenotazioni/_stato.html" %}
+  {% if p.anonimizzata_il %}<span class="badge theme-secondary">dati anonimizzati</span>{% endif %}
+</div>
+<p class="fg-2">{{ p.gruppo|default:"(gruppo non indicato)" }} · {{ p.categoria }}{% if p.specifica_categoria %} ({{ p.specifica_categoria }}){% endif %}
+  · {% if p.arrivo == p.partenza %}{{ p.arrivo|date:"l j F Y"|lower }}{% else %}{{ p.arrivo|date:"l j F"|lower }} – {{ p.partenza|date:"l j F Y"|lower }}{% endif %}</p>
+
+<div class="row g-7 mt-3">
+  <div class="lg:col-8">
+
+    {# --- Azioni secondo lo stato --- #}
+    {% if p.stato == "RICHIESTA" and puo.amministrazione %}
+      <div class="card"><div class="card-body">
+        <h2 class="fs-lg">Approvazione</h2>
+        {% if consensi_mancanti %}<div class="alert theme-warning">Manca il consenso di un gruppo già presente: senza consenso la richiesta va rifiutata.</div>{% endif %}
+        {% if preventivo.da_definire %}<div class="alert theme-warning">Il preventivo ha voci da definire: valorizzale qui sotto prima di approvare.</div>{% endif %}
+        <form method="post" action="{% url 'gestione:azione' p.numero 'approva' %}">
+          {% csrf_token %}
+          {% if p.esclusiva_richiesta %}{% include "prenotazioni/_campo.html" with field=approva_form.concedi_esclusiva %}{% endif %}
+          {% if p.categoria_prioritaria_richiesta and not p.categoria_prioritaria_concessa %}{% include "prenotazioni/_campo.html" with field=approva_form.concedi_categoria %}{% endif %}
+          {% include "prenotazioni/_campo.html" with field=approva_form.acconto %}
+          <p class="small fg-2">Acconto previsto dal regolamento: {% if acconto_previsto == 0 %}non dovuto{% else %}{{ acconto_previsto|euro }}{% endif %}.</p>
+          {% include "prenotazioni/_campo.html" with field=approva_form.deciso_da %}
+          {% include "prenotazioni/_campo.html" with field=approva_form.motivazione %}
+          <p class="small fg-2">«Deciso da» e motivazione servono solo per concessioni o acconto diverso dal previsto.</p>
+          <div class="d-flex flex-wrap gap-3">
+            <button class="btn-solid theme-primary" type="submit">Approva</button>
+            <button class="btn-outline theme-danger" type="button" data-bs-toggle="dialog" data-bs-target="#rifiuta">Rifiuta…</button>
+          </div>
+        </form>
+      </div></div>
+      <dialog class="dialog" id="rifiuta" aria-labelledby="rifiutaTitolo">
+        <form method="post" action="{% url 'gestione:azione' p.numero 'rifiuta' %}">
+          {% csrf_token %}
+          <div class="dialog-header"><h2 class="dialog-title fs-lg" id="rifiutaTitolo">Rifiutare la richiesta?</h2><button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Chiudi"></button></div>
+          <div class="dialog-body">{% include "gestione/_campi.html" with form=rifiuta_form %}</div>
+          <div class="dialog-footer"><button type="button" class="btn-outline theme-secondary" data-bs-dismiss="dialog">Annulla</button><button type="submit" class="btn-solid theme-danger">Rifiuta</button></div>
+        </form>
+      </dialog>
+    {% endif %}
+
+    {% if p.stato == "APPROVATA" %}
+      <div class="card"><div class="card-body">
+        <h2 class="fs-lg">Acconto</h2>
+        {% if p.acconto_centesimi %}
+          <p>Acconto di {{ p.acconto_centesimi|euro }}{% if p.acconto_deciso %} (deciso all'approvazione){% endif %}{% if p.scadenza_acconto %}, ricevuta entro il {{ p.scadenza_acconto|date:"j F Y, H:i"|lower }}{% endif %}.</p>
+          {% for pg in pagamenti %}{% if pg.stato == "IN_VERIFICA" %}
+            <div class="border rounded-5 p-5 mb-5">
+              Ricevuta caricata il {{ pg.data|date:"j F"|lower }}: <a href="{% url 'prenotazioni:ricevuta' p.numero pg.pk %}" target="_blank" rel="noopener">apri la ricevuta</a>
+              {% if puo.pattuglia %}
+                <form method="post" action="{% url 'gestione:azione' p.numero 'verifica' %}" class="mt-3">{% csrf_token %}<input type="hidden" name="pagamento" value="{{ pg.pk }}"><button class="btn-solid theme-primary" type="submit">Verificata: conferma la prenotazione</button></form>
+                <form method="post" action="{% url 'gestione:azione' p.numero 'respingi' %}" class="mt-5">{% csrf_token %}<input type="hidden" name="pagamento" value="{{ pg.pk }}">{% include "gestione/_campi.html" with form=respingi_form %}<button class="btn-outline theme-danger" type="submit">Respingi la ricevuta</button></form>
+              {% endif %}
+            </div>
+          {% endif %}{% endfor %}
+        {% else %}
+          <p>Nessun acconto dovuto: la prenotazione va confermata a mano.</p>
+          {% if puo.pattuglia %}<form method="post" action="{% url 'gestione:azione' p.numero 'conferma' %}">{% csrf_token %}<button class="btn-solid theme-primary" type="submit">Conferma la prenotazione</button></form>{% endif %}
+        {% endif %}
+      </div></div>
+    {% endif %}
+
+    {% if p.stato == "CONFERMATA" or p.stato == "SVOLTA" or p.stato == "CHIUSA" or p.stato == "NON_SVOLTA" %}
+      <div class="card"><div class="card-body d-flex flex-wrap gap-3 align-items-center">
+        {% if puo.pattuglia and p.stato != "NON_SVOLTA" %}<a class="btn-solid theme-primary" href="{% url 'gestione:consuntivo' p.numero %}">Consuntivo</a>{% endif %}
+        {% if p.stato == "CONFERMATA" and puo.pattuglia %}<form method="post" action="{% url 'gestione:azione' p.numero 'svolta' %}">{% csrf_token %}<button class="btn-outline theme-primary" type="submit">Segna come svolta</button></form>{% endif %}
+        {% if p.stato == "NON_SVOLTA" and puo.amministrazione %}<form method="post" action="{% url 'gestione:azione' p.numero 'svolta' %}">{% csrf_token %}<button class="btn-outline theme-primary" type="submit">Correggi in svolta</button></form>{% endif %}
+      </div></div>
+    {% endif %}
+
+    {# --- Importi --- #}
+    <div class="card mt-5"><div class="card-body">
+      <h2 class="fs-lg">Preventivo{% if congelato %} <span class="badge theme-secondary">congelato</span>{% endif %}</h2>
+      {% if p.versione_listino %}<p class="small fg-2">Listino {{ p.versione_listino }}.</p>{% endif %}
+      {% include "gestione/_righe.html" with riepilogo=preventivo fase="PREVENTIVO" modificabile=preventivo_modificabile %}
+      {% if puo.amministrazione and not congelato %}
+        <details class="mt-5"><summary>Aggiungi una voce o modifica la quota</summary>
+          <div class="row g-7 mt-3">
+            <form class="md:col-6" method="post" action="{% url 'gestione:azione' p.numero 'voce' %}">{% csrf_token %}<input type="hidden" name="fase" value="PREVENTIVO">{% include "gestione/_campi.html" with form=voce_form %}<button class="btn-outline theme-primary" type="submit">Aggiungi la voce</button></form>
+            <form class="md:col-6" method="post" action="{% url 'gestione:azione' p.numero 'quota' %}">{% csrf_token %}<input type="hidden" name="fase" value="PREVENTIVO">{% include "gestione/_campi.html" with form=quota_form %}<button class="btn-outline theme-primary" type="submit">Modifica la quota</button></form>
+          </div>
+        </details>
+      {% endif %}
+      {% if consuntivo.righe %}
+        <h2 class="fs-lg mt-7">Consuntivo</h2>
+        {% include "gestione/_righe.html" with riepilogo=consuntivo fase="CONSUNTIVO" modificabile=False %}
+      {% endif %}
+    </div></div>
+
+    {# --- Messaggi con la gestione --- #}
+    <div class="card mt-5" id="messaggi"><div class="card-body">
+      <h2 class="fs-lg">Messaggi con il gruppo</h2>
+      {% for m in conversazione.messaggi.all %}
+        <div class="mb-5{% if not m.da_prenotazione_id %} text-end{% endif %}">
+          <div class="small fg-2">{{ m.inviato_il|date:"j F, H:i"|lower }} · {% if m.da_prenotazione_id %}{{ p.gruppo|default:"gruppo" }}{% else %}Pattuglia ({{ m.mittente }}){% endif %}</div>
+          <div class="border rounded-5 p-3 d-inline-block text-start">{{ m.testo|linebreaksbr }}</div>
+        </div>
+      {% empty %}<p class="small fg-2">Nessun messaggio.</p>{% endfor %}
+      {% if puo.pattuglia %}
+        <form method="post" action="{% url 'gestione:azione' p.numero 'rispondi' %}">{% csrf_token %}<input type="hidden" name="torna" value="{% url 'gestione:scheda' p.numero %}#messaggi">{% include "gestione/_campi.html" with form=risposta_form %}<button class="btn-solid theme-primary" type="submit">Invia</button></form>
+      {% endif %}
+    </div></div>
+
+    {# --- Storico --- #}
+    <div class="card mt-5"><div class="card-body">
+      <h2 class="fs-lg">Storico</h2>
+      <ul class="list-unstyled small mb-0">
+        {% for e in storico %}
+          <li class="mb-3"><b>{{ e.creato_il|date:"d/m/Y H:i" }}</b> · {{ e.azione }}{% if e.utente %} · {{ e.utente }}{% endif %}{% if e.deciso_da %} · deciso da {{ e.deciso_da }}{% endif %}{% if e.motivazione %}<br><span class="fg-2">{{ e.motivazione }}</span>{% endif %}</li>
+        {% empty %}<li class="fg-2">Nessun evento.</li>{% endfor %}
+      </ul>
+    </div></div>
+  </div>
+
+  <div class="lg:col-4">
+    <div class="card"><div class="card-body">
+      <h2 class="fs-lg">Gruppo</h2>
+      <dl class="small mb-0">
+        {% for pr in presenze %}<dt>{{ pr.area }}</dt><dd>{{ pr.persone_previste }} persone{% if pr.persone_effettive is not None %} (effettive {{ pr.persone_effettive }}){% endif %}</dd>{% endfor %}
+        {% for att in attivita %}<dt>{{ att.get_tipo_display|capfirst }}</dt><dd>{{ att.data|date:"j F"|lower }}, {{ att.persone_previste }} persone</dd>{% endfor %}
+        {% if p.unita %}<dt>Unità</dt><dd>{{ p.unita|join:", " }}</dd>{% endif %}
+        {% if p.esclusiva_richiesta %}<dt>Uso esclusivo</dt><dd>{% if p.esclusiva_concessa %}concesso{% else %}richiesto{% endif %}</dd>{% endif %}
+        {% if p.categoria_prioritaria_richiesta %}<dt>Categoria prioritaria</dt><dd>{% if p.categoria_prioritaria_concessa %}concessa{% else %}richiesta{% endif %}</dd>{% endif %}
+        <dt>Referente</dt><dd>{% if p.contatto %}{{ p.contatto.nome }}{% if p.contatto.telefono %} · <a href="tel:{{ p.contatto.telefono }}">{{ p.contatto.telefono }}</a>{% endif %}{% if p.contatto.email %}<br><a href="mailto:{{ p.contatto.email }}">{{ p.contatto.email }}</a>{% endif %}{% else %}—{% endif %}</dd>
+        {% if p.capo_responsabile %}<dt>Capo responsabile</dt><dd>{{ p.capo_responsabile.nome }}{% if p.capo_responsabile.telefono %} · <a href="tel:{{ p.capo_responsabile.telefono }}">{{ p.capo_responsabile.telefono }}</a>{% endif %}</dd>{% endif %}
+        <dt>Account</dt><dd>{{ p.richiedente|default:"per conto della gestione" }}</dd>
+        {% if p.note %}<dt>Note</dt><dd>{{ p.note|linebreaksbr }}</dd>{% endif %}
+        <dt>Richiesta del</dt><dd>{{ p.data_richiesta|date:"j F Y"|lower }}</dd>
+      </dl>
+    </div></div>
+
+    <div class="card mt-5"><div class="card-body">
+      <h2 class="fs-lg">Orari</h2>
+      <p class="small">Standard: arrivo {{ conf.orario_arrivo|time:"H:i" }}, partenza {{ conf.orario_partenza|time:"H:i" }}.</p>
+      {% if puo.pattuglia and modificabile %}
+        <form method="post" action="{% url 'gestione:azione' p.numero 'orari' %}">{% csrf_token %}{% include "gestione/_campi.html" with form=orari_form %}<button class="btn-outline theme-primary" type="submit">Salva gli orari</button></form>
+      {% else %}
+        <p class="small mb-0">Concordati: {{ p.orario_arrivo_concordato|time:"H:i"|default:"—" }} / {{ p.orario_partenza_concordato|time:"H:i"|default:"—" }}</p>
+      {% endif %}
+    </div></div>
+
+    <div class="card mt-5"><div class="card-body">
+      <h2 class="fs-lg">Pagamenti</h2>
+      <ul class="list-unstyled small">
+        {% for pg in pagamenti %}<li class="mb-3">{{ pg.data|date:"d/m/Y" }} · {{ pg.get_tipo_display }} {{ pg.importo_centesimi|euro }} · {{ pg.get_stato_display }}{% if pg.ricevuta %} · <a href="{% url 'prenotazioni:ricevuta' p.numero pg.pk %}" target="_blank" rel="noopener">ricevuta</a>{% endif %}</li>{% empty %}<li class="fg-2">Nessun pagamento.</li>{% endfor %}
+      </ul>
+      <p class="small mb-0">Acconto versato: {{ acconto_versato|euro }}</p>
+      {% if puo.pattuglia and pagabile %}
+        <details class="mt-5"><summary>Registra un pagamento</summary>
+          <form method="post" action="{% url 'gestione:azione' p.numero 'pagamento' %}" class="mt-3">{% csrf_token %}{% include "gestione/_campi.html" with form=pagamento_form %}<button class="btn-outline theme-primary" type="submit">Registra</button></form>
+        </details>
+      {% endif %}
+    </div></div>
+
+    {% if consensi_chiesti %}
+      <div class="card mt-5"><div class="card-body">
+        <h2 class="fs-lg">Consensi</h2>
+        <ul class="list-unstyled small mb-0">{% for c in consensi_chiesti %}<li class="mb-3"><a href="{% url 'gestione:scheda' c.prenotazione_esistente.numero %}">{{ c.prenotazione_esistente.gruppo|default:c.prenotazione_esistente.numero }}</a>: {{ c.get_stato_display }}{% if c.stato == "IN_ATTESA" %} (fino al {{ c.scadenza|date:"d/m H:i" }}){% endif %}</li>{% endfor %}</ul>
+      </div></div>
+    {% endif %}
+
+    {% if puo.amministrazione and modificabile %}
+      <div class="d-flex flex-wrap gap-3 mt-5">
+        <button type="button" class="btn-outline theme-primary" data-bs-toggle="dialog" data-bs-target="#modifica">Modifica date e persone</button>
+        {% if annullabile %}<button type="button" class="btn-outline theme-danger" data-bs-toggle="dialog" data-bs-target="#annulla">Annulla</button>{% endif %}
+      </div>
+      <dialog class="dialog" id="modifica" aria-labelledby="modificaTitolo">
+        <form method="post" action="{% url 'gestione:azione' p.numero 'modifica' %}">
+          {% csrf_token %}
+          <div class="dialog-header"><h2 class="dialog-title fs-lg" id="modificaTitolo">Modifica la prenotazione</h2><button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Chiudi"></button></div>
+          <div class="dialog-body">{% if congelato %}<p class="small">Il preventivo è congelato: le differenze vanno nel consuntivo.</p>{% endif %}{% include "gestione/_campi.html" with form=modifica_form %}</div>
+          <div class="dialog-footer"><button type="button" class="btn-outline theme-secondary" data-bs-dismiss="dialog">Annulla</button><button type="submit" class="btn-solid theme-primary">Salva</button></div>
+        </form>
+      </dialog>
+      <dialog class="dialog" id="annulla" aria-labelledby="annullaTitolo">
+        <form method="post" action="{% url 'gestione:azione' p.numero 'annulla' %}">
+          {% csrf_token %}
+          <div class="dialog-header"><h2 class="dialog-title fs-lg" id="annullaTitolo">Annullare la prenotazione?</h2><button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Chiudi"></button></div>
+          <div class="dialog-body"><p>Le date tornano libere; l'acconto versato resta alla base.</p>{% include "gestione/_campi.html" with form=annulla_form %}</div>
+          <div class="dialog-footer"><button type="button" class="btn-outline theme-secondary" data-bs-dismiss="dialog">Non annullare</button><button type="submit" class="btn-solid theme-danger">Annulla la prenotazione</button></div>
+        </form>
+      </dialog>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

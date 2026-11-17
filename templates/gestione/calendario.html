@@ -1,0 +1,23 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}Calendario · {% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between gap-3">
+  <a class="btn-outline theme-primary" href="?mese={{ precedente }}" aria-label="Mese precedente">‹</a>
+  <h1 class="mb-0">{{ titolo_mese|capfirst }}</h1>
+  <a class="btn-outline theme-primary" href="?mese={{ successivo }}" aria-label="Mese successivo">›</a>
+</div>
+<p class="small fg-2 mt-3">Per ogni giorno: chi occupa le aree la notte successiva e le attività in giornata.</p>
+<div class="list-group mt-5">
+  {% for giorno, voci in giorni %}
+    <div class="list-group-item d-flex flex-wrap gap-5">
+      <b class="tana-giorno">{{ giorno|date:"D j"|lower }}</b>
+      <div class="d-flex flex-wrap gap-3">
+        {% for area, etichetta, p in voci %}
+          {% if p %}<a class="badge theme-{% if p.stato == 'RICHIESTA' %}info{% elif p.stato == 'APPROVATA' %}warning{% else %}success{% endif %}" href="{% url 'gestione:scheda' p.numero %}">{{ area }}: {{ etichetta }}</a>{% else %}<span class="badge theme-secondary">{{ area }}: {{ etichetta }}</span>{% endif %}
+        {% empty %}<span class="small fg-2">libero</span>{% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<p class="small fg-2 mt-5"><span class="badge theme-info">in esame</span> <span class="badge theme-warning">approvata</span> <span class="badge theme-success">confermata o svolta</span> <span class="badge theme-secondary">blocco tecnico</span></p>
+{% endblock %}

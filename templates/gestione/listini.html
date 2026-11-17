@@ -1,0 +1,21 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}Listini · {% endblock %}
+{% block content %}
+<h1>Listini e versioni</h1>
+<p class="fg-2">Si applica la versione già pubblicata alla data della richiesta e in vigore il primo giorno del soggiorno. Una versione usata da una prenotazione non si modifica più: per cambiare i prezzi si crea una nuova versione.</p>
+<div class="row g-7">
+  <div class="lg:col-7">
+    {% for listino in listini %}
+      <h2 class="fs-lg mt-5">{{ listino }}</h2>
+      <div class="list-group">
+        {% for v in listino.versioni.all %}
+          <a class="list-group-item" href="{% url 'gestione:versione' v.pk %}">{{ v.nome }} · pubblicata il {{ v.pubblicata_il|date:"d/m/Y" }}, valida dal {{ v.valida_dal|date:"d/m/Y" }}{% if v.in_uso %} <span class="badge theme-secondary">in uso</span>{% endif %}</a>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  <div class="lg:col-5">
+    <form method="post" class="card"><div class="card-body">{% csrf_token %}<h2 class="fs-lg">Nuova versione</h2>{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Crea</button></div></form>
+  </div>
+</div>
+{% endblock %}

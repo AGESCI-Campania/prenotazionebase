@@ -189,13 +189,13 @@ def test_soglia_di_esenzione_dall_acconto(partenza, acconto):
     assert contributo.acconto_previsto(prenotazione) == acconto * EURO
 
 
-def test_acconto_arrotondato_al_centesimo():
+def test_acconto_arrotondato_al_centesimo(admin, pattuglia):
     Configurazione.objects.filter(pk=1).update(acconto_percentuale=33)
     prenotazione = prenota(d(2027, 7, 19), d(2027, 7, 24), acc=1)  # 48,00 €
     contributo.aggiorna_preventivo(prenotazione)
     assert contributo.acconto_previsto(prenotazione) == 1584  # 15,84 €
     contributo.aggiungi_voce_libera(
-        prenotazione, fase=Fase.PREVENTIVO, descrizione="Pellet", prezzo_centesimi=50
+        prenotazione, utente=admin, fase=Fase.PREVENTIVO, descrizione="Pellet", prezzo_centesimi=50
     )
     # 33% di 48,50 € = 16,005 → 16,01 €
     assert contributo.acconto_previsto(prenotazione) == 1601
@@ -210,8 +210,7 @@ def test_soggiorno_senza_notti_rifiutato():
 # --- Interventi dell'amministratore -----------------------------------------------------
 
 
-def test_valorizzazione_resta_dopo_il_ricalcolo(django_user_model):
-    admin = django_user_model.objects.create_user("admin@example.org")
+def test_valorizzazione_resta_dopo_il_ricalcolo(admin):
     prenotazione = prenota(d(2027, 7, 19), d(2027, 7, 24), acc=10, tende=6, categoria="altro")
     riepilogo = contributo.aggiorna_preventivo(prenotazione)
     (mancante,) = [r for r in riepilogo.righe if r.da_definire]
@@ -235,8 +234,7 @@ def test_valorizzazione_resta_dopo_il_ricalcolo(django_user_model):
     assert storico(prenotazione).filter(deciso_da="Pattuglia").count() == 1
 
 
-def test_voce_libera_e_modifica_quota(django_user_model):
-    admin = django_user_model.objects.create_user("admin@example.org")
+def test_voce_libera_e_modifica_quota(admin):
     prenotazione = prenota(
         d(2027, 7, 19), d(2027, 7, 24), acc=28, esclusiva_richiesta=True, esclusiva_concessa=True
     )
@@ -279,7 +277,7 @@ def test_voce_libera_e_modifica_quota(django_user_model):
     assert storico(prenotazione).count() == 3
 
 
-def test_modifica_quota_richiede_la_decisione():
+def test_modifica_quota_richiede_la_decisione(admin, pattuglia):
     prenotazione = prenota(d(2027, 7, 19), d(2027, 7, 24), acc=28)
     contributo.aggiorna_preventivo(prenotazione)
     with pytest.raises(ValidationError):
@@ -287,14 +285,14 @@ def test_modifica_quota_richiede_la_decisione():
             prenotazione,
             fase=Fase.PREVENTIVO,
             totale_centesimi=0,
-            utente=None,
+            utente=admin,
             deciso_da="Pattuglia",
             motivazione="",
         )
     assert contributo.riepilogo(prenotazione).totale == 1344 * EURO
 
 
-def test_preventivo_congelato_dopo_l_acconto():
+def test_preventivo_congelato_dopo_l_acconto(admin, pattuglia):
     prenotazione = prenota(d(2027, 7, 19), d(2027, 7, 24), acc=28)
     contributo.aggiorna_preventivo(prenotazione)
     Pagamento.objects.create(
@@ -307,14 +305,18 @@ def test_preventivo_congelato_dopo_l_acconto():
         contributo.aggiorna_preventivo(prenotazione)
     with pytest.raises(PreventivoCongelato):
         contributo.aggiungi_voce_libera(
-            prenotazione, fase=Fase.PREVENTIVO, descrizione="Pellet", prezzo_centesimi=1
+            prenotazione,
+            utente=admin,
+            fase=Fase.PREVENTIVO,
+            descrizione="Pellet",
+            prezzo_centesimi=1,
         )
 
 
 # --- Consuntivo e saldo -----------------------------------------------------------------
 
 
-def test_consuntivo_con_persone_effettive_e_saldo():
+def test_consuntivo_con_persone_effettive_e_saldo(admin, pattuglia):
     prenotazione = prenota(d(2027, 7, 19), d(2027, 7, 24), acc=20, tende=12)
     ospiti = giornata(prenotazione, d(2027, 7, 21), AttivitaGiornaliera.Tipo.GIORNATA_OSPITI, 40)
     contributo.aggiorna_preventivo(prenotazione)
@@ -330,12 +332,13 @@ def test_consuntivo_con_persone_effettive_e_saldo():
     ospiti.persone_effettive = 35
     ospiti.save()
 
-    riepilogo = contributo.aggiorna_consuntivo(prenotazione)
+    riepilogo = contributo.aggiorna_consuntivo(prenotazione, utente=pattuglia)
     # Tende senza effettive: si usano le previste, riga stimata
     assert riepilogo.totale == (18 * 6 * 8 + 12 * 6 * 5 + 35) * EURO
     assert [r.stimata for r in riepilogo.righe] == [False, True, False]
     contributo.aggiungi_voce_libera(
         prenotazione,
+        utente=pattuglia,
         fase=Fase.CONSUNTIVO,
         descrizione="Riscaldamento a pellet",
         prezzo_centesimi=4250,
@@ -343,20 +346,20 @@ def test_consuntivo_con_persone_effettive_e_saldo():
     assert contributo.saldo(prenotazione) == (864 + 360 + 35 - 660) * EURO + 4250
 
 
-def test_consuntivo_con_la_versione_del_preventivo():
+def test_consuntivo_con_la_versione_del_preventivo(admin, pattuglia):
     prenotazione = prenota(d(2027, 7, 19), d(2027, 7, 24), acc=28)
     with pytest.raises(ValidationError):
-        contributo.aggiorna_consuntivo(prenotazione)
+        contributo.aggiorna_consuntivo(prenotazione, utente=pattuglia)
     contributo.aggiorna_preventivo(prenotazione)
     versione = prenotazione.versione_listino
     # Anche cambiando categoria il consuntivo resta sulla versione del preventivo
     prenotazione.categoria = Categoria.objects.get(codice="gruppo-cngei")
-    riepilogo = contributo.aggiorna_consuntivo(prenotazione)
+    riepilogo = contributo.aggiorna_consuntivo(prenotazione, utente=pattuglia)
     assert riepilogo.totale == 1344 * EURO
     assert contributo.riepilogo(prenotazione, Fase.CONSUNTIVO).righe[0].voce.versione == versione
 
 
-def test_calcolo_delle_righe_come_nel_mockup():
+def test_calcolo_delle_righe_come_nel_mockup(admin, pattuglia):
     prenotazione = prenota(d(2027, 7, 19), d(2027, 7, 24), acc=20, tende=12)
     giornata(prenotazione, d(2027, 7, 21), AttivitaGiornaliera.Tipo.GIORNATA_OSPITI, 1)
     righe = contributo.aggiorna_preventivo(prenotazione).righe
@@ -378,7 +381,11 @@ def test_calcolo_delle_righe_come_nel_mockup():
         == "10,00 € × 15 persone × 1 notte"
     )
     libera = contributo.aggiungi_voce_libera(
-        prenotazione, fase=Fase.PREVENTIVO, descrizione="Pellet", prezzo_centesimi=4250
+        prenotazione,
+        utente=admin,
+        fase=Fase.PREVENTIVO,
+        descrizione="Pellet",
+        prezzo_centesimi=4250,
     )
     assert libera.calcolo == "42,50 €"
     tende_extra = prenota(d(2027, 9, 1), d(2027, 9, 3), tende=6, categoria="gruppo-cngei")

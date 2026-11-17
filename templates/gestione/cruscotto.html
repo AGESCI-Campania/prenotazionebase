@@ -1,0 +1,17 @@
+{% extends "gestione/base.html" %}
+{% block titolo_pagina %}Gestione · {% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-5">
+  <h1 class="mb-0">Gestione della base</h1>
+  {% if puo.amministrazione %}<a class="btn-solid theme-primary" href="{% url 'gestione:nuova' %}">Prenotazione per la gestione</a>{% endif %}
+</div>
+<div class="row g-5 mt-5">
+  <div class="md:col-4"><a class="card d-block tana-riquadro" href="{% url 'gestione:elenco' %}?elenco=da_approvare"><div class="card-body"><div class="fs-3xl fw-bold">{{ contatori.da_approvare }}</div>richieste da approvare</div></a></div>
+  <div class="md:col-4"><a class="card d-block tana-riquadro" href="{% url 'gestione:elenco' %}?elenco=acconti"><div class="card-body"><div class="fs-3xl fw-bold">{{ contatori.acconti }}</div>ricevute da verificare</div></a></div>
+  <div class="md:col-4"><a class="card d-block tana-riquadro" href="{% url 'gestione:elenco' %}?elenco=consensi"><div class="card-body"><div class="fs-3xl fw-bold">{{ contatori.consensi }}</div>consensi in attesa</div></a></div>
+  <div class="md:col-4"><a class="card d-block tana-riquadro" href="{% url 'gestione:elenco' %}?elenco=consuntivi"><div class="card-body"><div class="fs-3xl fw-bold">{{ contatori.consuntivi }}</div>consuntivi da compilare</div></a></div>
+  <div class="md:col-4"><a class="card d-block tana-riquadro" href="{% url 'gestione:elenco' %}?elenco=messaggi"><div class="card-body"><div class="fs-3xl fw-bold">{{ contatori.messaggi }}</div>messaggi senza risposta</div></a></div>
+</div>
+<h2 class="fs-xl mt-12">Oggi alla base</h2>
+{% for giorno, voci in giornate %}{% for v in voci %}{% include "gestione/_arrivo.html" %}{% endfor %}{% empty %}<p class="fg-2">Nessun arrivo o partenza oggi.</p>{% endfor %}
+{% endblock %}

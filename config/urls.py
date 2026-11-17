@@ -25,7 +25,7 @@ urlpatterns = [
     path("prenotazioni/", include("tana.prenotazioni.urls")),
     path("disponibilita/", disponibilita, name="disponibilita"),
     path("listino/", listino, name="listino"),
-    # In F5: gestione/
+    path("gestione/", include("tana.gestione.urls")),
 ]
 
 if settings.DEBUG:

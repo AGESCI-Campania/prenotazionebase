@@ -51,6 +51,9 @@ EVENTI = {
     "consenso_richiesto": Evento("Richiesta di consenso per la prenotazione {numero}"),
     "consenso_risposta": Evento("Risposta alla richiesta di consenso ({numero})"),
     "messaggio": Evento("Nuovo messaggio sulla prenotazione {numero}"),
+    "modificata": Evento("Prenotazione {numero} modificata"),
+    "orari": Evento("Orari concordati per la prenotazione {numero}"),
+    "pagamento": Evento("Pagamento registrato per la prenotazione {numero}"),
     "telefono_richiesto": Evento("Richiesta del tuo telefono ({numero})", True, False),
     "telefono_risposta": Evento("Risposta alla richiesta del telefono ({numero})", True, False),
 }
