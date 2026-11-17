@@ -5,6 +5,16 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.0 — 2026-11-17
+
+Prima release di produzione: prenotazioni e sito della Base Scout «Gianni Sabatino», al posto
+dei calendari SuperSaaS e del sito Google. Contiene le fasi F0–F7 (dettagli nelle sezioni
+v0.9.x) e le correzioni emerse dalla prova di installazione su server pulito (F8).
+
+### Documentazione
+- Guida di installazione provata per intero su Ubuntu 26.04; recupero dopo un aggiornamento non
+  riuscito con il database cambiato; ruoli assegnati da Gestione › Utenti.
+
 ### Correzioni
 - Orari standard della configurazione come default callable: il controllo `fields.W161` di Django
   falliva se `check --deploy` girava a ridosso delle 12:00 o delle 15:00 (migrazione senza SQL).

@@ -1,6 +1,6 @@
 [project]
 name = "tana"
-version = "0.9.2"
+version = "1.0.0"
 description = "Tana - Prenotazioni e sito della Base Scout «Gianni Sabatino» di Aiello del Sabato, AGESCI Campania"
 readme = "README.md"
 license = "MIT"
