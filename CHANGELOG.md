@@ -5,6 +5,10 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Script
+- `aggiorna.sh` lancia `manage.py dati_iniziali` dopo l'avvio della nuova versione (idempotente:
+  crea solo i dati nuovi della release).
+
 ### F3 — flusso, email e login Sestante
 - Ruoli di gestione come nomine (Pattuglia, Amministratore, Responsabile, Redazione, Segreteria),
   ognuno con il suo gruppo Django; permessi del §6 in `tana.accounts.permessi`.

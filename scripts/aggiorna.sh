@@ -216,6 +216,10 @@ stato avvio "Avvio della $VERSIONE (migrazioni del database comprese)" 70
 docker compose up -d --remove-orphans || true
 stato verifica "Attendo che tutti i servizi rispondano" 85
 if servizi_sani 600 "${SERVIZI_SALUTE[@]}"; then
+	# Dati iniziali della release (es. gruppi e permessi nuovi): idempotente, crea solo ciò che
+	# manca e non sovrascrive le modifiche della gestione. Un errore qui non annulla l'aggiornamento.
+	manage dati_iniziali | tail -n 1 \
+		|| avviso "Dati iniziali non aggiornati: rilancia docker compose exec web uv run python manage.py dati_iniziali"
 	togli_manutenzione
 	docker image prune -f >/dev/null || true
 	# Unit systemd: idempotenti, senza sudo stampano il comando per l'amministratore

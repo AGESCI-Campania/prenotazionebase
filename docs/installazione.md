@@ -218,7 +218,9 @@ cd /opt/prenotazionebase && scripts/aggiorna.sh v0.2.0     # una release precisa
 Rifiuta di partire con modifiche locali, mostra le novità del `CHANGELOG.md`, si ferma se la release
 chiede variabili nuove in `.env` (aggiungerle seguendo i commenti di `.env.template`), mette Tana in
 manutenzione, fa il backup del database in `backups/` (ultimi 10), costruisce le immagini tenendo
-quelle in uso come "precedenti", riavvia e attende `healthy`.
+quelle in uso come "precedenti", riavvia e attende `healthy`, poi lancia `manage.py dati_iniziali`
+(crea solo i dati nuovi della release, es. gruppi e permessi, senza toccare quelli modificati dalla
+gestione) e toglie la manutenzione.
 
 - Se la versione nuova non risponde **torna da sola** alla precedente.
 - Se nel frattempo il database era già stato migrato **resta in manutenzione** e indica il backup da
