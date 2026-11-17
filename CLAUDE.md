@@ -34,8 +34,8 @@ importi o versioni. Le modifiche alla specifica le approva Andrea.
 | F4 | Area richiedente, consensi, messaggi | **fatto** |
 | F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | **fatto** |
 | F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | **fatto** (testi lunghi da Andrea) |
-| F7 | Import SuperSaaS | prossima |
-| F8 | Prova completa di installazione, aggiornamento, backup; messa in produzione | |
+| F7 | Import SuperSaaS | **fatto** (import reale in F8) |
+| F8 | Prova completa di installazione, aggiornamento, backup; messa in produzione | prossima |
 
 Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 
@@ -80,6 +80,7 @@ tana/prenotazioni/ Prenotazione, PresenzaArea, Occupazione (exclusion constraint
                    consensi.py (D-06), messaggi.py (D-16, telefoni), disponibilita.py (calendario, D-17)
                    views.py + urls.py: area del richiedente /prenotazioni/; views_pubbliche.py: /disponibilita/
                    conservazione.py: anonimizzazione dopo 10 anni (D-18, scheduler)
+                   importazione.py + manage.py import_supersaas (§7): proposte, revisione xlsx, apply
 tana/listini/      views.py: /listino/ (listini in vigore); services.nuova_versione
 tana/gestione/     area /gestione/ (views, forms), statistiche.py, export.py (xlsx/csv); templates/gestione/
 tana/sito/         Wagtail: HomePage, PaginaContenuto, PaginaStrutture, PaginaRegolamento (PDF alla
@@ -117,7 +118,8 @@ uv run python manage.py manutenzione attiva|disattiva|stato
 - **Unica fonte di verità** per prezzi, disponibilità e permessi: un livello di servizi condiviso.
 - **Listino congelato** sulla prenotazione; versioni di listino immutabili una volta usate.
 - **Decisioni discrezionali** sempre con "deciso da" e motivazione (P-03), nello storico.
-- **Stati** solo da `tana.prenotazioni.flusso` (mai `prenotazione.stato = ...` altrove); i
+- **Stati** solo da `tana.prenotazioni.flusso` (unica eccezione: l'import dello storico in
+  `importazione.py`, che non manda email; mai `prenotazione.stato = ...` altrove); i
   **permessi** solo da `tana.accounts.permessi`; le email partono in `transaction.on_commit`.
 - **Dati minimi** (D-18): nessun dato sui ragazzi; info interne solo ai gruppi confermati;
   ricevute solo via `X-Accel-Redirect` dopo il controllo dei permessi, mai in `MEDIA_ROOT`.

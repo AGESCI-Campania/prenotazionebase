@@ -193,9 +193,31 @@ Sito della base, da `/cms/` (editor Wagtail: Redazione, Amministratore, Responsa
 
 ## 11. Import da SuperSaaS
 
-Dalla F7: `manage.py import_supersaas` con `--dry-run`, revisione del file, poi `--apply` (vedi §7
-della specifica). I CSV contengono dati personali: copiarli in una cartella fuori dal repo, mai in git,
-e cancellarli dopo l'import.
+Una volta sola, prima dell'avvio, con i due export CSV di SuperSaaS (calendari `prenotazioni` e
+`campotende`). I CSV e il file di revisione contengono dati personali: copiarli **fuori dal repo**
+(es. `/home/agesci/import/`, montata nel container con `-v`), mai in git, e cancellarli dopo l'import.
+
+```bash
+cd /opt/prenotazionebase
+I=/home/agesci/import
+# 1. Proposte: non scrive nel database, crea il file di revisione
+docker compose run --rm -v $I:/import web uv run python manage.py import_supersaas \
+  --accantonamento /import/prenotazioni.csv --tende /import/campotende.csv \
+  --dry-run --report /import/revisione.xlsx --amministratori "Nome Cognome,email@..."
+# 2. Revisione: correggere in Excel le colonne gialle (azione, categoria, stato, unione,
+#    esclusiva, persone, tipo di uscita, referente). Le persone mancanti vanno indicate.
+#    --amministratori: nome ed email con cui l'amministratore ha inserito righe per i gruppi;
+#    quelle righe sono proposte senza referente (altrimenti finirebbero sul suo account).
+# 3. Import: tutto o niente; si ferma con l'elenco delle righe da correggere
+docker compose run --rm -v $I:/import web uv run python manage.py import_supersaas \
+  --accantonamento /import/prenotazioni.csv --tende /import/campotende.csv \
+  --apply --decisioni /import/revisione.xlsx
+```
+
+Le prenotazioni importate non hanno account: si collegano da sole quando il referente si registra
+(o entra con Sestante) con la stessa email verificata. Gli importi sono ricalcolati con il listino e
+segnati «da verificare» nelle note; acconti già versati e preventivi concordati si inseriscono dalla
+gestione. Nessuna email parte durante l'import.
 
 ## 12. Spegnimento dei sistemi vecchi
 

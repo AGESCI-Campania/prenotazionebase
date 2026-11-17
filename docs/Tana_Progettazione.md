@@ -9,7 +9,7 @@ tende), che saranno dismessi.
 - **Stato:** analisi chiusa (risposte della Pattuglia e di Andrea del 10/11/2026; sintesi v0.3
   inviata alla Pattuglia), aggiornata il 13/11/2026 per il nuovo server e il dominio
   `agescicampania.net`, il 14–15/11 per il sito in Wagtail (sintesi v0.4), il 17/11/2026 per
-  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. In sviluppo: F0–F5 fatte.
+  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. In sviluppo: F0–F7 fatte.
 - **Repository:** `AGESCI-Campania/prenotazionebase` (il pacchetto Python resta `tana`). Licenza MIT, © Andrea Bruno.
 - **Hosting:** nuovo server dedicato Ubuntu 26.04, installazione pulita senza Virtualmin né Apache;
   Docker Compose in `/opt/prenotazionebase` (utente `agesci`), dietro il reverse proxy Caddy comune;
@@ -690,7 +690,25 @@ manage.py import_supersaas --accantonamento prenotazioni.csv --tende campotende.
 - Un conflitto di occupazione tra righe importate interrompe l'import con un errore che indica le righe.
 - Statistiche dell'export di novembre 2026: 50 righe accantonamento e 10 tende (11/2025 – 08/2027);
   16 righe dell'amministratore; 18 con partecipanti non numerici; 4 coppie con le stesse date
-  nei due calendari.
+  nei due calendari. Export del 17/11/2026 (F7): 7 coppie con le stesse date (6 proposte come
+  congiunte, una contiene una riga di prova), nessuna sovrapposizione nello stesso calendario.
+
+Implementazione (F7, 17/11/2026):
+- File di revisione Excel con una riga per prenotazione proposta, colonne gialle modificabili
+  (azione, categoria, stato, unione, esclusiva, persone, tipo di uscita) e anomalie; `--apply`
+  rifiuta un file senza la decisione di ogni riga dei CSV e si ferma su persone mancanti.
+- Le righe dell'amministratore non sono tutte date riservate: solo CFM, CFT, CFA e Comune diventano
+  prioritarie senza contatti; le altre (gruppi inseriti a mano) restano con il referente, segnalate.
+- «Creato da» contiene il nome dell'account SuperSaaS, non i dati del referente: con
+  `--amministratori` si indicano nome ed email dell'amministratore, e le righe con quei dati come
+  referente sono proposte senza referente (colonna «Referente» modificabile), perché il
+  collegamento per email le porterebbe sul suo account.
+  Righe di prova: gruppo solo numerico o con «prova»/«test».
+- Categoria proposta anche da «Città numero» (Gruppo AGESCI), «Sezione» (Gruppo CNGEI),
+  «Associazione»/«A.p.s.» (terzo settore), «Campo di competenze» (eventi regionali).
+- Prenotazioni con zero notti: attività in giornata (uscita con uso cucina proposta, modificabile).
+- Numero `AAAA-NNN` con l'anno di creazione in SuperSaaS; nessuna email, nessuna domanda di consenso.
+- Collegamento all'account alla conferma dell'email o all'accesso con email verificata.
 
 ---
 

@@ -5,6 +5,16 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### F7 — import da SuperSaaS
+- `manage.py import_supersaas`: `--dry-run` con file di revisione Excel (categoria, stato, unione,
+  esclusiva, persone, tipo di uscita, anomalie), `--apply` con le decisioni in un'unica transazione;
+  nessuna riga persa in silenzio, conflitti di date con l'indicazione della riga.
+- Prenotazioni congiunte per le stesse date nei due calendari, date riservate come prioritarie
+  senza contatti, uscite in giornata, numero con l'anno di creazione, `id_supersaas` conservato.
+- Collegamento delle prenotazioni importate all'account del referente con la stessa email
+  verificata; le righe con i dati dell'amministratore (`--amministratori`) sono proposte senza
+  referente.
+
 ### F6 — sito della base, PDF, PWA, aggiornamento dal web
 - Sito Wagtail: home (mockup 6), pagine di contenuto con i blocchi di P-16 (niente HTML libero),
   pagina delle strutture generata dai dati della base, pagina riservata ai gruppi confermati, menu a
