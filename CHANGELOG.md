@@ -5,10 +5,14 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.9 — 2026-11-17
+
 ### Modifiche
 
 - Modalità demo: registrazioni con email e password chiuse (la pagina «Registrati» mostra il messaggio e il pulsante SSO); il primo accesso con Sestante resta aperto.
 - Pagina di registrazione: il pulsante SSO in cima, prima del modulo, come nel login.
+
+Nessuna variabile nuova in `.env`.
 
 ## v1.0.8 — 2026-11-17
 
