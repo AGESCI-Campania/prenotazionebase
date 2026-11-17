@@ -44,7 +44,8 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings.prod
           ALLOWED_HOSTS: baseaiello.agescicampania.net
           LOG_DIR: /tmp/logs
-        run: uv run python manage.py check --deploy --fail-level WARNING
+        # Chiave casuale lunga solo per questo passo (security.W009)
+        run: DJANGO_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')" uv run python manage.py check --deploy --fail-level WARNING
 
   script:
     runs-on: ubuntu-latest
