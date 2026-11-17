@@ -35,7 +35,7 @@ importi o versioni. Le modifiche alla specifica le approva Andrea.
 | F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | **fatto** |
 | F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | **fatto** (testi lunghi da Andrea) |
 | F7 | Import SuperSaaS | **fatto** (import reale in F8) |
-| F8 | Prova completa di installazione, aggiornamento, backup; messa in produzione | in corso (prova su VM fatta, v0.9.2) |
+| F8 | Prova completa di installazione, aggiornamento, backup; messa in produzione | in corso: prova su VM fatta, **v1.0.0** pubblicata, blueprint e blocco Caddy nei rispettivi repo; installazione sul server |
 
 Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 
@@ -92,7 +92,8 @@ static/tana/       css/tana.css (palette), img/logo/*.svg (loghi della base, non
 deploy/            entrypoint.sh, nginx/ (Dockerfile + template dell'nginx interno)
 scripts/           installa.sh, aggiorna.sh, backup.sh, _comune.sh (copia), _tana.sh
 docs/              Tana_Progettazione.md (specifica), installazione.md (guida del server),
-                   sestante/provider-tana.yaml (blueprint da consegnare ad Andrea)
+                   sestante/provider-tana.yaml (blueprint, copiato in sestante/blueprints il 17/11/2026)
+note/              istruzioni private di installazione sul server (escluse con .git/info/exclude: mai committarle)
 ```
 Nuove app in `tana/<nome>/` con `label` esplicita. La logica sta nei **servizi** di dominio
 (`tana/<app>/services.py`), usati da viste, comandi, PDF, export e import: mai duplicarla.
@@ -151,10 +152,13 @@ In sintesi:
   copiandolo. Le funzioni di Tana stanno in `_tana.sh`. Bash `set -euo pipefail`, messaggi in
   italiano, `shellcheck -x` pulito, bit eseguibile committato.
 - Unit systemd generate dagli script (mai scritte a mano): `prenotazionebase.service`,
-  `prenotazionebase-backup.service/.timer`. Senza sudo gli script stampano il comando per
-  l'amministratore. Aggiornamento dal web: P-20, non ancora approvato.
-- **Non modificare** i repo `agesci-campania-web-frontend` e `sestante`: prepara i contenuti (blocco
-  Caddy, blueprint `provider-tana.yaml`) e consegnali ad Andrea.
+  `prenotazionebase-backup.service/.timer`, `prenotazionebase-aggiorna.path/.service`
+  (aggiornamento dal web, P-20). Senza sudo gli script stampano il comando per l'amministratore.
+- **Non modificare** i repo `agesci-campania-web-frontend` e `sestante` senza una richiesta esplicita
+  di Andrea: prepara i contenuti e consegnali. Già fatto su sua richiesta (17/11/2026):
+  `caddy/sites/tana.caddy` + registro in `INTEGRAZIONE.md` (frontend), `blueprints/provider-tana.yaml`
+  + `BLUEPRINTS` + registro in `INTEGRAZIONE-SSO.md` (sestante). Sestante non usa release: si
+  aggiorna con `git pull` dal suo `scripts/aggiorna.sh`.
 - **`docs/installazione.md`** si aggiorna nello stesso commit di ogni modifica a script, variabili,
   servizi o passi manuali.
 
@@ -173,9 +177,10 @@ In sintesi:
 
 ## Release
 Dal Mac, **prima** dell'aggiornamento del server: versione in `pyproject.toml`, sezione
-`## vX.Y.Z — AAAA-MM-GG` in `CHANGELOG.md`, commit su `main`, `git tag vX.Y.Z && git push origin vX.Y.Z`,
-`gh release create vX.Y.Z` con le note della sezione. Tag e release sempre insieme. Sul server solo
-`scripts/aggiorna.sh`.
+`## vX.Y.Z — AAAA-MM-GG` in `CHANGELOG.md`, commit su `main`, **attendere la CI verde su quel
+commit**, poi `git tag vX.Y.Z && git push origin vX.Y.Z` e `gh release create vX.Y.Z` con le note
+della sezione (mai `--prerelease`: la pagina Aggiornamenti legge `releases/latest`, che le ignora).
+Tag e release sempre insieme. Sul server solo `scripts/aggiorna.sh`.
 
 ## Cosa NON fare
 - Non cambiare `AUTH_USER_MODEL` né le `label` delle app dopo le prime migrazioni.
@@ -183,5 +188,5 @@ Dal Mac, **prima** dell'aggiornamento del server: versione in `pyproject.toml`, 
 - Non servire ricevute o file privati da `/media/`.
 - Non usare classi Bootstrap 5 né scrivere HTML libero nei blocchi di Wagtail.
 - Non aggiungere porte pubblicate, TLS o `$scheme` nell'nginx interno.
-- Non modificare `scripts/_comune.sh`, i repo del frontend o di Sestante.
+- Non modificare `scripts/_comune.sh`; i repo del frontend o di Sestante solo su richiesta esplicita.
 - Non committare `.env`, CSV o Excel con dati reali.
