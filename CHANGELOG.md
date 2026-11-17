@@ -5,6 +5,15 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v0.9.0 — 2026-11-17
+
+Prima release di prova (F8): installazione, aggiornamento e backup su un server pulito.
+Contiene le fasi F0–F7.
+
+### Correzioni
+- Il pacchetto `tana.aggiornamenti` (aggiornamento dal web) mancava dal repo per una regola del
+  `.gitignore`; le cartelle del server nel `.gitignore` sono ora ancorate alla radice.
+
 ### F7 — import da SuperSaaS
 - `manage.py import_supersaas`: `--dry-run` con file di revisione Excel (categoria, stato, unione,
   esclusiva, persone, tipo di uscita, anomalie), `--apply` con le decisioni in un'unica transazione;
