@@ -5,6 +5,17 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Novità
+- **Blocco delle prenotazioni** (Gestione › Configurazione, in cima): con l'interruttore attivo
+  nessuno può inserire nuove prenotazioni, nemmeno la gestione, e al posto del modulo compare un
+  messaggio modificabile. Le prenotazioni esistenti proseguono normalmente; l'import dello storico
+  non è toccato. Utile per il giro di prova prima dell'import e per chiusure temporanee.
+
+### Correzioni
+- Niente più email «Service Unavailable» agli amministratori durante la manutenzione: la pagina
+  503 è voluta, ma ogni richiesta (es. il service worker `/sw.js`, che il browser riprova di
+  continuo) generava una email. Le risposte 503 restano nel log.
+
 ## v1.0.3 — 2026-11-17
 
 ### Interfaccia

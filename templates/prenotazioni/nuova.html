@@ -3,6 +3,9 @@
 {% block titolo_pagina %}Nuova richiesta · {% endblock %}
 {% block content %}
 <h1>Nuova richiesta di prenotazione</h1>
+{% if bloccate %}
+<div class="alert theme-warning mt-5">{{ bloccate|linebreaksbr }}</div>
+{% else %}
 <div class="mt-5 mb-7">{% ag_stepper steps=passi current=passo %}</div>
 
 {% if passo == 1 %}
@@ -67,6 +70,7 @@
       <div class="card"><div class="card-body">{% include "prenotazioni/_preventivo.html" %}</div></div>
     </div>
   </div>
+{% endif %}
 {% endif %}
 {% endblock %}
 {% block extra_js %}{{ block.super }}

@@ -4,6 +4,7 @@
 <h1>Configurazione</h1>
 <form method="post" class="card"><div class="card-body">{% csrf_token %}
   {{ form.non_field_errors }}
+  {% for field in form.campi_blocco %}{% include "prenotazioni/_campo.html" with aiuto_sotto_etichetta=True %}{% endfor %}
   {# Stagione invernale: quattro campi su una riga da lg, due righe (giorno e mese affiancati) sotto #}
   <fieldset>
     <legend class="fs-md fw-semibold mb-1">Stagione invernale</legend>

@@ -71,6 +71,18 @@ def orario_partenza_standard() -> datetime.time:
 class Configurazione(models.Model):
     """Parametri generali modificabili dalla gestione (singleton, pk=1)."""
 
+    # Blocco delle nuove prenotazioni (D-31): vale per tutti, gestione compresa
+    prenotazioni_bloccate = models.BooleanField(
+        "prenotazioni bloccate",
+        default=False,
+        help_text="Nessuno può inserire nuove prenotazioni, nemmeno la gestione: al posto del "
+        "modulo compare il messaggio qui sotto. Le prenotazioni esistenti proseguono normalmente.",
+    )
+    messaggio_blocco = models.TextField(
+        "messaggio di blocco",
+        default="Le prenotazioni sono momentaneamente sospese. Riprova tra qualche giorno.",
+        help_text="Mostrato al posto del modulo di richiesta mentre le prenotazioni sono bloccate.",
+    )
     # Stagione invernale ricorrente (D-08): di default dal 1/11 al 15/3, estremi inclusi
     inverno_dal_giorno = models.PositiveSmallIntegerField(
         default=1, validators=[MinValueValidator(1), MaxValueValidator(31)]

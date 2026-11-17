@@ -541,6 +541,9 @@ def chiudi(request: HttpRequest, numero: str) -> HttpResponse:
 def nuova(request: HttpRequest) -> HttpResponse:
     """Prenotazione per conto della gestione (prioritarie, anche senza contatti e oltre
     l'orizzonte): nasce senza titolare."""
+    conf = Configurazione.corrente()
+    if conf.prenotazioni_bloccate:
+        return _render(request, "gestione/nuova.html", "tutte", {"bloccate": conf.messaggio_blocco})
     form = NuovaPrioritariaForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data

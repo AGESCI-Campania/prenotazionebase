@@ -223,6 +223,8 @@ def _numero(suffisso: str) -> InputConAdorno:
 
 
 class ConfigurazioneForm(forms.ModelForm):
+    # Blocco delle prenotazioni (D-31), in cima alla pagina
+    BLOCCO = ("prenotazioni_bloccate", "messaggio_blocco")
     # Campi della stagione invernale, mostrati affiancati nel template
     STAGIONE_INVERNALE = (
         "inverno_dal_giorno",
@@ -234,6 +236,8 @@ class ConfigurazioneForm(forms.ModelForm):
     class Meta:
         model = Configurazione
         fields = (
+            "prenotazioni_bloccate",
+            "messaggio_blocco",
             "inverno_dal_giorno",
             "inverno_dal_mese",
             "inverno_al_giorno",
@@ -261,6 +265,7 @@ class ConfigurazioneForm(forms.ModelForm):
             "orizzonte_massimo": SelettoreData(),
             "orario_arrivo": forms.TimeInput(attrs={"type": "time"}),
             "orario_partenza": forms.TimeInput(attrs={"type": "time"}),
+            "messaggio_blocco": forms.Textarea(attrs={"rows": 2}),
         }
         labels = {
             "inverno_dal_giorno": "Dal giorno",
@@ -294,11 +299,15 @@ class ConfigurazioneForm(forms.ModelForm):
             "prenotazione.",
         }
 
+    def campi_blocco(self) -> list[forms.BoundField]:
+        return [self[nome] for nome in self.BLOCCO]
+
     def campi_stagione(self) -> list[forms.BoundField]:
         return [self[nome] for nome in self.STAGIONE_INVERNALE]
 
     def altri_campi(self) -> list[forms.BoundField]:
-        return [c for c in self.visible_fields() if c.name not in self.STAGIONE_INVERNALE]
+        a_parte = self.BLOCCO + self.STAGIONE_INVERNALE
+        return [c for c in self.visible_fields() if c.name not in a_parte]
 
 
 class VersioneForm(forms.Form):

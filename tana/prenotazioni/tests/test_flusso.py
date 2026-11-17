@@ -112,6 +112,27 @@ def test_orizzonte_massimo(richiedente, contatto, admin):
     assert storico(prioritaria).filter(deciso_da="Pattuglia e IRO").exists()
 
 
+def test_prenotazioni_bloccate_per_tutti(richiedente, contatto, admin):
+    # D-31: nessuna nuova prenotazione, nemmeno dalla gestione; il messaggio è l'errore
+    Configurazione.objects.filter(pk=1).update(
+        prenotazioni_bloccate=True, messaggio_blocco="Chiuse per il giro di prova."
+    )
+    with pytest.raises(ValidationError, match="Chiuse per il giro di prova."):
+        richiesta(richiedente, contatto)
+    with pytest.raises(ValidationError, match="Chiuse per il giro di prova."):
+        richiesta(
+            admin,
+            None,
+            categoria="foca-regionale",
+            da_gestione=True,
+            deciso_da="Pattuglia",
+            motivazione="Prova",
+        )
+    assert not Prenotazione.objects.exists()
+    Configurazione.objects.filter(pk=1).update(prenotazioni_bloccate=False)
+    assert richiesta(richiedente, contatto).stato == Stato.RICHIESTA
+
+
 def test_categoria_prioritaria_dall_amministrazione_richiede_la_decisione(admin):
     with pytest.raises(ValidationError):
         richiesta(admin, None, categoria="eventi-regionali", da_gestione=True)

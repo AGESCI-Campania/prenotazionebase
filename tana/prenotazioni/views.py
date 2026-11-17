@@ -368,6 +368,13 @@ def _preventivo(richiedente: dict[str, Any], soggiorno: dict[str, Any]) -> dict[
 def nuova(request: HttpRequest, passo: int = 1) -> HttpResponse:
     if passo not in (1, 2, 3):
         raise Http404
+    conf = Configurazione.corrente()
+    if conf.prenotazioni_bloccate:  # D-31
+        return render(
+            request,
+            "prenotazioni/nuova.html",
+            {"sezione": "prenotazioni", "bloccate": conf.messaggio_blocco},
+        )
     richiedente = PassoRichiedente(_dati(request, "1")) if _dati(request, "1") else None
     if passo > 1 and not (richiedente and richiedente.is_valid()):
         return redirect("prenotazioni:nuova")

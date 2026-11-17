@@ -368,3 +368,17 @@ def test_menu_a_sezioni(prenotazione, admin, pattuglia):
     pagina = cliente_di(pattuglia).get(elenco).content.decode()
     assert pagina.count('name="tana-menu"') == 2  # niente Configurazione per la Pattuglia
     assert f'active" href="{elenco}"' in pagina
+
+
+def test_moduli_con_le_prenotazioni_bloccate(admin, richiedente):
+    Configurazione.objects.filter(pk=1).update(
+        prenotazioni_bloccate=True, messaggio_blocco="Prenotazioni chiuse per prova."
+    )
+    pagina = cliente_di(richiedente).get(reverse("prenotazioni:nuova")).content.decode()
+    assert "Prenotazioni chiuse per prova." in pagina
+    assert "<form" not in pagina.split("<h1>", 1)[1].split("</main>", 1)[0]
+    pagina = cliente_di(admin).get(reverse("gestione:nuova")).content.decode()
+    assert "Prenotazioni chiuse per prova." in pagina
+    assert 'name="motivazione"' not in pagina
+    pagina = cliente_di(admin).get(reverse("gestione:configurazione")).content.decode()
+    assert pagina.index('name="prenotazioni_bloccate"') < pagina.index("Stagione invernale")

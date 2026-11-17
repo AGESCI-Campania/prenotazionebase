@@ -418,6 +418,16 @@ spostato sul Workspace `.net`.
   Prenotazioni, che diventano pagine di Tana) si ricreano in Wagtail prima dell'avvio; poi il sito
   Google si spegne e il nome `www.baseaiello.agescicampania.net` passa al server (V-14).
 
+### D-31 — Blocco delle prenotazioni
+Decisa il 17/11/2026 (giro di prova prima dell'import, e in futuro ogni chiusura temporanea).
+- Interruttore **«prenotazioni bloccate»** nella Configurazione, con un **messaggio** modificabile.
+- Con il blocco attivo **nessuno** inserisce nuove prenotazioni, **gestione compresa**: il
+  controllo è nel servizio che crea la richiesta, non solo nei moduli.
+- Il messaggio compare **solo al posto del modulo** (richiesta del gruppo e prenotazione per la
+  gestione); il resto del sito non cambia.
+- Le prenotazioni già presenti seguono il flusso normale (approvazione, acconto, conferma,
+  scadenze). L'import dello storico (§7) non è toccato dal blocco.
+
 ---
 
 ## 3. Modello dati
@@ -433,7 +443,7 @@ Nomi di dominio in italiano, codice in inglese (convenzione dei progetti). Impor
 | `Listino` | tipo (associativo, extra, agevolato, gratuito), nome | D-08 |
 | `VersioneListino` | listino, pubblicata_il, valida_dal, note | D-09; immutabile dopo la prima prenotazione che la usa |
 | `VoceListino` | versione, attività, area, stagione (nessuna/estiva/invernale), unità, importo_centesimi | |
-| `Configurazione` | stagione invernale, % acconto, giorni acconto, soglia esenzione, termine consenso, orari standard, orizzonte massimo (D-25), anni di conservazione (D-18) | singleton |
+| `Configurazione` | blocco delle prenotazioni e messaggio (D-31), stagione invernale, % acconto, giorni acconto, soglia esenzione, termine consenso, orari standard, orizzonte massimo (D-25), anni di conservazione (D-18) | singleton |
 | `Contatto` | nome, email, telefono, organizzazione | anche senza account (import, D-10) |
 | `Prenotazione` | numero (`AAAA-NNN`), categoria, specifica_categoria, richiedente (utente, nullable), contatto, gruppo/ente (testo), unità presenti (Castorini, L/C, E/G, R/S, Co.Ca., Altro), arrivo, partenza, stato, esclusiva_richiesta, esclusiva_concessa, categoria_prioritaria_richiesta/concessa, versione_listino, note, id_supersaas | |
 | `PresenzaArea` | prenotazione, area, persone_previste, persone_effettive | prenotazioni congiunte = due righe |

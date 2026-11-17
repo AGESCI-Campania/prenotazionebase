@@ -104,11 +104,13 @@ def invia_richiesta(
     _richiedi(getattr(utente, "is_authenticated", False))
     if da_gestione:
         _richiedi(permessi.e_amministrazione(utente))
+    conf = Configurazione.corrente()
+    if conf.prenotazioni_bloccate:
+        raise ValidationError(conf.messaggio_blocco)  # D-31: anche per la gestione
     gestione = da_gestione
     presenze = {codice: persone for codice, persone in (presenze or {}).items() if persone}
     attivita = attivita or []
     oggi = timezone.localdate()
-    conf = Configurazione.corrente()
     errori: dict[str, str] = {}
 
     if not presenze and not attivita:
