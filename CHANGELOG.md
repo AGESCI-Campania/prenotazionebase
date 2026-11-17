@@ -5,9 +5,13 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.8 — 2026-11-17
+
 ### Correzioni
 
 - Aggiornamento dal web: la pagina Aggiornamenti legge l'avanzamento in background e, mentre Tana si riavvia, resta lì con l'indicazione «Tana si sta riavviando» e il tempo trascorso, invece di finire sulla pagina di manutenzione; le pagine di manutenzione si ricaricano da sole ogni 30 secondi.
+
+Nessuna variabile nuova in `.env`. La nuova pagina di avanzamento si vede dall'aggiornamento successivo a questo; la pagina di manutenzione dell'nginx si aggiorna con la ricostruzione dell'immagine.
 
 ## v1.0.7 — 2026-11-17
 
