@@ -1,6 +1,7 @@
 {% extends "gestione/base.html" %}
 {% block titolo_pagina %}Aggiornamenti · {% endblock %}
-{% block head_pagina %}{% if in_corso %}<meta http-equiv="refresh" content="5">{% endif %}{% endblock %}
+{# Durante l'aggiornamento lo stato si legge in background (script in fondo): quando Tana si riavvia la pagina resta qui invece di finire sulla pagina di manutenzione dell'nginx #}
+{% block head_pagina %}{% if in_corso %}<noscript><meta http-equiv="refresh" content="5"></noscript>{% endif %}{% endblock %}
 {% block content %}
 <h1>Aggiornamenti</h1>
 <div class="row g-7">
@@ -21,6 +22,8 @@
       {% endif %}
     </div></div>
 
+    <div id="riavvio" class="alert theme-info mt-5" role="status" hidden><p>Tana si sta riavviando con la nuova versione: questa pagina riprende da sola appena il servizio risponde (di solito uno o due minuti). Senza risposta da <b data-secondi>0</b> secondi.</p></div>
+    <div id="avanzamento"{% if in_corso %} data-in-corso{% endif %}>
     {% if ultima %}
       <div class="card mt-5"><div class="card-body">
         <h2 class="fs-lg">{{ ultima.versione }} · {{ ultima.get_stato_display }}</h2>
@@ -30,6 +33,7 @@
         {% if ultima.log %}<details><summary>Registro</summary><pre class="small">{{ ultima.log }}</pre></details>{% endif %}
       </div></div>
     {% endif %}
+    </div>
   </div>
   <div class="lg:col-5">
     <div class="card"><div class="card-body">
@@ -40,4 +44,36 @@
     </div></div>
   </div>
 </div>
+{% if in_corso %}
+<script>
+  // Ogni 5 s rilegge questa pagina e sostituisce solo l'avanzamento; se Tana non risponde
+  // (container in riavvio: errore di rete o 502/503 dell'nginx) resta qui e riprova
+  (() => {
+    const avviso = document.getElementById("riavvio");
+    const secondi = avviso.querySelector("[data-secondi]");
+    let senzaRisposta = null;
+    setInterval(() => {
+      if (senzaRisposta) secondi.textContent = Math.round((Date.now() - senzaRisposta) / 1000);
+    }, 1000);
+    async function controlla() {
+      try {
+        const risposta = await fetch(location.pathname, { cache: "no-store" });
+        if (!risposta.ok) throw new Error(risposta.status);
+        const pagina = new DOMParser().parseFromString(await risposta.text(), "text/html");
+        const nuovo = pagina.getElementById("avanzamento");
+        if (!nuovo) return location.reload();  // pagina diversa (es. nuovo accesso richiesto)
+        senzaRisposta = null;
+        avviso.hidden = true;
+        if (!nuovo.hasAttribute("data-in-corso")) return location.reload();  // finito
+        document.getElementById("avanzamento").replaceWith(nuovo);
+      } catch {
+        senzaRisposta ??= Date.now();
+        avviso.hidden = false;
+      }
+      setTimeout(controlla, 5000);
+    }
+    setTimeout(controlla, 5000);
+  })();
+</script>
+{% endif %}
 {% endblock %}

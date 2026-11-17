@@ -108,6 +108,10 @@ def test_richiesta_con_accesso_recente(admin, monkeypatch, cartella):
     c.post(reverse("gestione:aggiornamenti"), {"azione": "aggiorna", "versione": "v0.2.0"})
     assert RichiestaAggiornamento.objects.get().stato == StatoRichiesta.IN_ATTESA
     assert (cartella / "richiesta.json").exists()
+    # In corso: avanzamento letto in background, niente ricarica della pagina intera
+    pagina = c.get(reverse("gestione:aggiornamenti")).content.decode()
+    assert '<div id="avanzamento" data-in-corso>' in pagina and 'id="riavvio"' in pagina
+    assert '<noscript><meta http-equiv="refresh"' in pagina
 
 
 def test_pagina_raggiungibile_in_manutenzione(admin):
@@ -115,7 +119,10 @@ def test_pagina_raggiungibile_in_manutenzione(admin):
     c = Client()
     c.force_login(admin)
     assert c.get(reverse("gestione:aggiornamenti")).status_code == 200
-    assert c.get(reverse("gestione:cruscotto")).status_code == 503
+    risposta = c.get(reverse("gestione:cruscotto"))
+    assert risposta.status_code == 503
+    # La pagina di manutenzione si ricarica da sola
+    assert '<meta http-equiv="refresh" content="30">' in risposta.content.decode()
 
 
 def test_controllo_della_release(monkeypatch):
