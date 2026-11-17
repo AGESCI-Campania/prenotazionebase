@@ -258,6 +258,24 @@ gestione) e toglie la manutenzione.
 - Se nel frattempo il database era già stato migrato **resta in manutenzione** e indica il backup da
   ripristinare (vedi sotto).
 
+#### Aggiornamento non riuscito con il database cambiato
+
+`aggiorna.sh` ha già rimesso il codice e le immagini della versione precedente, fermato `web` e
+`scheduler` e lasciato acceso `nginx`, che mostra la pagina di manutenzione. Si ripristina il backup
+del database indicato nel messaggio (`backups/tana-db-…-pre-<versione>.sql.gz`) e si riparte:
+
+```bash
+sudo -iu agesci
+cd /opt/prenotazionebase
+docker compose exec -T db sh -c 'dropdb -U "$POSTGRES_USER" "$POSTGRES_DB" && createdb -U "$POSTGRES_USER" "$POSTGRES_DB"'
+gunzip -c backups/<file indicato> | docker compose exec -T db sh -c 'psql -q -U "$POSTGRES_USER" "$POSTGRES_DB"'
+docker compose up -d --wait
+docker compose exec web uv run python manage.py manutenzione disattiva
+```
+
+Il backup è stato fatto con la manutenzione già attiva: per questo l'ultimo comando serve sempre.
+Poi segnalare il problema della release a chi la sviluppa, con il log dell'aggiornamento.
+
 ### Aggiornamento dal web (P-20)
 
 Da `/gestione/aggiornamenti/` (solo amministrazione, con un accesso negli ultimi 5 minuti) si

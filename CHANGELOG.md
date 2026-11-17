@@ -5,6 +5,17 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v0.9.2 — 2026-11-17
+
+Terza release di prova (F8).
+
+### Correzioni
+- `aggiorna.sh`: se la release nuova non risponde dopo aver migrato il database, rimette le
+  immagini della versione precedente, ferma `web` e `scheduler` (niente riavvii continui) e lascia
+  acceso `nginx`; la guida spiega come ripristinare il backup e ripartire.
+- nginx interno: pagina statica di manutenzione (503) quando Django non risponde, al posto
+  dell'errore 502.
+
 ## v0.9.1 — 2026-11-17
 
 Seconda release di prova (F8): aggiornamento da v0.9.0 e ritorno indietro.

@@ -239,7 +239,13 @@ CAMBIATO=false
 [[ "$(migrazioni)" != "$MIGRAZIONI_PRIMA" ]] && CAMBIATO=true
 git -c advice.detachedHead=false checkout --quiet "$PRIMA"
 if $CAMBIATO; then
-	messaggio="La $VERSIONE ha già cambiato il database: prima di riavviare la $NOME_PRIMA ripristinare il backup $BACKUP (vedi docs/installazione.md, «Backup e ripristino»). Tana resta in manutenzione."
+	# Immagini della versione precedente (coerenti con il codice appena ripristinato), web e
+	# scheduler fermi (senza riavvii continui) e nginx acceso con la pagina di manutenzione:
+	# al riavvio, dopo il ripristino del backup, parte la versione precedente.
+	ripristina_immagini || costruisci_immagini || avviso "Non riesco a ripristinare le immagini della $NOME_PRIMA: costruirle con docker compose build web nginx."
+	docker compose stop web scheduler || true
+	docker compose up -d --no-deps nginx || true
+	messaggio="La $VERSIONE ha già cambiato il database: prima di riavviare la $NOME_PRIMA ripristinare il backup $BACKUP (vedi docs/installazione.md, «Aggiornamento non riuscito con il database cambiato»). Tana resta in manutenzione."
 	avviso "$messaggio"
 	stato fine "$messaggio" "" fallito
 	exit 1

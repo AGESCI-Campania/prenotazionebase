@@ -32,6 +32,17 @@ server {
         alias /srv/privati/;
     }
 
+    # Django non risponde (aggiornamento non riuscito, servizio fermo): pagina statica di
+    # manutenzione. Solo per gli errori generati da nginx: le risposte di Django, compresa la sua
+    # pagina 503 di manutenzione, passano così come sono (proxy_intercept_errors è spento).
+    error_page 502 504 =503 /manutenzione.html;
+    location = /manutenzione.html {
+        internal;
+        root /usr/share/nginx/tana;
+        add_header Cache-Control "no-store" always;
+        add_header Retry-After 120 always;
+    }
+
     # Tutto il resto a Django (pagine di Tana, sito Wagtail, statici con WhiteNoise)
     location / {
         set $app http://web:8000;
