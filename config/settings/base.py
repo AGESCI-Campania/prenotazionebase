@@ -194,10 +194,12 @@ MFA_TOTP_ISSUER = "Tana – Base Scout Aiello"
 # non compare, ma l'app parte comunque (contratto INTEGRAZIONE-SSO.md di Sestante).
 SOCIAL_SESTANTE_CLIENT_ID = env.str("SOCIAL_SESTANTE_CLIENT_ID", default="")
 SOCIAL_SESTANTE_CLIENT_SECRET = env.str("SOCIAL_SESTANTE_CLIENT_SECRET", default="")
+# Senza "/" finale: allauth aggiunge "/.well-known/openid-configuration" e con la doppia barra
+# Sestante (authentik) risponde 404, cioè errore 500 al clic su «Accedi con SSO» (come Plancia).
 SOCIAL_SESTANTE_SERVER_URL = env.str(
     "SOCIAL_SESTANTE_SERVER_URL",
-    default="https://auth.agescicampania.net/application/o/tana/",
-)
+    default="https://auth.agescicampania.net/application/o/tana",
+).rstrip("/")
 SOCIALACCOUNT_PROVIDERS: dict = {}
 if SOCIAL_SESTANTE_CLIENT_ID:
     SOCIALACCOUNT_PROVIDERS["openid_connect"] = {

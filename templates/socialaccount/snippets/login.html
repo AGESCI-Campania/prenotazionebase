@@ -1,0 +1,15 @@
+{% load socialaccount %}
+{% comment %}Accesso con i servizi esterni (Sestante) come pulsanti a tutta larghezza, come in Plancia.
+Il POST salta la pagina intermedia di conferma di allauth.{% endcomment %}
+{% get_providers as socialaccount_providers %}
+{% if socialaccount_providers %}
+  <div class="d-grid gap-3">
+    {% for provider in socialaccount_providers %}
+      <form method="post" action="{% provider_login_url provider process='login' %}" class="d-grid">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline theme-primary">Accedi con {{ provider.name }}</button>
+      </form>
+    {% endfor %}
+  </div>
+  <p class="tana-separatore small">oppure con email e password</p>
+{% endif %}

@@ -85,23 +85,52 @@
   .tana-calendario__area b { display: none; }
 }
 
-/* Piè di pagina sempre in fondo. Il contenuto (main) cresce fino al footer sulle pagine corte;
-   da lg (layout a viewport fisso del tema) il footer resta visibile e il corpo scorre sopra.
-   Sotto lg la pagina scorre per intero e il footer segue il contenuto. */
+/* Piè di pagina in fondo alla finestra sulle pagine corte (il main cresce fino al footer); sulle
+   pagine lunghe scorre con il contenuto. Non resta fisso: a differenza di Plancia non c'è una
+   barra laterale e occuperebbe spazio a ogni schermata. */
 .ag-scroll-area {
   display: flex;
   flex-direction: column;
 }
 .ag-scroll-area > main { flex: 1 0 auto; }
+
+/* Piè di pagina compatto, senza spazi vuoti. Una riga
+   (marchio, link, contatti) che va a capo sugli schermi stretti, più la barra in fondo. */
+.tana-footer { padding-block: 0.75rem; }
+.tana-footer__riga {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+}
+.tana-footer__marchio {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+.ag-footer .tana-footer__marchio .ag-footer__logo { height: 32px; }
+.tana-footer__voci {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+.ag-footer .tana-footer__fondo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
 @media (max-width: 1023.98px) {
   body { min-height: 100dvh; }
-}
-@media (min-width: 1024px) {
-  .ag-scroll-area > .ag-footer {
-    position: sticky;
-    bottom: 0;
-    z-index: 1;
-  }
 }
 
 /* Barra laterale della gestione: titoli delle sezioni (mockup 4) */
@@ -115,10 +144,6 @@
 }
 .tana-giorno { min-width: 4rem; }
 
-/* Area di gestione: è un'area di lavoro, il piè di pagina non resta fisso sullo schermo */
-@media (min-width: 1024px) {
-  body:has(#agSidebar) .ag-scroll-area > .ag-footer { position: static; }
-}
 .tana-riquadro { color: inherit; text-decoration: none; }
 .tana-riquadro:hover { border-color: var(--ag-primary); }
 
@@ -139,3 +164,19 @@
 .tana-citazione { border-left: 4px solid var(--tana-verde-chiaro); padding-left: 1rem; font-style: italic; margin: 1.5rem 0; }
 .tana-mappa { position: relative; aspect-ratio: 16 / 9; }
 .tana-mappa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0.4rem; }
+
+/* Login: separatore tra il pulsante SSO e il form con email e password */
+.tana-separatore {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: var(--ag-fg-2, #6c757d);
+}
+.tana-separatore::before,
+.tana-separatore::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid currentColor;
+  opacity: 0.35;
+}

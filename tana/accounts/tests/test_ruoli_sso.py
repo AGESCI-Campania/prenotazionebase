@@ -27,7 +27,7 @@ PROVIDER_SESTANTE = {
                 "name": "SSO AGESCI Campania",
                 "client_id": "id",
                 "secret": "segreto",
-                "settings": {"server_url": "https://auth.agescicampania.net/application/o/tana/"},
+                "settings": {"server_url": "https://auth.agescicampania.net/application/o/tana"},
             }
         ]
     }
@@ -225,3 +225,22 @@ def test_pulsante_sso_nella_pagina_di_login(client, settings):
     assert "SSO AGESCI Campania" not in client.get("/accounts/login/").content.decode()
     settings.SOCIALACCOUNT_PROVIDERS = PROVIDER_SESTANTE
     assert "SSO AGESCI Campania" in client.get("/accounts/login/").content.decode()
+
+
+def test_indirizzo_di_sestante_senza_barra_finale(monkeypatch):
+    """Con la "/" finale allauth chiede …/tana//.well-known/… e Sestante risponde 404 (500 in Tana)."""
+    import importlib
+
+    import config.settings.base as base
+
+    monkeypatch.setenv("SOCIAL_SESTANTE_CLIENT_ID", "id")
+    monkeypatch.setenv(
+        "SOCIAL_SESTANTE_SERVER_URL", "https://auth.agescicampania.net/application/o/tana/"
+    )
+    try:
+        importlib.reload(base)
+        app = base.SOCIALACCOUNT_PROVIDERS["openid_connect"]["APPS"][0]
+        assert app["settings"]["server_url"] == "https://auth.agescicampania.net/application/o/tana"
+    finally:
+        monkeypatch.undo()
+        importlib.reload(base)

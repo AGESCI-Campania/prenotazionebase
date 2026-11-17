@@ -5,6 +5,19 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.2 — 2026-11-17
+
+### Correzioni
+- **Accesso con SSO**: errore 500 al clic su «Accedi con SSO AGESCI Campania». L'indirizzo di
+  Sestante finiva con «/» e allauth chiedeva `…/tana//.well-known/openid-configuration`, a cui
+  Sestante risponde 404: la barra finale ora si toglie sempre (come in Plancia).
+
+### Interfaccia
+- Pagina di accesso come in Plancia: pulsante «Accedi con SSO AGESCI Campania» a tutta larghezza
+  in cima, poi «oppure con email e password»; niente più pagina intermedia di conferma.
+- Piè di pagina compatto (da circa 316 a 98 px) e non più fisso: scorre con la pagina e sulle
+  pagine corte resta in fondo alla finestra.
+
 ## v1.0.1 — 2026-11-17
 
 ### Novità
