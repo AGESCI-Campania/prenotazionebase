@@ -48,6 +48,9 @@ SECURE_CSP = {
     "frame-ancestors": [CSP.SELF],
 }
 
+# Ricevute e allegati privati: li serve l'nginx interno dopo il controllo in Django (P-14)
+PRIVATI_X_ACCEL = True
+
 # Dietro due proxy (Caddy → nginx) l'IP del client è il penultimo di X-Forwarded-For
 AXES_CLIENT_IP_CALLABLE = "tana.core.rete.ip_client_dietro_proxy"
 

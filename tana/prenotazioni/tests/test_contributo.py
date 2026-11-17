@@ -354,3 +354,33 @@ def test_consuntivo_con_la_versione_del_preventivo():
     riepilogo = contributo.aggiorna_consuntivo(prenotazione)
     assert riepilogo.totale == 1344 * EURO
     assert contributo.riepilogo(prenotazione, Fase.CONSUNTIVO).righe[0].voce.versione == versione
+
+
+def test_calcolo_delle_righe_come_nel_mockup():
+    prenotazione = prenota(d(2027, 7, 19), d(2027, 7, 24), acc=20, tende=12)
+    giornata(prenotazione, d(2027, 7, 21), AttivitaGiornaliera.Tipo.GIORNATA_OSPITI, 1)
+    righe = contributo.aggiorna_preventivo(prenotazione).righe
+    assert [r.calcolo for r in righe] == [
+        "8,00 € × 20 persone × 6 giorni",
+        "5,00 € × 12 persone × 6 giorni",
+        "1,00 € × 1 persona × 1 giorno",
+    ]
+    bivacco = prenota(d(2027, 8, 7), d(2027, 8, 8), acc=15)
+    assert (
+        contributo.simula(
+            contributo.Soggiorno(
+                categoria=bivacco.categoria,
+                arrivo=bivacco.arrivo,
+                partenza=bivacco.partenza,
+                presenze=[(Area.objects.get(codice="ACC"), 15)],
+            )
+        )[0].calcolo
+        == "10,00 € × 15 persone × 1 notte"
+    )
+    libera = contributo.aggiungi_voce_libera(
+        prenotazione, fase=Fase.PREVENTIVO, descrizione="Pellet", prezzo_centesimi=4250
+    )
+    assert libera.calcolo == "42,50 €"
+    tende_extra = prenota(d(2027, 9, 1), d(2027, 9, 3), tende=6, categoria="gruppo-cngei")
+    (riga,) = contributo.aggiorna_preventivo(tende_extra).righe
+    assert riga.calcolo == "importo da definire × 6 persone × 3 giorni"

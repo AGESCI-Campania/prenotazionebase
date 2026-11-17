@@ -1,0 +1,31 @@
+{% load formati %}
+<h2 class="fs-lg">Preventivo</h2>
+{% if errori %}
+  {% for e in errori %}<div class="alert theme-danger">{{ e }}</div>{% endfor %}
+{% elif incompleto or not preventivo %}
+  <p class="small fg-2">Indica tipo di soggiorno, date e presenze: il preventivo si calcola subito.</p>
+{% else %}
+  <table class="table small">
+    <tbody>
+      {% for riga in preventivo.righe %}
+        <tr>
+          <td>{{ riga.descrizione }}<br><span class="fg-2">{{ riga.calcolo }}</span></td>
+          <td class="text-end">{{ riga.importo|euro }}</td>
+        </tr>
+      {% endfor %}
+      <tr class="fw-bold"><td>Totale stimato</td><td class="text-end">{{ preventivo.totale|euro }}</td></tr>
+      <tr><td>Acconto{% if preventivo.acconto %} ({{ preventivo.conf.acconto_percentuale }}%, entro {{ preventivo.conf.acconto_giorni }} giorni dall'approvazione){% endif %}</td><td class="text-end">{% if preventivo.acconto == 0 %}non dovuto{% else %}{{ preventivo.acconto|euro }}{% endif %}</td></tr>
+    </tbody>
+  </table>
+  <p class="small fg-2">Listino {{ preventivo.listino.nome|lower }}. Il saldo si calcola a fine soggiorno sulle presenze effettive, più eventuali voci extra (pellet, danni, sovrapprezzi).{% if preventivo.totale is None %} Le voci da definire le stabilisce la gestione prima dell'approvazione.{% endif %}</p>
+  <h3 class="fs-md mt-5">Disponibilità</h3>
+  <div class="d-flex flex-wrap gap-3">
+  {% for codice, libera in preventivo.esito.libere.items %}
+    {% if libera %}<span class="badge theme-success">{% if codice == "ACC" %}Accantonamento{% else %}Area tende{% endif %} libera</span>{% else %}<span class="badge theme-danger">{% if codice == "ACC" %}Accantonamento{% else %}Area tende{% endif %} occupata</span>{% endif %}
+  {% endfor %}
+  </div>
+  {% if not preventivo.esito.tutte_libere %}<p class="small fg-danger mt-3">Le date non sono libere: guarda il <a href="{% url 'disponibilita' %}">calendario</a> e scegli altre date.</p>{% endif %}
+  {% if preventivo.esito.arrivo_con_partenza %}<p class="small mt-3">Il giorno dell'arrivo parte un altro gruppo ({{ preventivo.esito.arrivo_con_partenza|join:", " }}): l'orario va concordato con lui.</p>{% endif %}
+  {% if preventivo.esito.partenza_con_arrivo %}<p class="small mt-3">Il giorno della partenza arriva un altro gruppo ({{ preventivo.esito.partenza_con_arrivo|join:", " }}): l'orario va concordato con lui.</p>{% endif %}
+  {% if preventivo.serve_consenso %}<p class="small mt-3">In quel giorno c'è già un altro gruppo in base: l'attività in giornata richiede il suo consenso.</p>{% endif %}
+{% endif %}

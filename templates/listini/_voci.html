@@ -1,0 +1,21 @@
+{% load formati %}{% with voci=versione.voci.all %}
+{% if voci %}
+<div class="table-responsive">
+  <table class="table">
+    <thead><tr><th>Voce</th><th>Stagione</th><th>Unità</th><th class="text-end">Importo</th></tr></thead>
+    <tbody>
+      {% for voce in voci %}
+        <tr>
+          <td>{{ voce }}</td>
+          <td>{{ voce.get_stagione_display }}</td>
+          <td>{{ voce.get_unita_display }}</td>
+          <td class="text-end">{{ voce.importo_centesimi|euro }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="fg-2">Importi da definire: chiedi alla gestione della base.</p>
+{% endif %}
+{% endwith %}

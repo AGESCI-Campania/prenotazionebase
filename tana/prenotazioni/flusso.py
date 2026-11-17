@@ -18,7 +18,7 @@ from tana.base.models import Area, Configurazione
 from tana.core.services import registra_decisione, registra_evento
 from tana.listini.models import Categoria
 
-from . import contributo, notifiche
+from . import consensi, contributo, notifiche
 from .models import (
     AttivitaGiornaliera,
     Contatto,
@@ -83,23 +83,28 @@ def invia_richiesta(
     presenze: dict[str, int] | None = None,
     attivita: list[tuple[datetime.date, str, int]] | None = None,
     contatto: Contatto | None = None,
+    capo_responsabile: Contatto | None = None,
     gruppo: str = "",
     specifica_categoria: str = "",
     unita: list[str] | None = None,
     esclusiva_richiesta: bool = False,
     note: str = "",
+    da_gestione: bool = False,
     deciso_da: str = "",
     motivazione: str = "",
 ) -> Prenotazione:
     """Nuova richiesta (stato RICHIESTA, le date si occupano subito: P-01).
 
     `presenze`: persone per codice di area; `attivita`: (data, tipo, persone) delle attività in
-    giornata. Chi non è dell'amministrazione chiede la categoria prioritaria (P-06); se la
-    assegna l'amministrazione è una decisione discrezionale (D-14), come la prenotazione oltre
-    l'orizzonte (D-25) o senza contatti (D-10).
+    giornata. Chi invia è il titolare, anche se ha un ruolo di gestione, e chiede la categoria
+    prioritaria (P-06). Con `da_gestione` (solo amministrazione) la prenotazione non ha titolare
+    e la categoria prioritaria è assegnata: è una decisione discrezionale (D-14), come la
+    prenotazione oltre l'orizzonte (D-25) o senza contatti (D-10).
     """
     _richiedi(getattr(utente, "is_authenticated", False))
-    gestione = permessi.e_amministrazione(utente)
+    if da_gestione:
+        _richiedi(permessi.e_amministrazione(utente))
+    gestione = da_gestione
     presenze = {codice: persone for codice, persone in (presenze or {}).items() if persone}
     attivita = attivita or []
     oggi = timezone.localdate()
@@ -138,6 +143,7 @@ def invia_richiesta(
         specifica_categoria=specifica_categoria.strip(),
         richiedente=None if gestione else utente,
         contatto=contatto,
+        capo_responsabile=capo_responsabile,
         gruppo=gruppo.strip(),
         unita=unita or [],
         arrivo=arrivo,
@@ -158,6 +164,7 @@ def invia_richiesta(
         )
     sincronizza_occupazioni(prenotazione)
     contributo.aggiorna_preventivo(prenotazione, utente=utente)
+    consensi.chiedi_consensi(prenotazione)
     if concessa:
         registra_decisione(
             prenotazione,
@@ -198,6 +205,10 @@ def approva(
     _blocca(prenotazione)
     if prenotazione.stato != Stato.RICHIESTA:
         raise TransizioneNonValida(prenotazione, "approvare")
+    if consensi.mancanti(prenotazione).exists():
+        raise ValidationError(
+            "Manca il consenso del gruppo già presente: senza consenso la richiesta va rifiutata."
+        )
     decisioni: dict[str, Any] = {}
     if concedi_esclusiva:
         if not prenotazione.esclusiva_richiesta:

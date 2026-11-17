@@ -4,12 +4,14 @@ from .models import (
     AttivitaGiornaliera,
     BloccoTecnico,
     Contatto,
+    Conversazione,
     Messaggio,
     Occupazione,
     Pagamento,
     Prenotazione,
     PresenzaArea,
     RichiestaConsenso,
+    RichiestaTelefono,
     RigaImporto,
 )
 
@@ -91,6 +93,20 @@ class PagamentoAdmin(admin.ModelAdmin):
     exclude = ("ricevuta",)  # file privato: solo dalla vista con controllo dei permessi
 
 
-@admin.register(Messaggio)
-class MessaggioAdmin(admin.ModelAdmin):
-    list_display = ("prenotazione", "mittente", "destinatario", "inviato_il", "letto")
+class MessaggioInline(SolaLettura, admin.TabularInline):
+    model = Messaggio
+    fields = ("inviato_il", "da_prenotazione", "mittente", "testo", "letto")
+    readonly_fields = fields
+    extra = 0
+
+
+@admin.register(Conversazione)
+class ConversazioneAdmin(SolaLettura, admin.ModelAdmin):
+    list_display = ("__str__", "creata_il")
+    inlines = (MessaggioInline,)
+
+
+@admin.register(RichiestaTelefono)
+class RichiestaTelefonoAdmin(SolaLettura, admin.ModelAdmin):
+    list_display = ("da", "a", "stato", "creata_il", "risposta_il")
+    list_filter = ("stato",)

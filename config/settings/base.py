@@ -135,6 +135,9 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(env.str("MEDIA_ROOT", default=str(BASE_DIR / "media")))
 PRIVATE_MEDIA_ROOT = Path(env.str("PRIVATE_MEDIA_ROOT", default=str(BASE_DIR / "privati")))
+# In produzione i file privati li serve nginx (X-Accel-Redirect verso la location internal
+# /protetti/); in sviluppo e nei test li serve Django dopo lo stesso controllo dei permessi.
+PRIVATI_X_ACCEL = False
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "privato": {

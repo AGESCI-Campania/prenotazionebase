@@ -13,6 +13,8 @@ from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 from tana.core import views as core_views
+from tana.listini.views import listino
+from tana.prenotazioni.views_pubbliche import disponibilita
 
 urlpatterns = [
     path("healthz/", core_views.healthz, name="healthz"),
@@ -20,7 +22,10 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("cms/", include(wagtailadmin_urls)),
     path("documenti/", include(wagtaildocs_urls)),
-    # Qui, in F1–F5: prenotazioni/, disponibilita/, listino/, gestione/
+    path("prenotazioni/", include("tana.prenotazioni.urls")),
+    path("disponibilita/", disponibilita, name="disponibilita"),
+    path("listino/", listino, name="listino"),
+    # In F5: gestione/
 ]
 
 if settings.DEBUG:

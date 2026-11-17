@@ -16,6 +16,7 @@ from django.core.mail import EmailMessage
 from django.db import transaction
 from django.db.models import Q
 from django.template.loader import render_to_string
+from django.urls import reverse
 
 from tana.accounts.models import User
 from tana.accounts.permessi import PERMESSO_NOTIFICHE
@@ -47,6 +48,11 @@ EVENTI = {
     "scaduta": Evento("Prenotazione {numero} scaduta"),
     "svolta": Evento("Grazie per il soggiorno alla base ({numero})"),
     "chiusa": Evento("Consuntivo della prenotazione {numero}"),
+    "consenso_richiesto": Evento("Richiesta di consenso per la prenotazione {numero}"),
+    "consenso_risposta": Evento("Risposta alla richiesta di consenso ({numero})"),
+    "messaggio": Evento("Nuovo messaggio sulla prenotazione {numero}"),
+    "telefono_richiesto": Evento("Richiesta del tuo telefono ({numero})", True, False),
+    "telefono_risposta": Evento("Risposta alla richiesta del telefono ({numero})", True, False),
 }
 
 
@@ -77,13 +83,27 @@ def _unici(indirizzi: list[str]) -> list[str]:
     return list(visti.values())
 
 
-def notifica(prenotazione: Prenotazione, evento: str, **contesto: Any) -> None:
-    """Prepara le email di `evento` e le invia dopo il commit della transazione."""
+def notifica(
+    prenotazione: Prenotazione,
+    evento: str,
+    *,
+    al_richiedente: bool | None = None,
+    alla_gestione: bool | None = None,
+    **contesto: Any,
+) -> None:
+    """Prepara le email di `evento` e le invia dopo il commit della transazione.
+
+    `al_richiedente` e `alla_gestione` sostituiscono i destinatari di default dell'evento.
+    """
     descrizione = EVENTI[evento]
+    if al_richiedente is None:
+        al_richiedente = descrizione.al_richiedente
+    if alla_gestione is None:
+        alla_gestione = descrizione.alla_gestione
     messaggi = []
     for per_gestione, attivo, destinatari in (
-        (False, descrizione.al_richiedente, destinatari_richiedente(prenotazione)),
-        (True, descrizione.alla_gestione, destinatari_gestione()),
+        (False, al_richiedente, destinatari_richiedente(prenotazione)),
+        (True, alla_gestione, destinatari_gestione()),
     ):
         if not attivo or not destinatari:
             continue
@@ -119,9 +139,9 @@ def _contesto(prenotazione: Prenotazione, **extra: Any) -> dict[str, Any]:
         "attivita": prenotazione.attivita_giornaliere.order_by("data"),
         "preventivo": preventivo,
         "conf": conf,
-        "causale": conf.causale_bonifico.format(
-            numero=prenotazione.numero, gruppo=prenotazione.gruppo
-        ),
+        "causale": conf.causale(prenotazione.numero, prenotazione.gruppo),
         "base_url": settings.BASE_URL,
+        "link": settings.BASE_URL.rstrip("/")
+        + reverse("prenotazioni:dettaglio", kwargs={"numero": prenotazione.numero}),
         **extra,
     }

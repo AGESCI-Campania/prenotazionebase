@@ -1,0 +1,7 @@
+{% load formati %}{% autoescape off %}Nuovo messaggio da {{ mittente }} sulla prenotazione {{ p.numero }}:
+
+{{ messaggio.testo }}
+
+{% if per_gestione %}Rispondi dall'area di gestione.{% else %}Per rispondere usa la pagina della prenotazione (rispondendo a questa email scrivi alla casella della base, non all'altro gruppo):
+{{ link }}{% endif %}
+{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

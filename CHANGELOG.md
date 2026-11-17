@@ -5,6 +5,24 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### F4 — area del richiedente, consensi, messaggi
+- Nuova richiesta in tre passi (gruppo e referenti, soggiorno, riepilogo) con preventivo e
+  disponibilità in tempo reale, calcolati con le stesse regole dell'invio.
+- Area personale: elenco, pagina della prenotazione con le tappe, acconto e caricamento della
+  ricevuta, annullamento, preventivo o consuntivo, pagamenti; ricevute servite con
+  X-Accel-Redirect in produzione (P-14).
+- Consensi del gruppo presente (D-06): domande alla richiesta, risposta dall'area personale,
+  scadenza nello scheduler; senza consenso l'approvazione è bloccata.
+- Messaggi con la gestione e con i gruppi negli stessi giorni, con email; telefono dell'altro
+  referente solo se autorizzato (D-16).
+- Pagine pubbliche: calendario della disponibilità con le mezze giornate (D-17) e listini in
+  vigore. Navigazione e piè di pagina della base.
+- Righe del preventivo e del consuntivo con il calcolo come nei mockup («8,00 € × 20 persone ×
+  6 giorni»): persone e giorni (o notti) salvati sulla riga.
+- Piè di pagina sempre in fondo alla finestra; da desktop resta visibile e il corpo scorre sopra.
+- Prenotazione: capo responsabile. Un amministratore che prenota è titolare come ogni
+  richiedente; senza titolare solo le prenotazioni inserite per conto della gestione.
+
 ### Script
 - `aggiorna.sh` lancia `manage.py dati_iniziali` dopo l'avvio della nuova versione (idempotente:
   crea solo i dati nuovi della release).

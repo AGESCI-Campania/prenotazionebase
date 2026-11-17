@@ -6,4 +6,5 @@ Categoria: {{ p.categoria }}{% if p.specifica_categoria %} ({{ p.specifica_categ
 {% elif p.esclusiva_richiesta %}- Uso esclusivo richiesto
 {% endif %}{% endif %}{% for att in attivita %}- {{ att.get_tipo_display|capfirst }} il {{ att.data|date:"j F Y"|lower }}: {{ att.persone_previste }} persone
 {% endfor %}
-Contributo previsto: {{ preventivo.totale|euro }}{% if preventivo.totale != preventivo.totale_calcolato %} (calcolato dal listino: {{ preventivo.totale_calcolato|euro }}){% endif %}
+Contributo previsto: {{ preventivo.totale|euro }}{% if preventivo.totale != preventivo.totale_calcolato %} (calcolato dal listino: {{ preventivo.totale_calcolato|euro }}){% endif %}{% if not per_gestione %}
+La tua prenotazione: {{ link }}{% endif %}

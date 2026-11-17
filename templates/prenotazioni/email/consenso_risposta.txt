@@ -1,0 +1,3 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}Consenso del gruppo presente ({{ domanda.prenotazione_esistente.numero }}) per la richiesta {{ p.numero }}: {{ domanda.get_stato_display }}.{% else %}{% if domanda.stato == "CONCESSO" %}Il gruppo già presente alla base ha concesso il consenso alla tua attività in giornata. La richiesta prosegue verso l'approvazione.{% else %}Il gruppo già presente alla base non ha concesso il consenso alla tua attività in giornata{% if domanda.stato == "SCADUTO" %} (nessuna risposta entro il termine){% endif %}. La gestione della base ti contatterà per la richiesta.{% endif %}{% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

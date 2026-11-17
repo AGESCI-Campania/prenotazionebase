@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titolo_pagina %}Le mie prenotazioni · {% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-5">
+  <h1 class="mb-0">Le mie prenotazioni</h1>
+  <a class="btn-solid theme-primary" href="{% url 'prenotazioni:nuova' %}">Nuova richiesta</a>
+</div>
+
+{% if consensi %}
+  <div class="alert theme-warning mt-7">
+    <div>
+      <b>Altri gruppi chiedono il tuo consenso</b> per attività in giornata mentre sei in base:
+      {% for domanda in consensi %}
+        <a href="{% url 'prenotazioni:dettaglio' domanda.prenotazione_esistente.numero %}#consensi">{{ domanda.richiesta.gruppo|default:domanda.richiesta.numero }}</a>{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+{% if prenotazioni %}
+  <div class="list-group mt-7">
+    {% for p in prenotazioni %}
+      <a class="list-group-item" href="{% url 'prenotazioni:dettaglio' p.numero %}">
+        <div class="d-flex flex-wrap justify-content-between gap-3">
+          <b>{{ p.numero }}{% if p.gruppo %} · {{ p.gruppo }}{% endif %}</b>
+          {% include "prenotazioni/_stato.html" %}
+        </div>
+        <div class="small fg-2">
+          {% if p.arrivo == p.partenza %}{{ p.arrivo|date:"l j F Y"|lower }}{% else %}{{ p.arrivo|date:"j F"|lower }} – {{ p.partenza|date:"j F Y"|lower }}{% endif %}
+          · {{ p.categoria }}
+          {% if p.stato == "APPROVATA" and p.scadenza_acconto %}· acconto entro il {{ p.scadenza_acconto|date:"j F"|lower }}{% endif %}
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="mt-7">Non hai ancora prenotazioni. Guarda le <a href="{% url 'disponibilita' %}">date libere</a> e invia una richiesta: il preventivo si calcola subito.</p>
+{% endif %}
+{% endblock %}

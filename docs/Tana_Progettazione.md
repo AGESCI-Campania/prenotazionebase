@@ -9,7 +9,7 @@ tende), che saranno dismessi.
 - **Stato:** analisi chiusa (risposte della Pattuglia e di Andrea del 10/11/2026; sintesi v0.3
   inviata alla Pattuglia), aggiornata il 13/11/2026 per il nuovo server e il dominio
   `agescicampania.net`, il 14–15/11 per il sito in Wagtail (sintesi v0.4), il 17/11/2026 per
-  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. In sviluppo: F0, F1 e F2 fatte.
+  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. In sviluppo: F0–F4 fatte.
 - **Repository:** `AGESCI-Campania/prenotazionebase` (il pacchetto Python resta `tana`). Licenza MIT, © Andrea Bruno.
 - **Hosting:** nuovo server dedicato Ubuntu 26.04, installazione pulita senza Virtualmin né Apache;
   Docker Compose in `/opt/prenotazionebase` (utente `agesci`), dietro il reverse proxy Caddy comune;
@@ -490,6 +490,26 @@ Scelte di F3 (Andrea, 17/11/2026):
 - **Rifiuto**: motivazione obbligatoria (con "deciso da", P-03); l'invio della motivazione nell'email
   al richiedente si sceglie al momento del rifiuto.
 - `NON_SVOLTA` → `SVOLTA` (storico importato) solo dall'amministrazione e senza email.
+
+Scelte di F4 (Andrea, 17/11/2026):
+- **Chi prenota è il titolare**, anche se ha un ruolo di gestione: un amministratore capo di un
+  gruppo prenota il suo campo come ogni richiedente. Solo le prenotazioni inserite *per conto
+  della gestione* (area di gestione, F5) nascono senza titolare, con la categoria prioritaria
+  assegnata come decisione discrezionale.
+- **Consenso** (D-06): lo chiedono le attività in giornata a ogni prenotazione attiva con il
+  gruppo in base quel giorno, **compresi i giorni di arrivo e di partenza**, e alle attività in
+  giornata già richieste per quel giorno. Termine: `consenso_giorni` (7) dalla domanda, non oltre
+  la fine della vigilia; se la domanda arriva la vigilia o il giorno stesso, le **8:00 del giorno
+  dell'attività**. Consenso negato o scaduto: **nessun rifiuto automatico**, la richiesta non si
+  approva e la rifiuta l'amministrazione. Se la prenotazione esistente non ha titolare, risponde
+  l'amministrazione.
+- **Messaggi** (D-16): con la gestione sempre; con un altro gruppo solo se le prenotazioni attive
+  condividono un giorno (anche di cambio) o c'è una domanda di consenso tra loro. Email al
+  destinatario con il testo; gli indirizzi dell'altro gruppo restano nascosti.
+- **Telefono** dell'altro referente: si chiede e si vede solo se lui lo autorizza.
+- Calendario pubblico (D-17) e pagina dei listini in vigore (con la versione successiva già
+  pubblicata) fanno parte della F4. Riferimento grafico: i mockup del 15/11/2026.
+- Ogni prenotazione ha anche il **capo responsabile** (D-18, D-26), oltre al referente.
 
 ---
 

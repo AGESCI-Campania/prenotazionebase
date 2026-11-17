@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static agesci_components formati %}
+{% block titolo_pagina %}Nuova richiesta · {% endblock %}
+{% block content %}
+<h1>Nuova richiesta di prenotazione</h1>
+<div class="mt-5 mb-7">{% ag_stepper steps=passi current=passo %}</div>
+
+{% if passo == 1 %}
+  <form method="post" class="card"><div class="card-body">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <h2 class="fs-lg">Gruppo e associazione</h2>
+    {% for field in form %}{% if field.name in "categoria specifica_categoria gruppo unita" %}{% include "prenotazioni/_campo.html" %}{% endif %}{% endfor %}
+    <h2 class="fs-lg mt-7">Referente</h2>
+    <p class="small fg-2">Riceve le email della prenotazione; il telefono serve alla Pattuglia per l'accoglienza.</p>
+    {% for field in form %}{% if "referente_" in field.name %}{% include "prenotazioni/_campo.html" %}{% endif %}{% endfor %}
+    <h2 class="fs-lg mt-7">Capo responsabile in base</h2>
+    {% for field in form %}{% if "capo_" in field.name %}{% include "prenotazioni/_campo.html" %}{% endif %}{% endfor %}
+    <button class="btn-solid theme-primary" type="submit">Continua</button>
+  </div></form>
+
+{% elif passo == 2 %}
+  <div class="row g-7">
+    <div class="lg:col-7">
+      <form method="post" class="card" id="passo-soggiorno" data-anteprima="{% url 'prenotazioni:anteprima' %}"><div class="card-body">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}{% include "prenotazioni/_campo.html" %}{% endfor %}
+        <div class="d-flex gap-3">
+          <a class="btn-outline theme-primary" href="{% url 'prenotazioni:nuova' %}">Indietro</a>
+          <button class="btn-solid theme-primary" type="submit">Continua</button>
+        </div>
+      </div></form>
+    </div>
+    <div class="lg:col-5">
+      <div class="card"><div class="card-body" id="preventivo" aria-live="polite">
+        {% include "prenotazioni/_preventivo.html" with incompleto=True %}
+      </div></div>
+    </div>
+  </div>
+
+{% else %}
+  <div class="row g-7">
+    <div class="lg:col-7">
+      <div class="card"><div class="card-body">
+        <h2 class="fs-lg">Riepilogo</h2>
+        <dl class="row small">
+          <dt class="md:col-4">Gruppo</dt><dd class="md:col-8">{{ richiedente.gruppo }}</dd>
+          <dt class="md:col-4">Associazione o ente</dt><dd class="md:col-8">{{ richiedente.categoria }}{% if richiedente.specifica_categoria %} ({{ richiedente.specifica_categoria }}){% endif %}</dd>
+          <dt class="md:col-4">Referente</dt><dd class="md:col-8">{{ richiedente.referente_nome }} · {{ richiedente.referente_email }} · {{ richiedente.referente_telefono }}</dd>
+          {% if richiedente.capo_nome %}<dt class="md:col-4">Capo responsabile</dt><dd class="md:col-8">{{ richiedente.capo_nome }}{% if richiedente.capo_telefono %} · {{ richiedente.capo_telefono }}{% endif %}</dd>{% endif %}
+          <dt class="md:col-4">Date</dt><dd class="md:col-8">{% if soggiorno.arrivo == soggiorno.partenza %}{{ soggiorno.arrivo|date:"l j F Y"|lower }}{% else %}dal {{ soggiorno.arrivo|date:"l j F Y"|lower }} al {{ soggiorno.partenza|date:"l j F Y"|lower }}{% endif %}</dd>
+          {% for codice, persone in soggiorno.presenze.items %}{% for c, area in aree.items %}{% if c == codice %}<dt class="md:col-4">{{ area.nome }}</dt><dd class="md:col-8">{{ persone }} persone</dd>{% endif %}{% endfor %}{% endfor %}
+          {% for data, tipo, persone in soggiorno.attivita %}<dt class="md:col-4">{% if tipo == "GIORNATA_OSPITI" %}Giornata ospiti{% else %}Uscita{% endif %}</dt><dd class="md:col-8">{{ data|date:"j F Y"|lower }}, {{ persone }} persone</dd>{% endfor %}
+          {% if soggiorno.esclusiva_richiesta %}<dt class="md:col-4">Uso esclusivo</dt><dd class="md:col-8">richiesto</dd>{% endif %}
+        </dl>
+        <a href="{% url 'prenotazioni:nuova_passo' 2 %}">Modifica il soggiorno</a> · <a href="{% url 'prenotazioni:nuova' %}">Modifica i dati del gruppo</a>
+        <form method="post" class="mt-7">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          {% for field in form %}{% include "prenotazioni/_campo.html" %}{% endfor %}
+          <button class="btn-solid theme-primary" type="submit"{% if preventivo and not preventivo.esito.tutte_libere %} disabled{% endif %}>Invia la richiesta</button>
+        </form>
+      </div></div>
+    </div>
+    <div class="lg:col-5">
+      <div class="card"><div class="card-body">{% include "prenotazioni/_preventivo.html" %}</div></div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+  {% if passo == 2 %}<script type="module" src="{% static 'tana/js/nuova-richiesta.js' %}"></script>{% endif %}
+{% endblock %}

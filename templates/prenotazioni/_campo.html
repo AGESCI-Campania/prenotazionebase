@@ -1,0 +1,16 @@
+{# Come django/forms/p.html del tema, con data-campo per mostrare o nascondere il campo dal JavaScript #}
+<div class="form-field mb-5" data-campo="{{ field.name }}">
+  {% if field.widget_type == "checkbox" %}
+    {{ field }}
+    <div class="form-field-content">
+      {{ field.label_tag }}
+      {% if field.help_text %}<small class="helptext form-text" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}
+      {{ field.errors }}
+    </div>
+  {% else %}
+    {{ field.label_tag }}
+    {{ field }}
+    {{ field.errors }}
+    {% if field.help_text %}<span class="helptext form-text" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</span>{% endif %}
+  {% endif %}
+</div>

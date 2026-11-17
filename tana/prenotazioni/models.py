@@ -13,6 +13,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 
+from tana.core.formati import euro
 from tana.core.storage import storage_privato
 from tana.listini.models import Attivita, VoceListino
 
@@ -103,7 +104,16 @@ class Prenotazione(models.Model):
         null=True,
         blank=True,
         related_name="prenotazioni",
-        help_text="Può mancare per le prenotazioni prioritarie (D-10).",
+        help_text="Referente; può mancare per le prenotazioni prioritarie (D-10).",
+    )
+    capo_responsabile = models.ForeignKey(
+        Contatto,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="prenotazioni_come_capo",
+        verbose_name="capo responsabile",
+        help_text="Capo responsabile presente in base (D-18, D-26).",
     )
     gruppo = models.CharField("gruppo o ente", max_length=200, blank=True)
     unita = ArrayField(
@@ -386,6 +396,11 @@ class RigaImporto(models.Model):
     stagione = models.CharField(max_length=10, choices=VoceListino.Stagione.choices, blank=True)
     unita = models.CharField("unità", max_length=20, choices=VoceListino.Unita.choices, blank=True)
     quantita = models.PositiveIntegerField("quantità", default=1)
+    # Scomposizione della quantità delle righe calcolate: persone × giorni (o notti)
+    persone = models.PositiveIntegerField(null=True, blank=True)
+    conteggio = models.PositiveIntegerField(
+        "giorni o notti", null=True, blank=True, help_text="Giorni o notti, secondo l'unità."
+    )
     prezzo_centesimi = models.IntegerField(
         "prezzo unitario (centesimi)", null=True, blank=True, help_text="Vuoto: da definire."
     )
@@ -428,6 +443,31 @@ class RigaImporto(models.Model):
     @property
     def da_definire(self) -> bool:
         return self.importo_centesimi is None
+
+    @property
+    def calcolo(self) -> str:
+        return calcolo_riga(
+            self.prezzo_centesimi, self.quantita, self.persone, self.conteggio, self.unita
+        )
+
+
+def calcolo_riga(
+    prezzo: int | None, quantita: int, persone: int | None, conteggio: int | None, unita: str
+) -> str:
+    """Come si arriva all'importo, es. «8,00 € × 20 persone × 6 giorni» (mockup 2)."""
+    testo_prezzo = "importo da definire" if prezzo is None else euro(prezzo)
+    if unita == VoceListino.Unita.FORFAIT:
+        return f"{testo_prezzo} forfait"
+    if persone is None or conteggio is None:
+        return testo_prezzo if quantita == 1 else f"{testo_prezzo} × {quantita}"
+    notti = unita == VoceListino.Unita.PERSONA_NOTTE
+    durata = (
+        ("notte" if conteggio == 1 else "notti")
+        if notti
+        else ("giorno" if conteggio == 1 else "giorni")
+    )
+    gente = "persona" if persone == 1 else "persone"
+    return f"{testo_prezzo} × {persone} {gente} × {conteggio} {durata}"
 
 
 def _percorso_ricevuta(pagamento: Pagamento, nome: str) -> str:
@@ -477,31 +517,96 @@ class Pagamento(models.Model):
         return f"{self.get_tipo_display()} {self.prenotazione.numero}"
 
 
-class Messaggio(models.Model):
-    """Messaggio tra referenti o con la gestione su una prenotazione (D-16)."""
+class Conversazione(models.Model):
+    """Conversazione di un gruppo con la gestione (`con` vuoto) o con un altro gruppo (D-16).
+
+    Tra due gruppi la coppia è ordinata (`prenotazione` ha la pk minore), così è unica.
+    """
 
     prenotazione = models.ForeignKey(
-        Prenotazione, on_delete=models.CASCADE, related_name="messaggi"
+        Prenotazione, on_delete=models.CASCADE, related_name="conversazioni"
+    )
+    con = models.ForeignKey(
+        Prenotazione,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="conversazioni_ricevute",
+        help_text="Vuoto: conversazione con la gestione della base.",
+    )
+    creata_il = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "conversazione"
+        verbose_name_plural = "conversazioni"
+        constraints = (
+            models.UniqueConstraint(
+                fields=("prenotazione", "con"), nulls_distinct=False, name="conversazione_unica"
+            ),
+            models.CheckConstraint(
+                condition=Q(con__isnull=True) | Q(prenotazione__lt=models.F("con")),
+                name="conversazione_coppia_ordinata",
+            ),
+        )
+
+    def __str__(self) -> str:
+        return f"{self.prenotazione.numero} ↔ {self.con.numero if self.con else 'gestione'}"
+
+
+class Messaggio(models.Model):
+    """Messaggio di una conversazione. `da_prenotazione` vuoto: scritto dalla gestione."""
+
+    conversazione = models.ForeignKey(
+        Conversazione, on_delete=models.CASCADE, related_name="messaggi"
+    )
+    da_prenotazione = models.ForeignKey(
+        Prenotazione,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="+",
+        help_text="Gruppo che scrive; vuoto se scrive la gestione.",
     )
     mittente = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="messaggi_inviati"
     )
-    destinatario = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        related_name="messaggi_ricevuti",
-        help_text="Vuoto: messaggio alla gestione della base.",
-    )
     testo = models.TextField()
-    letto = models.BooleanField(default=False)
+    letto = models.BooleanField(default=False, help_text="Letto dall'altra parte.")
     inviato_il = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "messaggio"
         verbose_name_plural = "messaggi"
-        ordering = ("prenotazione", "inviato_il")
+        ordering = ("conversazione", "inviato_il", "pk")
 
     def __str__(self) -> str:
-        return f"{self.mittente} → {self.destinatario or 'gestione'} ({self.inviato_il:%d/%m/%Y})"
+        return f"{self.conversazione} ({self.inviato_il:%d/%m/%Y %H:%M})"
+
+
+class RichiestaTelefono(models.Model):
+    """Un gruppo chiede il telefono del referente di un altro gruppo, che autorizza o nega
+    (D-16)."""
+
+    class StatoRichiesta(models.TextChoices):
+        IN_ATTESA = "IN_ATTESA", "in attesa"
+        AUTORIZZATA = "AUTORIZZATA", "autorizzata"
+        NEGATA = "NEGATA", "negata"
+
+    da = models.ForeignKey(Prenotazione, on_delete=models.CASCADE, related_name="telefoni_chiesti")
+    a = models.ForeignKey(Prenotazione, on_delete=models.CASCADE, related_name="telefoni_richiesti")
+    stato = models.CharField(
+        max_length=20, choices=StatoRichiesta.choices, default=StatoRichiesta.IN_ATTESA
+    )
+    creata_il = models.DateTimeField(auto_now_add=True)
+    risposta_il = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "richiesta del telefono"
+        verbose_name_plural = "richieste del telefono"
+        constraints = (
+            models.UniqueConstraint(fields=("da", "a"), name="richiesta_telefono_unica"),
+            models.CheckConstraint(condition=~Q(da=models.F("a")), name="telefono_non_a_se"),
+        )
+
+    def __str__(self) -> str:
+        return f"{self.da.numero} → {self.a.numero}: {self.get_stato_display()}"

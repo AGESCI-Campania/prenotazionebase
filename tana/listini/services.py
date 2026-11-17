@@ -20,3 +20,17 @@ def versione_applicabile(
         .order_by("-valida_dal")
         .first()
     )
+
+
+def listini_in_vigore(
+    oggi: datetime.date,
+) -> list[tuple[Listino, VersioneListino | None, VersioneListino | None]]:
+    """Per ogni listino: la versione in vigore oggi e quella successiva già pubblicata (D-09:
+    il nuovo listino si comunica in anticipo)."""
+    risultato = []
+    for listino in Listino.objects.all():
+        pubblicate = listino.versioni.filter(pubblicata_il__lte=oggi)
+        corrente = pubblicate.filter(valida_dal__lte=oggi).order_by("-valida_dal").first()
+        prossima = pubblicate.filter(valida_dal__gt=oggi).order_by("valida_dal").first()
+        risultato.append((listino, corrente, prossima))
+    return risultato

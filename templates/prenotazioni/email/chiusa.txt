@@ -1,6 +1,6 @@
 {% load formati %}{% autoescape off %}Consuntivo della prenotazione {{ p.numero }}{% if p.gruppo %} – {{ p.gruppo }}{% endif %}
 
-{% for riga in consuntivo.righe %}- {{ riga.descrizione }}: {% if riga.calcolata %}{{ riga.quantita }} × {{ riga.prezzo_centesimi|euro }} = {% endif %}{{ riga.importo_centesimi|euro }}
+{% for riga in consuntivo.righe %}- {{ riga.descrizione }}: {% if not riga.rettifica %}{{ riga.calcolo }} = {% endif %}{{ riga.importo_centesimi|euro }}
 {% endfor %}
 Totale: {{ consuntivo.totale|euro }}
 Acconto versato: {{ acconto_versato|euro }}

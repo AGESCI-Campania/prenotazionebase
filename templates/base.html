@@ -7,3 +7,75 @@
   <link rel="icon" type="image/svg+xml" href="{% static 'tana/img/logo/lupo-base-aiello.svg' %}">
   {% block head_pagina %}{% endblock %}
 {% endblock %}
+
+{% block header_nav %}
+  <li class="nav-item"><a href="/" class="nav-link">La base</a></li>
+  <li class="nav-item"><a href="{% url 'disponibilita' %}" class="nav-link{% if sezione == 'disponibilita' %} active{% endif %}">Disponibilità</a></li>
+  <li class="nav-item"><a href="{% url 'listino' %}" class="nav-link{% if sezione == 'listino' %} active{% endif %}">Listino prezzi</a></li>
+  {% if request.user.is_authenticated %}
+    <li class="nav-item"><a href="{% url 'prenotazioni:elenco' %}" class="nav-link{% if sezione == 'prenotazioni' %} active{% endif %}">Le mie prenotazioni</a></li>
+  {% endif %}
+{% endblock %}
+
+{% block offcanvas_nav %}
+  <li><a href="/" class="nav-link">La base</a></li>
+  <li><a href="{% url 'disponibilita' %}" class="nav-link">Disponibilità</a></li>
+  <li><a href="{% url 'listino' %}" class="nav-link">Listino prezzi</a></li>
+  {% if request.user.is_authenticated %}
+    <li><a href="{% url 'prenotazioni:elenco' %}" class="nav-link">Le mie prenotazioni</a></li>
+    <li><a href="{% url 'account_logout' %}" class="nav-link">Esci</a></li>
+  {% else %}
+    <li><a href="{% url 'account_login' %}" class="nav-link">Accedi</a></li>
+    <li><a href="{% url 'account_signup' %}" class="nav-link">Registrati</a></li>
+  {% endif %}
+{% endblock %}
+
+{% block header_actions %}
+  {% if request.user.is_authenticated %}
+    <a href="{% url 'prenotazioni:nuova' %}" class="btn-solid theme-primary">Richiedi una prenotazione</a>
+    <a href="{% url 'account_logout' %}" class="btn-outline theme-secondary">Esci</a>
+  {% else %}
+    <a href="{% url 'account_login' %}" class="btn-solid ag-btn-light">Accedi</a>
+    <a href="{% url 'account_signup' %}" class="btn-solid theme-primary">Registrati</a>
+  {% endif %}
+{% endblock %}
+
+{# Il footer del tema è un {% include %}: i suoi blocchi interni non si sovrascrivono, quindi lo riscriviamo intero (markup di agesci_theme/partials/footer.html 3.0.0a3) #}
+{% block footer %}
+<footer class="ag-footer py-12">
+  <div class="container">
+    <div class="row g-7">
+      <div class="col-12 md:col-3">
+        <a href="/" class="d-inline-block mb-3">
+          <img src="{% static agesci_theme_logo_navbar %}" alt="{{ agesci_theme_nome }}" class="ag-footer__logo">
+        </a>
+        <p class="small">{{ agesci_theme_nome }}<br>Aiello del Sabato (AV)</p>
+      </div>
+      <div class="col-6 md:col-2">
+        <h5>La base</h5>
+        <ul class="ag-footer__nav">
+          <li><a href="{% url 'disponibilita' %}">Disponibilità</a></li>
+          <li><a href="{% url 'listino' %}">Listino prezzi</a></li>
+          {% if request.user.is_authenticated %}<li><a href="{% url 'prenotazioni:elenco' %}">Le mie prenotazioni</a></li>{% endif %}
+        </ul>
+      </div>
+      <div class="col-6 md:col-3">
+        <h5>Contatti</h5>
+        <ul class="ag-footer__nav">
+          <li><a href="mailto:baseaiellodelsabato@campania.agesci.it">baseaiellodelsabato@campania.agesci.it</a></li>
+        </ul>
+      </div>
+      <div class="col-12 md:col-auto md:ms-auto text-center md:text-end small">
+        <strong>Regione AGESCI Campania</strong><br>
+        Associazione Guide e Scouts Cattolici Italiani
+      </div>
+    </div>
+    <div class="ag-footer__bottom d-flex flex-column sm:flex-row justify-content-between align-items-center pt-7 mt-7 gap-3">
+      <p>© AGESCI Campania</p>
+      <ul>
+        <li><a href="https://www.agesci.it" target="_blank" rel="noopener">agesci.it</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+{% endblock %}

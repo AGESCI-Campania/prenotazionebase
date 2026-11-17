@@ -6,16 +6,14 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 
 from tana.accounts.models import Ruolo, User
-from tana.accounts.services import nomina
 from tana.base.models import Configurazione
+from tana.core.formati import euro
 from tana.core.services import storico
-from tana.core.templatetags.formati import euro
 from tana.listini.models import Categoria
 from tana.prenotazioni import contributo, flusso
 from tana.prenotazioni.flusso import TransizioneNonValida
 from tana.prenotazioni.models import (
     AttivitaGiornaliera,
-    Contatto,
     Occupazione,
     Pagamento,
     Prenotazione,
@@ -23,79 +21,14 @@ from tana.prenotazioni.models import (
 )
 from tana.prenotazioni.services import DateOccupate
 
+from .utils import CASELLA_BASE, EURO, richiesta, tra, utente_con
+
 pytestmark = pytest.mark.django_db
-
-CASELLA_BASE = "baseaiellodelsabato@campania.agesci.it"
-EURO = 100
-
-
-def tra(giorni):
-    return timezone.localdate() + datetime.timedelta(days=giorni)
 
 
 @pytest.fixture(autouse=True)
-def _dati(dati_iniziali):
-    # Orizzonte ampio: i test usano date relative a oggi
-    Configurazione.objects.filter(pk=1).update(orizzonte_massimo=tra(400), iban="IT00X0000")
-
-
-@pytest.fixture
-def email(django_capture_on_commit_callbacks, mailoutbox):
-    """Esegue le callback on_commit (le email partono a transazione confermata)."""
-
-    class Posta:
-        def __init__(self):
-            self.cattura = django_capture_on_commit_callbacks
-
-        def __call__(self, funzione, *args, **kwargs):
-            with self.cattura(execute=True):
-                return funzione(*args, **kwargs)
-
-        @property
-        def inviate(self):
-            return mailoutbox
-
-    return Posta()
-
-
-def utente_con(ruolo, email):
-    utente = User.objects.create_user(email)
-    if ruolo:
-        nomina(utente, ruolo)
-    return utente
-
-
-@pytest.fixture
-def richiedente():
-    return User.objects.create_user("referente@example.org")
-
-
-@pytest.fixture
-def admin():
-    return utente_con(Ruolo.AMMINISTRATORE, "admin@example.org")
-
-
-@pytest.fixture
-def pattuglia():
-    return utente_con(Ruolo.PATTUGLIA, "pattuglia@example.org")
-
-
-@pytest.fixture
-def contatto():
-    return Contatto.objects.create(nome="Mario Rossi", email="mario@example.org")
-
-
-def richiesta(utente, contatto, arrivo=10, partenza=15, categoria="gruppo-agesci", **campi):
-    campi.setdefault("presenze", {"ACC": 28})
-    return flusso.invia_richiesta(
-        utente=utente,
-        categoria=Categoria.objects.get(codice=categoria),
-        arrivo=tra(arrivo),
-        partenza=tra(partenza),
-        contatto=contatto,
-        gruppo="Avellino 1",
-        **campi,
-    )
+def _dati(dati):
+    pass
 
 
 # --- Richiesta --------------------------------------------------------------------------
@@ -170,6 +103,7 @@ def test_orizzonte_massimo(richiedente, contatto, admin):
         arrivo=40,
         partenza=45,
         categoria="foca-regionale",
+        da_gestione=True,
         deciso_da="Pattuglia e IRO",
         motivazione="Campo di formazione regionale",
     )
@@ -180,8 +114,19 @@ def test_orizzonte_massimo(richiedente, contatto, admin):
 
 def test_categoria_prioritaria_dall_amministrazione_richiede_la_decisione(admin):
     with pytest.raises(ValidationError):
-        richiesta(admin, None, categoria="eventi-regionali")
+        richiesta(admin, None, categoria="eventi-regionali", da_gestione=True)
     assert not Prenotazione.objects.exists()
+
+
+def test_amministratore_prenota_anche_da_richiedente(admin, contatto, pattuglia):
+    # Un amministratore capo di un gruppo prenota il suo campo: è il titolare
+    propria = richiesta(admin, contatto, categoria="foca-regionale")
+    assert propria.richiedente == admin
+    assert propria.categoria_prioritaria_richiesta
+    assert not propria.categoria_prioritaria_concessa
+    # Per conto della gestione può farlo solo l'amministrazione
+    with pytest.raises(PermissionDenied):
+        richiesta(pattuglia, contatto, arrivo=20, partenza=22, da_gestione=True)
 
 
 def test_richiesta_su_date_occupate(richiedente, contatto):

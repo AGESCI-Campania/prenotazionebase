@@ -13,13 +13,14 @@ from typing import Any
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Sum
+from django.utils import timezone
 
 from tana.base.models import Area, Configurazione
 from tana.core.services import registra_decisione
-from tana.listini.models import Attivita, Listino, VersioneListino, VoceListino
+from tana.listini.models import Attivita, Categoria, Listino, VersioneListino, VoceListino
 from tana.listini.services import versione_applicabile
 
-from .models import Pagamento, Prenotazione, RigaImporto, Stato
+from .models import Pagamento, Prenotazione, RigaImporto, Stato, calcolo_riga
 
 Fase = RigaImporto.Fase
 Stagione = VoceListino.Stagione
@@ -53,10 +54,16 @@ class RigaCalcolata:
     voce: VoceListino | None = None
     descrizione: str = ""
     stimata: bool = False
+    persone: int | None = None
+    conteggio: int | None = None
 
     @property
     def importo(self) -> int | None:
         return None if self.prezzo is None else self.prezzo * self.quantita
+
+    @property
+    def calcolo(self) -> str:
+        return calcolo_riga(self.prezzo, self.quantita, self.persone, self.conteggio, self.unita)
 
     @property
     def chiave(self) -> tuple[str, int | None, str, str]:
@@ -181,9 +188,29 @@ def _righe(
                 voce=voce,
                 descrizione=descrizione or (voce.descrizione if voce else ""),
                 stimata=stimata,
+                persone=None if unita == Unita.FORFAIT else persone,
+                conteggio=None if unita == Unita.FORFAIT else conteggio,
             )
         )
     return righe
+
+
+@dataclass
+class Soggiorno:
+    """Dati di un soggiorno non ancora salvato, per il preventivo in tempo reale del modulo.
+
+    Ha gli stessi attributi usati da `listino_applicato` e `versione_da_applicare`.
+    """
+
+    categoria: Categoria
+    arrivo: datetime.date
+    partenza: datetime.date
+    presenze: list[tuple[Area, int]]
+    attivita: list[tuple[datetime.date, str, int]] = field(default_factory=list)
+    data_richiesta: datetime.date = field(default_factory=timezone.localdate)
+    categoria_prioritaria_richiesta: bool = False
+    categoria_prioritaria_concessa: bool = False
+    versione_listino: VersioneListino | None = None
 
 
 def calcola(prenotazione: Prenotazione, fase: str = Fase.PREVENTIVO) -> list[RigaCalcolata]:
@@ -196,26 +223,51 @@ def calcola(prenotazione: Prenotazione, fase: str = Fase.PREVENTIVO) -> list[Rig
         if fase == Fase.PREVENTIVO
         else _versione_del_preventivo(prenotazione)
     )
+    presenze = [
+        (p.area, *_persone(p, fase))
+        for p in prenotazione.presenze.select_related("area").order_by("area__ordine")
+    ]
+    attivita = [
+        (a.data, a.tipo, *_persone(a, fase))
+        for a in prenotazione.attivita_giornaliere.order_by("data", "pk")
+    ]
+    return _calcola(versione, prenotazione.arrivo, prenotazione.partenza, presenze, attivita)
+
+
+def simula(soggiorno: Soggiorno) -> list[RigaCalcolata]:
+    """Preventivo di un soggiorno non salvato, con le stesse regole di `calcola`."""
+    return _calcola(
+        versione_da_applicare(soggiorno),  # type: ignore[arg-type]
+        soggiorno.arrivo,
+        soggiorno.partenza,
+        [(area, persone, False) for area, persone in soggiorno.presenze if persone],
+        [(data, tipo, persone, False) for data, tipo, persone in soggiorno.attivita if persone],
+    )
+
+
+def _calcola(
+    versione: VersioneListino,
+    arrivo: datetime.date,
+    partenza: datetime.date,
+    presenze: list[tuple[Area, int, bool]],
+    attivita: list[tuple[datetime.date, str, int, bool]],
+) -> list[RigaCalcolata]:
     voci = _Voci(versione, Configurazione.corrente())
-    notti = (prenotazione.partenza - prenotazione.arrivo).days
+    notti = (partenza - arrivo).days
     righe: list[RigaCalcolata] = []
 
-    for presenza in prenotazione.presenze.select_related("area").order_by("area__ordine"):
+    for area, persone, stimata in presenze:
         if notti < 1:
             raise ValidationError("Un soggiorno in un'area dura almeno una notte.")
-        persone, stimata = _persone(presenza, fase)
         # Una sola notte è un bivacco, conteggiato a notti (D-04, D-07)
-        attivita = Attivita.BIVACCO if notti == 1 else Attivita.CAMPO
-        unita = voci.unita(attivita, presenza.area)
-        giorni = list(_giorni(prenotazione.arrivo, prenotazione.partenza, unita))
-        righe += _righe(voci, attivita, presenza.area, giorni, persone, stimata=stimata)
+        soggiorno: str = Attivita.BIVACCO if notti == 1 else Attivita.CAMPO
+        unita = voci.unita(soggiorno, area)
+        giorni = list(_giorni(arrivo, partenza, unita))
+        righe += _righe(voci, soggiorno, area, giorni, persone, stimata=stimata)
 
-    for att in prenotazione.attivita_giornaliere.order_by("data", "pk"):
-        persone, stimata = _persone(att, fase)
-        descrizione = f"{att.get_tipo_display().capitalize()} – {att.data:%d/%m/%Y}"
-        righe += _righe(
-            voci, att.tipo, None, [att.data], persone, stimata=stimata, descrizione=descrizione
-        )
+    for data, tipo, persone, stimata in attivita:
+        descrizione = f"{Attivita(tipo).label.capitalize()} – {data:%d/%m/%Y}"
+        righe += _righe(voci, tipo, None, [data], persone, stimata=stimata, descrizione=descrizione)
 
     for riga in righe:
         if not riga.descrizione:
@@ -305,6 +357,8 @@ def _salva_righe(
             stagione=riga.stagione,
             unita=riga.unita,
             quantita=riga.quantita,
+            persone=riga.persone,
+            conteggio=riga.conteggio,
             prezzo_centesimi=prezzo,
             importo_centesimi=None if prezzo is None else prezzo * riga.quantita,
             calcolata=True,
@@ -359,12 +413,24 @@ def acconto_previsto(prenotazione: Prenotazione) -> int | None:
     Zero per i soggiorni fino alla soglia di giorni e per le sole attività in giornata (le quote
     si consegnano all'arrivo). Percentuale arrotondata al centesimo, il mezzo per eccesso.
     """
-    totale = riepilogo(prenotazione, Fase.PREVENTIVO).totale
+    return calcola_acconto(
+        riepilogo(prenotazione, Fase.PREVENTIVO).totale,
+        prenotazione.arrivo,
+        prenotazione.partenza,
+        soggiorno=prenotazione.presenze.exists(),
+    )
+
+
+def calcola_acconto(
+    totale: int | None, arrivo: datetime.date, partenza: datetime.date, *, soggiorno: bool
+) -> int | None:
+    """Regola dell'acconto (D-13) su un totale; `soggiorno` falso per le sole attività in
+    giornata."""
     if totale is None:
         return None
     conf = Configurazione.corrente()
-    giorni = (prenotazione.partenza - prenotazione.arrivo).days + 1
-    if not prenotazione.presenze.exists() or giorni <= conf.soglia_esenzione_giorni:
+    giorni = (partenza - arrivo).days + 1
+    if not soggiorno or giorni <= conf.soglia_esenzione_giorni:
         return 0
     return (totale * conf.acconto_percentuale + 50) // 100
 

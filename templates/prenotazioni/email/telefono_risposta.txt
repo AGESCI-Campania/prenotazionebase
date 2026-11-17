@@ -1,0 +1,4 @@
+{% load formati %}{% autoescape off %}{% if richiesta_telefono.stato == "AUTORIZZATA" %}Il referente di {{ da }} ha autorizzato a mostrarti il suo telefono: lo trovi nella pagina della prenotazione.{% else %}Il referente di {{ da }} non ha autorizzato a mostrare il suo telefono. Puoi sempre scrivergli dalla piattaforma.{% endif %}
+
+{{ link }}
+{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

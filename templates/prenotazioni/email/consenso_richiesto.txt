@@ -1,0 +1,8 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}Il gruppo {{ domanda.richiesta.gruppo|default:domanda.richiesta.numero }} chiede il consenso al gruppo presente ({{ p.numero }}) per un'attività in giornata.{% else %}Un altro gruppo chiede di fare un'attività in giornata alla base mentre ci siete voi, e ha bisogno del vostro consenso.{% endif %}
+
+Gruppo: {{ domanda.richiesta.gruppo|default:"(non indicato)" }}
+{% for att in domanda.richiesta.attivita_giornaliere.all %}- {{ att.get_tipo_display|capfirst }} il {{ att.data|date:"l j F Y"|lower }}: {{ att.persone_previste }} persone
+{% endfor %}
+{% if not per_gestione %}Puoi concedere o negare il consenso dalla tua prenotazione entro il {{ domanda.scadenza|date:"j F Y, H:i"|lower }}: senza risposta il consenso è negato.
+{{ link }}
+{% endif %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

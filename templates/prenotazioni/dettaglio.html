@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load agesci_components formati %}
+{% block titolo_pagina %}Prenotazione {{ p.numero }} · {% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-5">
+  <h1 class="mb-0">Prenotazione n. {{ p.numero }}</h1>
+  {% include "prenotazioni/_stato.html" %}
+</div>
+<p class="fg-2">
+  {% if p.gruppo %}{{ p.gruppo }} · {% endif %}{{ p.categoria }}
+  · {% if p.arrivo == p.partenza %}{{ p.arrivo|date:"l j F Y"|lower }}{% else %}{{ p.arrivo|date:"j F"|lower }} – {{ p.partenza|date:"j F Y"|lower }}{% endif %}
+</p>
+
+<div class="row g-7 mt-3">
+  <div class="lg:col-8">
+    {% if tappa %}
+      <div class="card"><div class="card-body">{% ag_stepper steps=tappe current=tappa %}</div></div>
+    {% endif %}
+
+    {% if p.stato == "APPROVATA" %}
+      {% if p.acconto_centesimi %}
+        <div class="alert theme-warning mt-5">
+          <div class="w-100">
+            {% if ricevuta_in_verifica %}
+              <b>Ricevuta dell'acconto caricata:</b> la Pattuglia la sta verificando. Riceverai un'email alla conferma.
+            {% else %}
+              <b>Versa l'acconto di {{ p.acconto_centesimi|euro }} e carica la ricevuta entro il {{ p.scadenza_acconto|date:"j F Y, H:i"|lower }}.</b>
+              <div class="small mt-3">Dopo questa data la prenotazione scade e le date tornano disponibili. L'acconto non è rimborsabile.</div>
+              {% if conf.iban %}
+                <div class="small mt-3">Bonifico a {% if conf.intestatario_bonifico %}<b>{{ conf.intestatario_bonifico }}</b>, {% endif %}IBAN <b>{{ conf.iban }}</b>, causale <b>{{ causale }}</b></div>
+              {% endif %}
+              <form method="post" enctype="multipart/form-data" action="{% url 'prenotazioni:carica_ricevuta' p.numero %}" class="mt-5">
+                {% csrf_token %}
+                {% for field in ricevuta_form %}{% include "prenotazioni/_campo.html" %}{% endfor %}
+                <button class="btn-solid theme-primary" type="submit">Carica la ricevuta</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <div class="alert theme-info mt-5">Richiesta approvata: non serve l'acconto. La Pattuglia della base confermerà a breve la prenotazione.</div>
+      {% endif %}
+    {% elif p.stato == "RICHIESTA" %}
+      <div class="alert theme-info mt-5">Le date sono riservate a te mentre la Pattuglia esamina la richiesta.</div>
+    {% endif %}
+
+    {% if consensi_ricevuti %}
+      <div class="card mt-5" id="consensi"><div class="card-body">
+        <h2 class="fs-lg">Richieste di consenso</h2>
+        <p class="small fg-2">Un altro gruppo chiede di fare un'attività in giornata mentre siete in base. Senza risposta entro il termine il consenso è negato.</p>
+        {% for domanda in consensi_ricevuti %}
+          <div class="border rounded-5 p-5 mb-5">
+            <b>{{ domanda.richiesta.gruppo|default:domanda.richiesta.numero }}</b>
+            {% for att in domanda.richiesta.attivita_giornaliere.all %}
+              <div class="small">{{ att.get_tipo_display|capfirst }} il {{ att.data|date:"l j F"|lower }}, {{ att.persone_previste }} persone</div>
+            {% endfor %}
+            <div class="small fg-2">Rispondi entro il {{ domanda.scadenza|date:"j F Y, H:i"|lower }}</div>
+            <form method="post" action="{% url 'prenotazioni:rispondi_consenso' domanda.pk %}" class="d-flex gap-3 mt-3">
+              {% csrf_token %}
+              <button class="btn-solid theme-primary" name="concesso" value="1">Concedo il consenso</button>
+              <button class="btn-outline theme-danger" name="concesso" value="0">Non concedo</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div></div>
+    {% endif %}
+
+    {% if consensi_chiesti %}
+      <div class="card mt-5"><div class="card-body">
+        <h2 class="fs-lg">Consenso dei gruppi presenti</h2>
+        <ul class="list-unstyled mb-0">
+          {% for domanda in consensi_chiesti %}
+            <li class="d-flex justify-content-between gap-3 mb-3">
+              <span>{{ domanda.prenotazione_esistente.gruppo|default:"Gruppo già presente" }}</span>
+              {% if domanda.stato == "CONCESSO" %}<span class="badge theme-success">Concesso</span>{% elif domanda.stato == "IN_ATTESA" %}<span class="badge theme-info">In attesa fino al {{ domanda.scadenza|date:"j F"|lower }}</span>{% else %}<span class="badge theme-danger">{{ domanda.get_stato_display|capfirst }}</span>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div></div>
+    {% endif %}
+
+    <div class="card mt-5" id="messaggi"><div class="card-body">
+      <h2 class="fs-lg">Messaggi</h2>
+      <nav class="d-flex flex-wrap gap-3 mb-5" aria-label="Conversazioni">
+        <a class="{% if con == 'gestione' %}btn-solid{% else %}btn-outline{% endif %} theme-primary" href="?con=gestione#messaggi">Gestione della base</a>
+        {% for vicino, _ in vicini %}
+          <a class="{% if con == vicino.numero %}btn-solid{% else %}btn-outline{% endif %} theme-primary" href="?con={{ vicino.numero }}#messaggi">{{ vicino.gruppo|default:vicino.numero }}</a>
+        {% endfor %}
+      </nav>
+      {% for m in conversazione.messaggi.all %}
+        <div class="mb-5{% if m.da_prenotazione_id == p.pk %} text-end{% endif %}">
+          <div class="small fg-2">{{ m.inviato_il|date:"j F, H:i"|lower }} · {% if m.da_prenotazione_id == p.pk %}tu{% elif m.da_prenotazione %}{{ m.da_prenotazione.gruppo|default:m.da_prenotazione.numero }}{% else %}Pattuglia della base{% endif %}</div>
+          <div class="border rounded-5 p-3 d-inline-block text-start">{{ m.testo|linebreaksbr }}</div>
+        </div>
+      {% empty %}
+        <p class="small fg-2">Nessun messaggio. {% if altra %}Scrivi a {{ altra.gruppo|default:"questo gruppo" }} per accordarvi sui giorni in comune.{% else %}Scrivi alla Pattuglia per qualunque domanda sulla prenotazione.{% endif %}</p>
+      {% endfor %}
+      <form method="post" action="{% url 'prenotazioni:scrivi' p.numero %}">
+        {% csrf_token %}
+        <input type="hidden" name="con" value="{{ con }}">
+        {% for field in messaggio_form %}{% include "prenotazioni/_campo.html" %}{% endfor %}
+        <button class="btn-solid theme-primary" type="submit">Invia</button>
+      </form>
+    </div></div>
+
+    {% if vicini or telefoni_da_autorizzare %}
+      <div class="card mt-5"><div class="card-body">
+        <h2 class="fs-lg">Gruppi negli stessi giorni</h2>
+        {% for richiesta in telefoni_da_autorizzare %}
+          <div class="alert theme-info">
+            <div class="w-100">{{ richiesta.da.gruppo|default:richiesta.da.numero }} chiede di vedere il tuo telefono.
+              <form method="post" action="{% url 'prenotazioni:rispondi_telefono' richiesta.pk %}" class="d-flex gap-3 mt-3">
+                {% csrf_token %}
+                <button class="btn-solid theme-primary" name="autorizza" value="1">Autorizzo</button>
+                <button class="btn-outline theme-secondary" name="autorizza" value="0">Non autorizzo</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+        <ul class="list-unstyled mb-0">
+          {% for vicino, richiesta in vicini %}
+            <li class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+              <span>{{ vicino.gruppo|default:vicino.numero }} <span class="small fg-2">({{ vicino.arrivo|date:"j/m" }}–{{ vicino.partenza|date:"j/m" }})</span></span>
+              {% if richiesta.stato == "AUTORIZZATA" %}
+                {% for altro, contatto in telefoni_visibili %}{% if altro.pk == vicino.pk %}<a href="tel:{{ contatto.telefono }}">{{ contatto.nome }} · {{ contatto.telefono }}</a>{% endif %}{% endfor %}
+              {% elif richiesta.stato == "IN_ATTESA" %}<span class="small fg-2">telefono chiesto</span>
+              {% elif richiesta.stato == "NEGATA" %}<span class="small fg-2">telefono non condiviso</span>
+              {% else %}
+                <form method="post" action="{% url 'prenotazioni:chiedi_telefono' p.numero vicino.numero %}">{% csrf_token %}<button class="btn-outline theme-primary" type="submit">Chiedi il telefono</button></form>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div></div>
+    {% endif %}
+  </div>
+
+  <div class="lg:col-4">
+    <div class="card"><div class="card-body">
+      <h2 class="fs-lg">Riepilogo</h2>
+      <dl class="small mb-0">
+        {% for presenza in presenze %}<dt>{{ presenza.area }}</dt><dd>{{ presenza.persone_previste }} persone</dd>{% endfor %}
+        {% for att in attivita %}<dt>{{ att.get_tipo_display|capfirst }}</dt><dd>{{ att.data|date:"j F Y"|lower }}, {{ att.persone_previste }} persone</dd>{% endfor %}
+        {% if p.esclusiva_richiesta %}<dt>Uso esclusivo</dt><dd>{% if p.esclusiva_concessa %}<span class="badge theme-success">concesso</span>{% else %}richiesto{% endif %}</dd>{% endif %}
+        {% if p.categoria_prioritaria_richiesta %}<dt>Categoria prioritaria</dt><dd>{% if p.categoria_prioritaria_concessa %}<span class="badge theme-success">concessa</span>{% else %}richiesta{% endif %}</dd>{% endif %}
+        <dt>Orari</dt><dd>arrivo dalle {{ conf.orario_arrivo|time:"H:i" }}, partenza entro le {{ conf.orario_partenza|time:"H:i" }}</dd>
+      </dl>
+    </div></div>
+
+    <div class="card mt-5"><div class="card-body">
+      <h2 class="fs-lg">{{ importi_titolo }}</h2>
+      <table class="table small mb-0"><tbody>
+        {% for riga in importi.righe %}<tr><td>{{ riga.descrizione }}{% if not riga.rettifica %}<br><span class="fg-2">{{ riga.calcolo }}{% if riga.stimata %} (persone previste){% endif %}</span>{% endif %}</td><td class="text-end">{{ riga.importo_centesimi|euro }}</td></tr>{% endfor %}
+        <tr class="fw-bold"><td>Totale</td><td class="text-end">{{ importi.totale|euro }}</td></tr>
+      </tbody></table>
+    </div></div>
+
+    {% if pagamenti %}
+      <div class="card mt-5"><div class="card-body">
+        <h2 class="fs-lg">Pagamenti</h2>
+        <ul class="list-unstyled small mb-0">
+          {% for pagamento in pagamenti %}
+            <li class="mb-3">{{ pagamento.get_tipo_display|capfirst }} {{ pagamento.importo_centesimi|euro }} · {{ pagamento.get_stato_display }}{% if pagamento.ricevuta %} · <a href="{% url 'prenotazioni:ricevuta' p.numero pagamento.pk %}">ricevuta</a>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </div></div>
+    {% endif %}
+
+    {% if annullabile %}
+      <div class="mt-5">
+        <button type="button" class="btn-outline theme-danger" data-bs-toggle="dialog" data-bs-target="#annulla">Annulla la prenotazione</button>
+      </div>
+      <dialog class="dialog" id="annulla" aria-labelledby="annullaTitolo">
+        <form method="post" action="{% url 'prenotazioni:annulla' p.numero %}">
+          {% csrf_token %}
+          <div class="dialog-header">
+            <h2 class="dialog-title fs-lg" id="annullaTitolo">Annullare la prenotazione?</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Chiudi"></button>
+          </div>
+          <div class="dialog-body">
+            <p>Le date tornano disponibili per gli altri gruppi.{% if pagamenti %} L'acconto versato non è rimborsabile.{% endif %}</p>
+            {% for field in annulla_form %}{% include "prenotazioni/_campo.html" %}{% endfor %}
+          </div>
+          <div class="dialog-footer">
+            <button type="button" class="btn-outline theme-secondary" data-bs-dismiss="dialog">Non annullare</button>
+            <button type="submit" class="btn-solid theme-danger">Annulla la prenotazione</button>
+          </div>
+        </form>
+      </dialog>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -31,8 +31,8 @@ importi o versioni. Le modifiche alla specifica le approva Andrea.
 | F1 | Modello dati, vincoli di non sovrapposizione, configurazione, listini iniziali | **fatto** |
 | F2 | Preventivo e consuntivo, test sugli esempi del §5.4 | **fatto** |
 | F3 | Flusso richiesta → approvazione → acconto → conferma, scadenze, email, login Sestante | **fatto** |
-| F4 | Area richiedente, consensi, messaggi | prossima |
-| F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | |
+| F4 | Area richiedente, consensi, messaggi | **fatto** |
+| F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | prossima |
 | F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | |
 | F7 | Import SuperSaaS | |
 | F8 | Prova completa di installazione, aggiornamento, backup; messa in produzione | |
@@ -50,6 +50,13 @@ Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 - **django-allauth** (email con verifica obbligatoria, MFA, SSO Sestante via `openid_connect`),
   **django-axes**, **WhiteNoise**, **WeasyPrint** (PDF), **openpyxl** (Excel), **gunicorn**.
 - Niente Celery/Redis: le scadenze le esegue il servizio `scheduler` (`manage.py scheduler`).
+- Interfaccia: mockup in <https://claude.ai/artifact/L1d4xoj1HZSuHkbP65uRUQ> (solo riferimento: valgono
+  testi e colori, il markup è del tema). Classi Bootstrap 6.0.0-alpha.1 verificate sul CSS del CDN
+  (es. non esiste `card-title`). Il footer del tema è un `{% include %}`: i suoi blocchi interni
+  non si sovrascrivono, `templates/base.html` riscrive l'intero blocco `footer` (in fondo alla
+  finestra, fisso da lg: CSS in `tana.css`). In sviluppo con `runserver --noreload` i template
+  restano in cache: riavviare il server dopo averli modificati. Sul Mac girano anche altri progetti
+  (Plancia sulla 8000): prima di fermare un processo su una porta verificarne il percorso.
 - Email con i **`MAILERS`** di Django 6.1 (alias `default`, configurato dalle variabili `EMAIL_*`
   di `.env`): inviare con `msg.send()` / `send_mail(...)` o `using="<alias>"`; **mai** le
   impostazioni `EMAIL_*`, `get_connection()`, `connection=` né `fail_silently=` (deprecati, con
@@ -68,6 +75,9 @@ tana/prenotazioni/ Prenotazione, PresenzaArea, Occupazione (exclusion constraint
                    contributo.py: preventivo, consuntivo, acconto, saldo, rettifiche (§5) — unica fonte degli importi
                    flusso.py: transizioni di stato (§4) con permessi, storico, email; scadenze dello scheduler
                    notifiche.py + templates/prenotazioni/email/*.txt: email a richiedente e gestione (D-19)
+                   consensi.py (D-06), messaggi.py (D-16, telefoni), disponibilita.py (calendario, D-17)
+                   views.py + urls.py: area del richiedente /prenotazioni/; views_pubbliche.py: /disponibilita/
+tana/listini/      views.py: /listino/ (listini in vigore)
 templates/         base.html (estende agesci_theme/base.html), core/manutenzione.html (statica)
 static/tana/       css/tana.css (palette), img/logo/*.svg (loghi della base, non ridisegnarli)
 deploy/            entrypoint.sh, nginx/ (Dockerfile + template dell'nginx interno)

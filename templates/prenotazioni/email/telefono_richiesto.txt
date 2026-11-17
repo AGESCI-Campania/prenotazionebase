@@ -1,0 +1,5 @@
+{% load formati %}{% autoescape off %}Il referente di {{ da }} chiede di poter vedere il tuo numero di telefono, per accordarsi sui giorni alla base. Il numero viene mostrato solo se lo autorizzi.
+
+Rispondi dalla pagina della prenotazione:
+{{ link }}
+{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

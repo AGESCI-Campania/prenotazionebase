@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load formati %}
+{% block titolo_pagina %}Listino prezzi · {% endblock %}
+{% block content %}
+<h1>Listino prezzi</h1>
+<p class="fg-2">Contributi per l'uso della base. Il listino di riferimento dipende dall'associazione o dall'ente; il soggiorno si conta a giorni, arrivo e partenza compresi (bivacchi e pernotti a notti). Stagione invernale dal {{ conf.inverno_dal_giorno }}/{{ conf.inverno_dal_mese }} al {{ conf.inverno_al_giorno }}/{{ conf.inverno_al_mese }}.</p>
+{% for listino, corrente, prossima in listini %}
+  <div class="card mt-7">
+    <div class="card-header"><h2 class="fs-xl mb-0">Listino {{ listino.nome|lower }}</h2></div>
+    <div class="card-body">
+      {% if corrente %}
+        {% include "listini/_voci.html" with versione=corrente %}
+      {% else %}
+        <p class="fg-2">Nessuna versione in vigore.</p>
+      {% endif %}
+      {% if prossima %}
+        <h3 class="fs-lg mt-7">Dal {{ prossima.valida_dal|date:"j F Y"|lower }} ({{ prossima.nome }})</h3>
+        {% include "listini/_voci.html" with versione=prossima %}
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+<p class="small fg-2 mt-7">Le voci «da definire» le stabilisce la gestione della base caso per caso. Le richieste vanno inviate con arrivo entro il {{ conf.orizzonte_massimo|date:"j F Y"|lower }}.</p>
+{% endblock %}

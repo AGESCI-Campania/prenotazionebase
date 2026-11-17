@@ -142,6 +142,10 @@ class Configurazione(models.Model):
         if errori:
             raise ValidationError(errori)
 
+    def causale(self, numero: str, gruppo: str) -> str:
+        """Causale del bonifico di una prenotazione."""
+        return self.causale_bonifico.replace("{numero}", numero).replace("{gruppo}", gruppo)
+
     def e_inverno(self, data: datetime.date) -> bool:
         """True se `data` cade nella stagione invernale (estremi inclusi, anche a cavallo
         dell'anno)."""

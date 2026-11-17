@@ -18,3 +18,88 @@
   --tana-verde-chiaro: #80c077;
   --tana-verde-medio: #0d8e36;
 }
+
+/* Stati delle aree nel calendario della disponibilità (D-17, mockup 1) */
+:root {
+  --tana-libero: #e3f3e5;
+  --tana-occupato: #7f8f86;
+  --tana-non-disponibile: #b7a6d8;
+  --tana-non-disponibile-chiaro: #e6def4;
+  --tana-bordo-cella: #d9e2dc;
+}
+
+.tana-calendario {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+.tana-calendario__giorno-settimana {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.tana-calendario__giorno {
+  border: 1px solid var(--tana-bordo-cella);
+  border-radius: 0.4rem;
+  padding: 0.3rem 0.4rem;
+  min-height: 4.5rem;
+  background: #fff;
+}
+.tana-calendario__giorno--fuori { opacity: 0.4; }
+.tana-calendario__giorno--oggi { outline: 2px solid var(--ag-primary); }
+.tana-calendario__numero { font-weight: 700; font-size: 0.875rem; }
+.tana-calendario__area {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.625rem;
+}
+.tana-calendario__area b { width: 0.7rem; }
+.tana-stato {
+  flex: 1;
+  display: flex;
+  height: 0.7rem;
+  border: 1px solid #c8d6cc;
+  border-radius: 0.2rem;
+  overflow: hidden;
+}
+.tana-stato i { flex: 1; display: block; }
+.tana-stato i + i { border-left: 1px solid #fff; }
+.tana-stato--legenda { flex: none; width: 2.2rem; }
+.tana-libero { background: var(--tana-libero); }
+.tana-occupato { background: var(--tana-occupato); }
+.tana-non_disponibile {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--tana-non-disponibile),
+    var(--tana-non-disponibile) 3px,
+    var(--tana-non-disponibile-chiaro) 3px,
+    var(--tana-non-disponibile-chiaro) 6px
+  );
+}
+@media (max-width: 640px) {
+  .tana-calendario { gap: 0.2rem; }
+  .tana-calendario__giorno { padding: 0.15rem; min-height: 3.6rem; }
+  .tana-calendario__area b { display: none; }
+}
+
+/* Piè di pagina sempre in fondo. Il contenuto (main) cresce fino al footer sulle pagine corte;
+   da lg (layout a viewport fisso del tema) il footer resta visibile e il corpo scorre sopra.
+   Sotto lg la pagina scorre per intero e il footer segue il contenuto. */
+.ag-scroll-area {
+  display: flex;
+  flex-direction: column;
+}
+.ag-scroll-area > main { flex: 1 0 auto; }
+@media (max-width: 1023.98px) {
+  body { min-height: 100dvh; }
+}
+@media (min-width: 1024px) {
+  .ag-scroll-area > .ag-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+  }
+}

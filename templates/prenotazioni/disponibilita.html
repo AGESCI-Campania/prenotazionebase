@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block titolo_pagina %}Disponibilità · {% endblock %}
+{% block content %}
+<h1>Disponibilità della base</h1>
+<p class="fg-2">Mostra solo se le aree sono libere o occupate, senza i nomi dei gruppi.</p>
+<div class="row g-7 mt-5">
+  <div class="lg:col-9">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <a class="btn-outline theme-primary" href="?mese={{ precedente }}" aria-label="Mese precedente">‹</a>
+          <h2 class="fs-xl mb-0">{{ titolo_mese|capfirst }}</h2>
+          <a class="btn-outline theme-primary" href="?mese={{ successivo }}" aria-label="Mese successivo">›</a>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="tana-calendario" role="grid" aria-label="Calendario di {{ titolo_mese }}">
+          {% for g in giorni %}<div class="tana-calendario__giorno-settimana fg-2" role="columnheader">{{ g }}</div>{% endfor %}
+          {% for settimana in settimane %}{% for giorno in settimana %}
+            <div class="tana-calendario__giorno{% if not giorno.nel_mese %} tana-calendario__giorno--fuori{% endif %}{% if giorno.data == oggi %} tana-calendario__giorno--oggi{% endif %}" role="gridcell">
+              <div class="tana-calendario__numero">{{ giorno.data.day }}</div>
+              {% for area, prima, dopo in giorno.aree %}
+                <div class="tana-calendario__area" title="{{ area.nome }}">
+                  <b>{% if area.codice == "ACC" %}A{% else %}T{% endif %}</b>
+                  <span class="tana-stato"><i class="tana-{{ prima }}"></i><i class="tana-{{ dopo }}"></i></span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}{% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="lg:col-3">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="fs-lg">Legenda</h2>
+        <ul class="list-unstyled small">
+          <li class="d-flex align-items-center gap-3 mb-3"><span class="tana-stato tana-stato--legenda"><i class="tana-libero"></i></span>Libero</li>
+          <li class="d-flex align-items-center gap-3 mb-3"><span class="tana-stato tana-stato--legenda"><i class="tana-occupato"></i></span>Occupato</li>
+          <li class="d-flex align-items-center gap-3 mb-3"><span class="tana-stato tana-stato--legenda"><i class="tana-non_disponibile"></i></span>Non disponibile (eventi regionali, manutenzione, uso esclusivo)</li>
+          <li class="d-flex align-items-center gap-3 mb-3"><span class="tana-stato tana-stato--legenda"><i class="tana-occupato"></i><i class="tana-libero"></i></span>Giorno di partenza o di arrivo</li>
+        </ul>
+        <p class="small fg-2"><b>A</b> = accantonamento, <b>T</b> = area tende. Ogni giorno è diviso in due: a sinistra la notte prima, a destra la notte dopo. Nei giorni di arrivo e partenza possono esserci due gruppi, con orari da concordare.</p>
+      </div>
+    </div>
+    <div class="card mt-5">
+      <div class="card-body">
+        <h2 class="fs-lg">Vuoi venire alla base?</h2>
+        <p class="small">Scegli tende, accantonamento o entrambi, indica date e presenze: il preventivo si calcola subito.</p>
+        <a class="btn-solid theme-primary" href="{% url 'prenotazioni:nuova' %}">Richiedi una prenotazione</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
