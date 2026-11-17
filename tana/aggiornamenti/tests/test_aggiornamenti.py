@@ -58,10 +58,32 @@ def test_stato_dal_server(cartella, admin):
     assert services.sincronizza_storico().stato == StatoRichiesta.IN_CORSO
     with pytest.raises(services.RichiestaInCorso):
         services.annulla_richiesta(admin)
-    (cartella / "stato.json").write_text(json.dumps({"id": richiesta.pk, "fase": "build", "messaggio": "Costruzione", "percentuale": 45, "esito": None, "log": ["riga"]}))
+    (cartella / "stato.json").write_text(
+        json.dumps(
+            {
+                "id": richiesta.pk,
+                "fase": "build",
+                "messaggio": "Costruzione",
+                "percentuale": 45,
+                "esito": None,
+                "log": ["riga"],
+            }
+        )
+    )
     richiesta = services.sincronizza_storico()
     assert (richiesta.fase, richiesta.percentuale) == ("build", 45)
-    (cartella / "stato.json").write_text(json.dumps({"id": richiesta.pk, "fase": "fine", "messaggio": "Fatto", "percentuale": 100, "esito": "completato", "aggiornato_at": "2026-11-17T12:00:00+01:00"}))
+    (cartella / "stato.json").write_text(
+        json.dumps(
+            {
+                "id": richiesta.pk,
+                "fase": "fine",
+                "messaggio": "Fatto",
+                "percentuale": 100,
+                "esito": "completato",
+                "aggiornato_at": "2026-11-17T12:00:00+01:00",
+            }
+        )
+    )
     richiesta = services.sincronizza_storico()
     assert richiesta.stato == StatoRichiesta.COMPLETATO and richiesta.completato_il is not None
 
@@ -105,7 +127,15 @@ def test_controllo_della_release(monkeypatch):
             return False
 
         def read(self):
-            return json.dumps({"tag_name": "v0.3.0", "name": "Tana 0.3.0", "body": "Novità", "published_at": "2026-11-17T10:00:00Z", "html_url": "https://github.com/x"}).encode()
+            return json.dumps(
+                {
+                    "tag_name": "v0.3.0",
+                    "name": "Tana 0.3.0",
+                    "body": "Novità",
+                    "published_at": "2026-11-17T10:00:00Z",
+                    "html_url": "https://github.com/x",
+                }
+            ).encode()
 
     monkeypatch.setattr(services.urllib.request, "urlopen", lambda req, timeout: Risposta())
     r = services.controlla_ultima_release()

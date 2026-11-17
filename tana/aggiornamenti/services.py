@@ -63,7 +63,7 @@ def versione_installata() -> str:
     try:
         with open(settings.BASE_DIR / "pyproject.toml", "rb") as f:
             return str(tomllib.load(f).get("project", {}).get("version") or "?")
-    except (OSError, tomllib.TOMLDecodeError):
+    except OSError, tomllib.TOMLDecodeError:
         return "?"
 
 
@@ -155,7 +155,7 @@ def leggi_stato() -> dict[str, Any] | None:
     try:
         with open(cartella() / FILE_STATO, encoding="utf-8") as f:
             dati = json.load(f)
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return None
     return dati if isinstance(dati, dict) else None
 
@@ -171,7 +171,8 @@ def autenticazione_recente(request: Any) -> bool:
 
     adesso = time.time()
     return any(
-        isinstance(r, dict) and adesso - float(r.get("at") or 0) < app_settings.REAUTHENTICATION_TIMEOUT
+        isinstance(r, dict)
+        and adesso - float(r.get("at") or 0) < app_settings.REAUTHENTICATION_TIMEOUT
         for r in get_authentication_records(request, request.user)
     )
 
@@ -195,7 +196,9 @@ def crea_richiesta(utente: Any, versione: str) -> RichiestaAggiornamento:
         if release is None or release.versione != versione:
             raise ValidationError("La versione richiesta non è l'ultima release disponibile.")
         if not e_successiva(versione, installata):
-            raise ValidationError(f"La {versione} non è successiva alla versione installata ({installata}).")
+            raise ValidationError(
+                f"La {versione} non è successiva alla versione installata ({installata})."
+            )
         if (
             richiesta_aperta()
             or (cartella() / FILE_IN_CORSO).exists()
@@ -256,7 +259,11 @@ def sincronizza_storico() -> RichiestaAggiornamento | None:
             richiesta = RichiestaAggiornamento.objects.filter(pk=int(stato["id"])).first()
     if stato is None or richiesta is None or not richiesta.aperta:
         aperta = richiesta_aperta()
-        if aperta and aperta.stato == StatoRichiesta.IN_ATTESA and (cartella() / FILE_IN_CORSO).exists():
+        if (
+            aperta
+            and aperta.stato == StatoRichiesta.IN_ATTESA
+            and (cartella() / FILE_IN_CORSO).exists()
+        ):
             aperta.stato = StatoRichiesta.IN_CORSO
             aperta.messaggio = "Presa in carico dal server."
             aperta.save()
@@ -273,7 +280,9 @@ def sincronizza_storico() -> RichiestaAggiornamento | None:
     esito = stato.get("esito")
     if esito in ESITI:
         richiesta.stato = ESITI[esito]
-        richiesta.completato_il = parse_datetime(str(stato.get("aggiornato_at") or "")) or timezone.now()
+        richiesta.completato_il = (
+            parse_datetime(str(stato.get("aggiornato_at") or "")) or timezone.now()
+        )
     elif richiesta.stato == StatoRichiesta.IN_ATTESA:
         richiesta.stato = StatoRichiesta.IN_CORSO
     richiesta.save()

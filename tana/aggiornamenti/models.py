@@ -49,7 +49,9 @@ class RichiestaAggiornamento(models.Model):
     )
     richiesta_da_email = models.CharField(max_length=254, blank=True)
     richiesta_il = models.DateTimeField(auto_now_add=True)
-    stato = models.CharField(max_length=20, choices=StatoRichiesta.choices, default=StatoRichiesta.IN_ATTESA)
+    stato = models.CharField(
+        max_length=20, choices=StatoRichiesta.choices, default=StatoRichiesta.IN_ATTESA
+    )
     fase = models.CharField(max_length=40, blank=True)
     messaggio = models.CharField(max_length=500, blank=True)
     percentuale = models.PositiveSmallIntegerField(null=True, blank=True)
