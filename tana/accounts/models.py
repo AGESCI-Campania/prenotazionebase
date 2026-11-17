@@ -1,7 +1,7 @@
 """Utente di Tana: si identifica con l'email (richiedenti e account di gestione via Sestante).
 
 AUTH_USER_MODEL = "accounts.User": non modificabile dopo la prima migrazione.
-I ruoli (Pattuglia, Amministratore, Responsabile, Redazione, Segreteria) arrivano in F1/F3
+I ruoli (Pattuglia, Amministratore, Responsabile, Redazione, Segreteria) arrivano in F3
 come nomine separate, con il flag `da_sso` per i ruoli globali di Sestante (D-28).
 """
 

@@ -9,7 +9,7 @@ tende), che saranno dismessi.
 - **Stato:** analisi chiusa (risposte della Pattuglia e di Andrea del 10/11/2026; sintesi v0.3
   inviata alla Pattuglia), aggiornata il 13/11/2026 per il nuovo server e il dominio
   `agescicampania.net`, il 14–15/11 per il sito in Wagtail (sintesi v0.4), il 17/11/2026 per
-  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. Sviluppo non iniziato.
+  installazione e SSO sul modello di Plancia 3.0. Restano le verifiche del §11. In sviluppo: F0 e F1 fatte.
 - **Repository:** `AGESCI-Campania/prenotazionebase` (il pacchetto Python resta `tana`). Licenza MIT, © Andrea Bruno.
 - **Hosting:** nuovo server dedicato Ubuntu 26.04, installazione pulita senza Virtualmin né Apache;
   Docker Compose in `/opt/prenotazionebase` (utente `agesci`), dietro il reverse proxy Caddy comune;
@@ -447,9 +447,18 @@ Nomi di dominio in italiano, codice in inglese (convenzione dei progetti). Impor
 | Pagine del sito | tipi di pagina Wagtail: `HomePage`, `PaginaContenuto` (StreamField), `PaginaRiservata` (info interne) | D-30; sostituiscono il modello `PaginaInfo` previsto prima |
 | `BloccoTecnico` | area, intervallo, motivo | manutenzione: fuori dalle categorie e dalle statistiche |
 
-Il blocco tecnico partecipa allo stesso vincolo di non sovrapposizione delle occupazioni
-(*inferenza* su come implementarlo: tabella unica di occupazioni con tipo, oppure vincolo
-applicativo; da decidere in F1).
+Scelte di F1 (Andrea, 17/11/2026):
+- **Blocco tecnico**: tabella unica `Occupazione` con un tipo (prenotazione, esclusiva, blocco), così
+  lo stesso exclusion constraint del database copre anche i blocchi. Il blocco si indica dal primo
+  all'ultimo giorno **inclusi** (occupa `[dal, al + 1)`).
+- **Numero** `AAAA-NNN`: anno di **creazione** della richiesta, contatore che riparte ogni anno,
+  assegnato alla creazione e mai riusato (anche se la richiesta è rifiutata).
+- **Versione iniziale** 2022/2023 di tutti i listini con pubblicazione e validità convenzionali al
+  1/1/2022 (si applica anche a tutto lo storico importato).
+- **Voci non note** (extra associativo in tenda, bivacco in tenda, agevolato) assenti: preventivo
+  "da definire" (P-04). Listino **gratuito** con tutte le voci a 0 €.
+- **Configurazione iniziale**: termine del consenso 7 giorni dalla domanda, comunque non oltre la
+  vigilia dell'attività (D-06); orari standard arrivo 15:00, partenza 12:00 (D-04).
 
 ---
 

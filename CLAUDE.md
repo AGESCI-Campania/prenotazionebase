@@ -28,8 +28,8 @@ importi o versioni. Le modifiche alla specifica le approva Andrea.
 | Fase | Contenuto | Stato |
 | --- | --- | --- |
 | F0 | Impianto: progetto, tema, compose, script, unit systemd, guida di installazione, CI | **fatto** |
-| F1 | Modello dati, vincoli di non sovrapposizione, configurazione, listini iniziali | prossima |
-| F2 | Preventivo e consuntivo, test sugli esempi del §5.4 | |
+| F1 | Modello dati, vincoli di non sovrapposizione, configurazione, listini iniziali | **fatto** |
+| F2 | Preventivo e consuntivo, test sugli esempi del §5.4 | prossima |
 | F3 | Flusso richiesta → approvazione → acconto → conferma, scadenze, email, login Sestante | |
 | F4 | Area richiedente, consensi, messaggi | |
 | F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | |
@@ -54,8 +54,11 @@ Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 ## Layout
 ```
 config/            settings/{base,dev,test,prod}.py, urls.py (rotta Wagtail SEMPRE per ultima)
-tana/core/         healthz, manutenzione (modello + middleware + comando), scheduler, dati_iniziali
+tana/core/         healthz, manutenzione, scheduler, dati_iniziali, EventoStorico (P-03), storage privato
 tana/accounts/     User con login via email (AUTH_USER_MODEL = "accounts.User")
+tana/base/         Area, Struttura, Configurazione (singleton)
+tana/listini/      Listino, VersioneListino (immutabile se usata), VoceListino, Categoria; versione_applicabile (D-09)
+tana/prenotazioni/ Prenotazione, PresenzaArea, Occupazione (exclusion constraint), BloccoTecnico, consensi, importi, pagamenti, messaggi
 templates/         base.html (estende agesci_theme/base.html), core/manutenzione.html (statica)
 static/tana/       css/tana.css (palette), img/logo/*.svg (loghi della base, non ridisegnarli)
 deploy/            entrypoint.sh, nginx/ (Dockerfile + template dell'nginx interno)
@@ -80,7 +83,9 @@ uv run python manage.py manutenzione attiva|disattiva|stato
 ## Vincoli di dominio (§12 della specifica)
 - **Importi in centesimi interi**; mai `float` per il denaro.
 - **Non sovrapposizione** garantita dal database (exclusion constraint su `daterange [arrivo,
-  partenza)` per le occupazioni attive), non solo dai form.
+  partenza)` per le occupazioni attive), non solo dai form. Prenotazioni, esclusive e blocchi
+  tecnici stanno tutti in `Occupazione`, scritta solo da `tana.prenotazioni.services`
+  (`sincronizza_occupazioni`, `crea_blocco`), che traduce la violazione in `DateOccupate`.
 - **Unica fonte di verità** per prezzi, disponibilità e permessi: un livello di servizi condiviso.
 - **Listino congelato** sulla prenotazione; versioni di listino immutabili una volta usate.
 - **Decisioni discrezionali** sempre con "deciso da" e motivazione (P-03), nello storico.

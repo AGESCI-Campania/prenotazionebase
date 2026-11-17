@@ -23,6 +23,9 @@ INSTALLED_APPS = [
     # Tana
     "tana.core",
     "tana.accounts",
+    "tana.base",
+    "tana.listini",
+    "tana.prenotazioni",
     # Tema regionale (prima di allauth e dell'admin: sovrascrive i loro template)
     "agesci_theme",
     # Wagtail (sito della base, D-30)
@@ -133,6 +136,10 @@ MEDIA_ROOT = Path(env.str("MEDIA_ROOT", default=str(BASE_DIR / "media")))
 PRIVATE_MEDIA_ROOT = Path(env.str("PRIVATE_MEDIA_ROOT", default=str(BASE_DIR / "privati")))
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "privato": {
+        "BACKEND": "tana.core.storage.StoragePrivato",
+        "OPTIONS": {"location": PRIVATE_MEDIA_ROOT},
+    },
     # Nomi con hash anche per le icone della PWA (cache delle icone su iOS, D-22)
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
