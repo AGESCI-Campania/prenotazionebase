@@ -5,6 +5,8 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.6 — 2026-11-17
+
 ### Novità
 
 - Modalità demo (Configurazione): si attiva solo senza prenotazioni; mentre è attiva prenota solo la gestione e le email ai richiedenti partono solo verso utenti con un ruolo (oggetto «[DEMO]»); al termine, con conferma, si cancellano tutte le prenotazioni con i loro dati e la numerazione riparte.
@@ -20,6 +22,8 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 - Editor del sito: voce «Gestione prenotazioni» nel menu per tornare all'area di gestione.
 - Editor del sito: il logo della base al posto di quello di Wagtail nella barra laterale, e come favicon.
 - Login con Sestante: l'immagine del profilo caricata su Sestante diventa quella dell'editor del sito (solo per chi vi accede; un'immagine caricata a mano nell'editor prevale). Serve il blueprint del provider aggiornato in Sestante (scope `avatar`).
+
+Nessuna variabile nuova in `.env`. Prima di aggiornare Tana aggiornare Sestante (`git pull` e il suo `scripts/aggiorna.sh`), che aggiunge al provider di Tana l'immagine del profilo.
 
 ## v1.0.5 — 2026-11-17
 
