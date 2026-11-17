@@ -36,7 +36,8 @@
             {% include "gestione/_voce.html" with nome="blocchi" url_nome="gestione:blocchi" etichetta="Blocchi tecnici" icona="blocchi" %}
             {% include "gestione/_voce.html" with nome="listini" url_nome="gestione:listini" etichetta="Listini e versioni" icona="listini" %}
             {% include "gestione/_voce.html" with nome="configurazione" url_nome="gestione:configurazione" etichetta="Configurazione" icona="configurazione" %}
-            <li><a class="ag-sidebar__nav-link" href="{% url 'admin:base_struttura_changelist' %}">{% include "gestione/_icona.html" with icona="strutture" %}<span class="ag-sidebar__label">Strutture e categorie</span></a></li>
+            <li><a class="ag-sidebar__nav-link" href="{% url 'wagtailsnippets_base_struttura:list' %}">{% include "gestione/_icona.html" with icona="strutture" %}<span class="ag-sidebar__label">Strutture</span></a></li>
+            <li><a class="ag-sidebar__nav-link" href="{% url 'admin:listini_categoria_changelist' %}">{% include "gestione/_icona.html" with icona="categorie" %}<span class="ag-sidebar__label">Categorie</span></a></li>
             <li><a class="ag-sidebar__nav-link" href="{% url 'wagtailadmin_home' %}">{% include "gestione/_icona.html" with icona="sito" %}<span class="ag-sidebar__label">Pagine del sito</span></a></li>
             {% include "gestione/_voce.html" with nome="aggiornamenti" url_nome="gestione:aggiornamenti" etichetta="Aggiornamenti" icona="aggiornamenti" %}
           {% endif %}

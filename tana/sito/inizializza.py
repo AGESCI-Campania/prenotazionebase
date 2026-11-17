@@ -11,6 +11,8 @@ from typing import Any
 from wagtail.contrib.redirects.models import Redirect
 from wagtail.models import Page, Site
 
+from tana.base.models import Struttura
+
 from . import contenuti_iniziali as contenuti
 from .models import HomePage, PaginaContenuto, PaginaRegolamento, PaginaRiservata, PaginaStrutture
 
@@ -74,6 +76,9 @@ def _crea(genitore: Page, dati: dict[str, Any]) -> int:
         if tipo is PaginaRegolamento:
             campi["aggiornato_a"] = dati.get("aggiornato_a", "")
         pagina = tipo(**campi)
+        if tipo is PaginaStrutture:
+            # Tutte quelle disponibili; poi le sceglie la redazione nella pagina (D-12)
+            pagina.strutture = list(Struttura.objects.exclude(uso=Struttura.Uso.NON_DISPONIBILE))
         if dati.get("bozza"):
             pagina.live = False
         genitore.add_child(instance=pagina)

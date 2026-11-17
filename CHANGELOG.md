@@ -5,6 +5,18 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Novità
+- **Strutture nell'editor del sito** (Gestione › Strutture, o la voce «Strutture» in `/cms/`):
+  nome, uso, ordine, descrizione e una galleria di immagini facoltativa, al posto del Django admin.
+  Lì si aggiungono anche le strutture nuove.
+- Pagina **«Le strutture»**: si scelgono con le caselle le strutture da mostrare, ciascuna con
+  descrizione e galleria, raggruppate per area. All'aggiornamento restano scelte quelle mostrate
+  finora.
+
+### Interfaccia
+- Nel menu della gestione «Strutture e categorie» diventa due voci: «Strutture» (editor del sito)
+  e «Categorie» (Django admin).
+
 ## v1.0.4 — 2026-11-17
 
 ### Novità

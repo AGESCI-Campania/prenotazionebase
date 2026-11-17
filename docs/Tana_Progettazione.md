@@ -213,7 +213,12 @@ Fo.Ca. (regionale e CFA), eventi regionali e Comune hanno priorità (regolamento
 | Parcheggio | — | solo veicoli essenziali; di norma si parcheggia fuori dalla base |
 
 Le strutture sono dati configurabili (nome, descrizione, uso: condivisa / solo accantonamento /
-solo tende / non disponibile), mostrati nella pagina pubblica e nei riepiloghi.
+solo tende / non disponibile, ordine) con una **galleria di immagini facoltativa** (immagine e
+didascalia, riordinabili). Si modificano nell'**editor del sito** (sezione «Strutture», snippet di
+Wagtail), aperto all'amministrazione; anche le nuove strutture si aggiungono lì. Nella pagina
+«Le strutture» la redazione **sceglie quali mostrare** (caselle): l'elenco si genera da quelle
+scelte, raggruppate per area, con descrizione e galleria. Le non disponibili non compaiono
+(deciso il 17/11/2026).
 
 ### D-13 — Acconto
 - 50% del preventivo, configurabile.
@@ -438,7 +443,7 @@ Nomi di dominio in italiano, codice in inglese (convenzione dei progetti). Impor
 | Entità | Campi principali | Note |
 | --- | --- | --- |
 | `Area` | codice (`ACC`, `TENDE`), nome, capienza | capienza configurabile (109 / 6 piazzole) |
-| `Struttura` | nome, descrizione, uso (condivisa / solo ACC / solo TENDE / non disponibile), ordine | D-12 |
+| `Struttura` | nome, descrizione, uso (condivisa / solo ACC / solo TENDE / non disponibile), ordine; galleria (`ImmagineStruttura`: immagine, didascalia, ordine) | D-12 |
 | `Categoria` | codice, nome, prioritaria, listino_default, richiede_specifica | D-10 |
 | `Listino` | tipo (associativo, extra, agevolato, gratuito), nome | D-08 |
 | `VersioneListino` | listino, pubblicata_il, valida_dal, note | D-09; immutabile dopo la prima prenotazione che la usa |
@@ -523,8 +528,9 @@ Scelte di F4 (Andrea, 17/11/2026):
 
 Scelte di F5 (Andrea, 17/11/2026):
 - **Area di gestione** `/gestione/` con la barra laterale del mockup 4. Blocchi tecnici, versioni di
-  listino (con copia delle voci) e configurazione si modificano lì; **strutture e categorie
-  nell'admin Django**, aperto all'amministrazione (`is_staff` e permessi su quei modelli).
+  listino (con copia delle voci) e configurazione si modificano lì; le **categorie nell'admin
+  Django**, aperto all'amministrazione (`is_staff` e permessi su quei modelli); le **strutture
+  nell'editor del sito** (D-12, dal 17/11/2026).
 - **Modifica** di date e persone dall'amministrazione in ogni stato attivo, anche dopo l'acconto
   (P-02): il preventivo congelato resta e le differenze vanno nel consuntivo. Un acconto deciso
   all'approvazione (importo o esenzione) non si ricalcola; se diventa dovuto parte il termine.
@@ -554,8 +560,8 @@ Scelte di F6 (Andrea, 17/11/2026):
   nelle pagine; i testi lunghi (storia, Gianni Sabatino, ecc.) li fornisce Andrea; le foto le carica
   la redazione. Vecchi indirizzi: `/home` → `/`, `/info/listino-prezzi` → `/listino/`.
 - **Le strutture**: introduzione e citazione di B.P. dall'editor; l'elenco si genera a ogni visita
-  dai dati delle strutture (D-12), raggruppato per area, con capienze e superfici nelle
-  descrizioni. Il palco con camerini non esiste più (i camerini sono depositi della base, non a
+  dalle strutture scelte nella pagina (D-12), raggruppato per area, con capienze e superfici nelle
+  descrizioni e la galleria di ciascuna. Il palco con camerini non esiste più (i camerini sono depositi della base, non a
   disposizione dei gruppi): va tolto anche dal testo del regolamento in bozza.
 - **PDF** di preventivo, conferma (con orari, coordinate del bonifico) e consuntivo con i pagamenti
   ricevuti; la conferma e il regolamento sono allegati all'email di conferma, il consuntivo a quella

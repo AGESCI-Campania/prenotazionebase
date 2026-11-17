@@ -5,6 +5,10 @@ import datetime
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from modelcluster.fields import ParentalKey
+from modelcluster.models import ClusterableModel
+from wagtail.admin.panels import FieldPanel, InlinePanel
+from wagtail.models import Orderable
 
 
 class Area(models.Model):
@@ -30,8 +34,9 @@ class Area(models.Model):
         return self.nome
 
 
-class Struttura(models.Model):
-    """Struttura della base, mostrata nella pagina pubblica e nei riepiloghi (D-12)."""
+class Struttura(ClusterableModel):
+    """Struttura della base, mostrata nella pagina pubblica «Le strutture» (D-12). Si modifica
+    nell'editor del sito (snippet di Wagtail), con una galleria facoltativa."""
 
     class Uso(models.TextChoices):
         CONDIVISA = "CONDIVISA", "condivisa"
@@ -42,7 +47,17 @@ class Struttura(models.Model):
     nome = models.CharField(max_length=100, unique=True)
     descrizione = models.TextField(blank=True)
     uso = models.CharField(max_length=20, choices=Uso.choices)
-    ordine = models.PositiveSmallIntegerField(default=0)
+    ordine = models.PositiveSmallIntegerField(
+        default=0, help_text="Posizione nella pagina delle strutture (prima i numeri più bassi)."
+    )
+
+    panels = [
+        FieldPanel("nome"),
+        FieldPanel("uso"),
+        FieldPanel("ordine"),
+        FieldPanel("descrizione"),
+        InlinePanel("immagini", label="Galleria", heading="Galleria (facoltativa)"),
+    ]
 
     class Meta:
         verbose_name = "struttura"
@@ -51,6 +66,20 @@ class Struttura(models.Model):
 
     def __str__(self) -> str:
         return self.nome
+
+
+class ImmagineStruttura(Orderable):
+    """Foto della galleria di una struttura."""
+
+    struttura = ParentalKey(Struttura, on_delete=models.CASCADE, related_name="immagini")
+    immagine = models.ForeignKey("wagtailimages.Image", on_delete=models.CASCADE, related_name="+")
+    didascalia = models.CharField(max_length=250, blank=True)
+
+    panels = [FieldPanel("immagine"), FieldPanel("didascalia")]
+
+    class Meta(Orderable.Meta):
+        verbose_name = "immagine"
+        verbose_name_plural = "immagini"
 
 
 def _giorno_dell_anno(mese: int, giorno: int) -> datetime.date:

@@ -48,16 +48,43 @@ def test_home_e_menu(client):
     assert 'data-bs-toggle="menu"' in html
 
 
-def test_strutture_dai_dati(client):
-    from tana.base.models import Struttura
+def test_strutture_scelte_nella_pagina(client):
+    from wagtail.images.models import Image
+    from wagtail.images.tests.utils import get_test_image_file
+
+    from tana.base.models import ImmagineStruttura, Struttura
+    from tana.sito.models import PaginaStrutture
 
     html = client.get("/le-strutture/").content.decode()
     assert "Arena con altare" in html and "140 m²" in html and "In comune" in html
-    # Cambiano i dati, cambia la pagina
-    Struttura.objects.create(nome="Palestra di roccia", uso=Struttura.Uso.CONDIVISA)
-    Struttura.objects.filter(nome="Sala laboratorio").update(uso=Struttura.Uso.NON_DISPONIBILE)
+    # Una struttura nuova compare solo se la si sceglie nella pagina (D-12)
+    roccia = Struttura.objects.create(
+        nome="Palestra di roccia", uso=Struttura.Uso.CONDIVISA, descrizione="Per l'arrampicata."
+    )
+    assert "Palestra di roccia" not in client.get("/le-strutture/").content.decode()
+    foto = Image.objects.create(title="Parete", file=get_test_image_file())
+    ImmagineStruttura.objects.create(struttura=roccia, immagine=foto, didascalia="La parete est")
+    pagina = PaginaStrutture.objects.get()
+    pagina.strutture.add(roccia)
+    pagina.strutture.remove(Struttura.objects.get(nome="Sala laboratorio"))
+    pagina.save_revision().publish()
     html = client.get("/le-strutture/").content.decode()
-    assert "Palestra di roccia" in html and "Sala laboratorio" not in html
+    assert "Palestra di roccia" in html and "Per l&#x27;arrampicata." in html
+    assert "La parete est" in html and "<img" in html
+    assert "Sala laboratorio" not in html
+
+
+def test_strutture_nell_editor_solo_per_l_amministrazione():
+    amministratore = User.objects.create_user("amministratore@example.org")
+    nomina(amministratore, Ruolo.AMMINISTRATORE)
+    c = Client()
+    c.force_login(amministratore)
+    assert c.get("/cms/snippets/base/struttura/").status_code == 200
+    assert c.get("/cms/snippets/base/struttura/add/").status_code == 200
+    redazione = User.objects.create_user("redazione@example.org")
+    nomina(redazione, Ruolo.REDAZIONE)
+    c.force_login(redazione)
+    assert c.get("/cms/snippets/base/struttura/").status_code in (302, 403)
 
 
 def test_pagina_riservata(client, richiedente, contatto, admin):

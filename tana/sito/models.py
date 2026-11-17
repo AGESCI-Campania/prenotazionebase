@@ -6,10 +6,12 @@ nel menu (`config/urls.py`, rotta di Wagtail per ultima).
 
 from typing import Any
 
+from django import forms
 from django.db import models
 from django.http import HttpRequest, HttpResponse
 from django.template.response import TemplateResponse
 from django.utils import timezone
+from modelcluster.fields import ParentalManyToManyField
 from wagtail.admin.panels import FieldPanel
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 from wagtail.fields import StreamField
@@ -66,8 +68,8 @@ class PaginaContenuto(Page):
 
 
 class PaginaStrutture(PaginaContenuto):
-    """Le strutture: i blocchi della redazione più l'elenco generato a ogni visita dai dati della
-    base (D-12, modificabili dall'admin), raggruppato per area."""
+    """Le strutture: i blocchi della redazione più le strutture scelte nella pagina (D-12), con
+    descrizione e galleria, raggruppate per area."""
 
     GRUPPI = (
         ("SOLO_ACC", "Accantonamento"),
@@ -75,6 +77,18 @@ class PaginaStrutture(PaginaContenuto):
         ("CONDIVISA", "In comune"),
     )
 
+    strutture = ParentalManyToManyField(
+        "base.Struttura",
+        blank=True,
+        related_name="+",
+        verbose_name="strutture mostrate",
+        help_text="Le strutture da mostrare nella pagina: si modificano in Strutture.",
+    )
+
+    content_panels = [
+        *PaginaContenuto.content_panels,
+        FieldPanel("strutture", widget=forms.CheckboxSelectMultiple),
+    ]
     template = "sito/pagina_strutture.html"
     max_count = 1
 
@@ -82,12 +96,12 @@ class PaginaStrutture(PaginaContenuto):
         verbose_name = "pagina delle strutture"
 
     def get_context(self, request: HttpRequest, *args: Any, **kwargs: Any) -> dict[str, Any]:
-        from tana.base.models import Struttura
-
         contesto = super().get_context(request, *args, **kwargs)
-        strutture = list(Struttura.objects.exclude(uso=Struttura.Uso.NON_DISPONIBILE))
+        scelte = list(
+            self.strutture.order_by("ordine", "nome").prefetch_related("immagini__immagine")
+        )
         contesto["gruppi"] = [
-            (titolo, [s for s in strutture if s.uso == uso]) for uso, titolo in self.GRUPPI
+            (titolo, [s for s in scelte if s.uso == uso]) for uso, titolo in self.GRUPPI
         ]
         return contesto
 

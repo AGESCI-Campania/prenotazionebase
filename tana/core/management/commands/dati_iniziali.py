@@ -133,7 +133,7 @@ CATEGORIE = (
 
 # Permessi iniziali dei gruppi dei ruoli, assegnati solo quando il gruppo si crea: poi li
 # modifica l'amministratore (es. chi riceve le notifiche di gestione)
-# Strutture e categorie si modificano nell'admin Django (F5)
+# Strutture (snippet nell'editor del sito, D-12) e categorie (admin Django)
 _ADMIN_DJANGO = tuple(
     f"{app}.{azione}_{modello}"
     for app, modello in (("base", "struttura"), ("listini", "categoria"))
