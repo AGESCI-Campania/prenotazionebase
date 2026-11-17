@@ -1,0 +1,4 @@
+{% load formati %}{% autoescape off %}La prenotazione è stata annullata e le date sono di nuovo libere.{% if not per_gestione and p.acconto_centesimi and acconto_versato %} L'acconto versato non è rimborsabile.{% endif %}{% if motivo %}
+Motivo: {{ motivo }}{% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

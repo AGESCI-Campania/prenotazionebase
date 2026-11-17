@@ -1,0 +1,3 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}Il soggiorno è concluso: da compilare il consuntivo.{% else %}Grazie per aver scelto la Base Scout «Gianni Sabatino»! A breve riceverai il consuntivo con il saldo.{% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

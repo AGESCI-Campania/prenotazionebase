@@ -1,0 +1,5 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}La richiesta è stata rifiutata.{% if motivazione %}
+Motivazione: {{ motivazione }}{% endif %}{% if not comunica_motivazione %} (non comunicata al richiedente){% endif %}{% else %}Ci dispiace, la tua richiesta di prenotazione non è stata accolta e le date sono di nuovo libere.{% if comunica_motivazione %}
+Motivazione: {{ motivazione }}{% endif %}{% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

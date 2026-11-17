@@ -30,8 +30,8 @@ importi o versioni. Le modifiche alla specifica le approva Andrea.
 | F0 | Impianto: progetto, tema, compose, script, unit systemd, guida di installazione, CI | **fatto** |
 | F1 | Modello dati, vincoli di non sovrapposizione, configurazione, listini iniziali | **fatto** |
 | F2 | Preventivo e consuntivo, test sugli esempi del §5.4 | **fatto** |
-| F3 | Flusso richiesta → approvazione → acconto → conferma, scadenze, email, login Sestante | prossima |
-| F4 | Area richiedente, consensi, messaggi | |
+| F3 | Flusso richiesta → approvazione → acconto → conferma, scadenze, email, login Sestante | **fatto** |
+| F4 | Area richiedente, consensi, messaggi | prossima |
 | F5 | Area di gestione, decisioni discrezionali con storico, statistiche, export | |
 | F6 | Sito Wagtail, contenuti dal sito Google, PDF, PWA | |
 | F7 | Import SuperSaaS | |
@@ -60,16 +60,20 @@ Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 ```
 config/            settings/{base,dev,test,prod}.py, urls.py (rotta Wagtail SEMPRE per ultima)
 tana/core/         healthz, manutenzione, scheduler, dati_iniziali, EventoStorico (P-03), storage privato
-tana/accounts/     User con login via email (AUTH_USER_MODEL = "accounts.User")
+tana/accounts/     User con login via email (AUTH_USER_MODEL = "accounts.User"), Nomina (ruoli = gruppi),
+                   permessi.py (§6), adapters.py (Sestante, MFA), middleware MFA del superutente
 tana/base/         Area, Struttura, Configurazione (singleton)
 tana/listini/      Listino, VersioneListino (immutabile se usata), VoceListino, Categoria; versione_applicabile (D-09)
 tana/prenotazioni/ Prenotazione, PresenzaArea, Occupazione (exclusion constraint), BloccoTecnico, consensi, importi, pagamenti, messaggi
                    contributo.py: preventivo, consuntivo, acconto, saldo, rettifiche (§5) — unica fonte degli importi
+                   flusso.py: transizioni di stato (§4) con permessi, storico, email; scadenze dello scheduler
+                   notifiche.py + templates/prenotazioni/email/*.txt: email a richiedente e gestione (D-19)
 templates/         base.html (estende agesci_theme/base.html), core/manutenzione.html (statica)
 static/tana/       css/tana.css (palette), img/logo/*.svg (loghi della base, non ridisegnarli)
 deploy/            entrypoint.sh, nginx/ (Dockerfile + template dell'nginx interno)
 scripts/           installa.sh, aggiorna.sh, backup.sh, _comune.sh (copia), _tana.sh
-docs/              Tana_Progettazione.md (specifica), installazione.md (guida del server)
+docs/              Tana_Progettazione.md (specifica), installazione.md (guida del server),
+                   sestante/provider-tana.yaml (blueprint da consegnare ad Andrea)
 ```
 Nuove app in `tana/<nome>/` con `label` esplicita. La logica sta nei **servizi** di dominio
 (`tana/<app>/services.py`), usati da viste, comandi, PDF, export e import: mai duplicarla.
@@ -95,6 +99,8 @@ uv run python manage.py manutenzione attiva|disattiva|stato
 - **Unica fonte di verità** per prezzi, disponibilità e permessi: un livello di servizi condiviso.
 - **Listino congelato** sulla prenotazione; versioni di listino immutabili una volta usate.
 - **Decisioni discrezionali** sempre con "deciso da" e motivazione (P-03), nello storico.
+- **Stati** solo da `tana.prenotazioni.flusso` (mai `prenotazione.stato = ...` altrove); i
+  **permessi** solo da `tana.accounts.permessi`; le email partono in `transaction.on_commit`.
 - **Dati minimi** (D-18): nessun dato sui ragazzi; info interne solo ai gruppi confermati;
   ricevute solo via `X-Accel-Redirect` dopo il controllo dei permessi, mai in `MEDIA_ROOT`.
 - **Import SuperSaaS**: nessuna scrittura senza `--apply`, nessuna riga scartata in silenzio; i CSV

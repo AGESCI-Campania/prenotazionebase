@@ -249,9 +249,12 @@ def _versione_del_preventivo(prenotazione: Prenotazione) -> VersioneListino:
 
 
 def preventivo_congelato(prenotazione: Prenotazione) -> bool:
+    # Basta la ricevuta caricata; una ricevuta respinta non conta
     return (
         prenotazione.stato in STATI_PREVENTIVO_CONGELATO
-        or prenotazione.pagamenti.filter(tipo=Pagamento.Tipo.ACCONTO).exists()
+        or prenotazione.pagamenti.filter(tipo=Pagamento.Tipo.ACCONTO)
+        .exclude(stato=Pagamento.StatoPagamento.RESPINTO)
+        .exists()
     )
 
 
@@ -367,9 +370,9 @@ def acconto_previsto(prenotazione: Prenotazione) -> int | None:
 
 
 def acconto_versato(prenotazione: Prenotazione) -> int:
-    somma = prenotazione.pagamenti.filter(tipo=Pagamento.Tipo.ACCONTO).aggregate(
-        totale=Sum("importo_centesimi")
-    )["totale"]
+    somma = prenotazione.pagamenti.filter(
+        tipo=Pagamento.Tipo.ACCONTO, stato=Pagamento.StatoPagamento.VERIFICATO
+    ).aggregate(totale=Sum("importo_centesimi"))["totale"]
     return somma or 0
 
 

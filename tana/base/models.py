@@ -106,6 +106,15 @@ class Configurazione(models.Model):
     )
     # Conservazione dei dati personali (D-18)
     anni_conservazione = models.PositiveSmallIntegerField("anni di conservazione", default=10)
+    # Coordinate del bonifico (email di approvazione, PDF di conferma: D-19)
+    iban = models.CharField("IBAN", max_length=34, blank=True)
+    intestatario_bonifico = models.CharField("intestatario del conto", max_length=200, blank=True)
+    causale_bonifico = models.CharField(
+        "causale del bonifico",
+        max_length=200,
+        default="Acconto prenotazione {numero} - {gruppo}",
+        help_text="{numero} e {gruppo} si sostituiscono con i dati della prenotazione.",
+    )
     aggiornata_il = models.DateTimeField(auto_now=True)
 
     class Meta:

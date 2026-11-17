@@ -1,0 +1,7 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}Nuova richiesta di prenotazione da approvare.{% else %}Abbiamo ricevuto la tua richiesta di prenotazione. Le date restano riservate a te mentre la Pattuglia della base la esamina: riceverai un'email con l'esito.{% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% if preventivo.da_definire %}
+Alcune voci del contributo sono ancora da definire: le valorizza la gestione della base prima dell'approvazione.
+{% endif %}{% if p.categoria_prioritaria_richiesta and not p.categoria_prioritaria_concessa %}
+La categoria prioritaria è stata richiesta: finché non è concessa il contributo è calcolato sul listino associativo.
+{% endif %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

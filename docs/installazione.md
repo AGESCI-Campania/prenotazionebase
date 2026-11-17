@@ -135,13 +135,24 @@ Quando si spegne il vecchio sito Google (§ 12) si aggiunge anche il redirect da
 
 ## 7. SSO Sestante
 
-1. Consegna del blueprint `blueprints/provider-tana.yaml` (lo prepara lo sviluppo di Tana in F3)
-   ad Andrea, che lo aggiunge al repo `sestante` e lo applica con lo script di aggiornamento di Sestante.
+1. Il blueprint è in questo repo, `docs/sestante/provider-tana.yaml`: Andrea lo copia come
+   `blueprints/provider-tana.yaml` nel repo `sestante`, lo aggiunge a `BLUEPRINTS` in
+   `scripts/_sestante.sh` e lo applica con `scripts/aggiorna.sh` di Sestante.
 2. Client ID e secret da <https://auth.agescicampania.net/if/admin/#/core/providers> → Tana → modifica.
 3. In `/opt/prenotazionebase/.env`: `SOCIAL_SESTANTE_CLIENT_ID`, `SOCIAL_SESTANTE_CLIENT_SECRET`.
 4. `docker compose up -d` (ricrea i container: `restart` non rilegge `.env`).
 
-Callback registrata: `https://<TANA_HOST>/accounts/oidc/sestante/login/callback/`.
+Callback registrata: `https://baseaiello.agescicampania.net/accounts/oidc/sestante/login/callback/`
+(slug `tana`, issuer `https://auth.agescicampania.net/application/o/tana/`).
+
+Come funziona l'accesso:
+- account di gestione solo con il pulsante «SSO AGESCI Campania»: al primo accesso Tana collega
+  l'utente esistente con la stessa email, altrimenti lo crea senza ruoli;
+- i ruoli globali arrivano dai gruppi di Sestante a ogni login (`admin-multipiattaforma` →
+  Amministratore, `segreteria` → Segreteria regionale); gli altri ruoli li assegna la segreteria;
+- chi entra con Sestante non ripete la MFA in Tana; il superutente di emergenza (login locale) deve
+  attivare il TOTP al primo accesso e non può più disattivarlo;
+- i richiedenti continuano a registrarsi con email e password.
 
 ## 8. Email
 
@@ -158,14 +169,19 @@ docker compose exec web uv run python manage.py sendtestemail <indirizzo>
 
 1. `https://<TANA_HOST>/accounts/login/` con il superutente di emergenza; configurare subito la MFA.
 2. Primo login con Sestante di un account di gestione.
-3. Assegnazione dei ruoli (segreteria, amministratore, Pattuglia, redazione) — dalla F3.
+3. Assegnazione dei ruoli locali (Pattuglia, Amministratore, Responsabile, Redazione): per ora da
+   `/django-admin/` → Utenti → utente → Nomine (l'area della segreteria arriva in F5). Ogni ruolo
+   è anche un gruppo con lo stesso nome; il permesso «Riceve le notifiche di gestione» è assegnato
+   di default ad Amministratore e Responsabile e si sposta da Gruppi.
 4. Prove SSO del contratto: utente nuovo, utente esistente collegato per email, membro di
    `segreteria`, utente senza gruppi.
 
 ## 10. Configurazione iniziale nel backend
 
-Da completare nelle fasi successive: importi mancanti dei listini, orizzonte delle prenotazioni,
-coordinate bancarie, contenuti delle pagine del sito (emergenze, negozi, informazioni interne).
+Da `/django-admin/` → Configurazione: **IBAN, intestatario e causale del bonifico** (finché sono
+vuoti l'email di approvazione non mostra le coordinate), orizzonte delle prenotazioni.
+Nelle fasi successive: importi mancanti dei listini, contenuti delle pagine del sito (emergenze,
+negozi, informazioni interne).
 
 ## 11. Import da SuperSaaS
 

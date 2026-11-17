@@ -1,0 +1,5 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}La ricevuta dell'acconto è stata respinta.{% else %}La ricevuta dell'acconto che hai caricato non è stata accettata.{% endif %}
+Motivazione: {{ motivazione }}
+{% if not per_gestione %}Carica una nuova ricevuta entro il {{ p.scadenza_acconto|date:"j F Y, H:i"|lower }}: dopo quella data la prenotazione scade.{% else %}Nuova scadenza: {{ p.scadenza_acconto|date:"j F Y, H:i"|lower }}.{% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

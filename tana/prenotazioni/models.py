@@ -138,6 +138,20 @@ class Prenotazione(models.Model):
         help_text="Congelata sulla prenotazione (D-09).",
     )
     note = models.TextField(blank=True)
+    # Approvazione e acconto (D-13)
+    approvata_il = models.DateTimeField("approvata il", null=True, blank=True)
+    acconto_centesimi = models.PositiveIntegerField(
+        "acconto (centesimi)",
+        null=True,
+        blank=True,
+        help_text="Fissato all'approvazione; zero se non dovuto o esentato.",
+    )
+    scadenza_acconto = models.DateTimeField(
+        "scadenza dell'acconto",
+        null=True,
+        blank=True,
+        help_text="Senza ricevuta entro questa data la prenotazione scade.",
+    )
     id_supersaas = models.CharField(
         "id SuperSaaS", max_length=50, unique=True, null=True, blank=True, editable=False
     )
@@ -148,6 +162,8 @@ class Prenotazione(models.Model):
         verbose_name = "prenotazione"
         verbose_name_plural = "prenotazioni"
         ordering = ("-arrivo", "-pk")
+        # Assegnabile ai gruppi dei ruoli dall'admin, insieme alla casella della base
+        permissions = (("ricevi_notifiche_gestione", "Riceve le notifiche di gestione"),)
         constraints = (
             models.CheckConstraint(
                 condition=Q(partenza__gte=models.F("arrivo")),
@@ -423,6 +439,11 @@ class Pagamento(models.Model):
         ACCONTO = "ACCONTO", "acconto"
         SALDO = "SALDO", "saldo"
 
+    class StatoPagamento(models.TextChoices):
+        IN_VERIFICA = "IN_VERIFICA", "ricevuta da verificare"
+        VERIFICATO = "VERIFICATO", "verificato"
+        RESPINTO = "RESPINTO", "ricevuta respinta"
+
     prenotazione = models.ForeignKey(
         Prenotazione, on_delete=models.PROTECT, related_name="pagamenti"
     )
@@ -432,10 +453,20 @@ class Pagamento(models.Model):
     ricevuta = models.FileField(
         upload_to=_percorso_ricevuta, storage=storage_privato, blank=True, max_length=300
     )
+    stato = models.CharField(
+        max_length=20,
+        choices=StatoPagamento.choices,
+        default=StatoPagamento.VERIFICATO,
+        help_text="Le ricevute caricate dai richiedenti restano da verificare.",
+    )
     registrato_da = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
     )
     data = models.DateField()
+    verificato_da = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    verificato_il = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "pagamento"

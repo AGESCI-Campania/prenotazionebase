@@ -1,0 +1,3 @@
+{% load formati %}{% autoescape off %}È stata caricata la ricevuta dell'acconto ({{ pagamento.importo_centesimi|euro }}): va verificata per confermare la prenotazione.
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

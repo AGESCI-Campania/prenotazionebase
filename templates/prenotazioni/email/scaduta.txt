@@ -1,0 +1,3 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}La prenotazione è scaduta: nessuna ricevuta dell'acconto entro il termine. Le date sono di nuovo libere.{% else %}La prenotazione è scaduta perché non abbiamo ricevuto la ricevuta dell'acconto entro il termine: le date sono di nuovo libere. Puoi inviare una nuova richiesta se le date sono ancora disponibili.{% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

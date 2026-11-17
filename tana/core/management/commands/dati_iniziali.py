@@ -1,16 +1,19 @@
 """manage.py dati_iniziali — dati di partenza, idempotente (lanciato da scripts/installa.sh).
 
-Crea aree, strutture, categorie, listini con la versione 2022/2023 e la configurazione (§3,
-§5.3, D-10, D-12); in F6 anche l'albero delle pagine del sito (D-30).
+Crea aree, strutture, categorie, listini con la versione 2022/2023, la configurazione e i
+gruppi dei ruoli di gestione (§3, §5.3, §6, D-10, D-12); in F6 anche l'albero delle pagine del
+sito (D-30).
 Mai sovrascrivere dati già modificati dalla gestione: si crea solo ciò che manca, e le voci di
 una versione di listino solo quando si crea la versione.
 """
 
 import datetime
 
+from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from tana.accounts.models import Ruolo
 from tana.base.models import Area, Configurazione, Struttura
 from tana.listini.models import Attivita, Categoria, Listino, VersioneListino, VoceListino
 
@@ -116,6 +119,14 @@ CATEGORIE = (
 )
 
 
+# Permessi iniziali dei gruppi dei ruoli, assegnati solo quando il gruppo si crea: poi li
+# modifica l'amministratore (es. chi riceve le notifiche di gestione)
+PERMESSI_DEI_RUOLI: dict[str, tuple[str, ...]] = {
+    Ruolo.AMMINISTRATORE: ("prenotazioni.ricevi_notifiche_gestione",),
+    Ruolo.RESPONSABILE: ("prenotazioni.ricevi_notifiche_gestione",),
+}
+
+
 class Command(BaseCommand):
     help = "Crea i dati iniziali di Tana se mancano (idempotente)."
 
@@ -126,6 +137,7 @@ class Command(BaseCommand):
         self._strutture()
         listini = self._listini(aree)
         self._categorie(listini)
+        self._gruppi()
         Configurazione.corrente()
         self.stdout.write(f"Dati iniziali: {self.creati} elementi creati.")
 
@@ -197,3 +209,15 @@ class Command(BaseCommand):
                 },
             )
             self._conta(creata)
+
+    def _gruppi(self) -> None:
+        for ruolo in Ruolo:
+            gruppo, creato = Group.objects.get_or_create(name=ruolo.label)
+            self._conta(creato)
+            if not creato:
+                continue
+            for nome in PERMESSI_DEI_RUOLI.get(ruolo, ()):
+                app, codice = nome.split(".")
+                gruppo.permissions.add(
+                    Permission.objects.get(content_type__app_label=app, codename=codice)
+                )

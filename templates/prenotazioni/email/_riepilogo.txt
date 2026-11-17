@@ -1,0 +1,9 @@
+{% load formati %}Prenotazione {{ p.numero }}{% if p.gruppo %} – {{ p.gruppo }}{% endif %}
+Categoria: {{ p.categoria }}{% if p.specifica_categoria %} ({{ p.specifica_categoria }}){% endif %}
+{% if presenze %}Dal {{ p.arrivo|date:"l j F Y"|lower }} al {{ p.partenza|date:"l j F Y"|lower }}
+{% for presenza in presenze %}- {{ presenza.area }}: {{ presenza.persone_previste }} persone
+{% endfor %}{% if p.esclusiva_concessa %}- Uso esclusivo della base
+{% elif p.esclusiva_richiesta %}- Uso esclusivo richiesto
+{% endif %}{% endif %}{% for att in attivita %}- {{ att.get_tipo_display|capfirst }} il {{ att.data|date:"j F Y"|lower }}: {{ att.persone_previste }} persone
+{% endfor %}
+Contributo previsto: {{ preventivo.totale|euro }}{% if preventivo.totale != preventivo.totale_calcolato %} (calcolato dal listino: {{ preventivo.totale_calcolato|euro }}){% endif %}

@@ -14,8 +14,8 @@ tende), che saranno dismessi.
 - **Hosting:** nuovo server dedicato Ubuntu 26.04, installazione pulita senza Virtualmin né Apache;
   Docker Compose in `/opt/prenotazionebase` (utente `agesci`), dietro il reverse proxy Caddy comune;
   script, unit systemd e backup sul modello di **Plancia 3.0** (§9.1, D-27).
-- **Dominio:** `*.agescicampania.net` (il dominio `.org` è stato abbandonato). Sottodominio in
-  valutazione: `baseaiello.agescicampania.net` o `prenotazioni.baseaiello.agescicampania.net` (V-14).
+- **Dominio:** `*.agescicampania.net` (il dominio `.org` è stato abbandonato). Indirizzo di Tana:
+  **`baseaiello.agescicampania.net`** (V-14, chiusa il 17/11/2026).
 - **Sviluppo:** Claude Code, a partire da questo documento.
 
 Convenzioni: le decisioni sono **D-nn**, le verifiche aperte **V-nn**, le proposte **P-nn**.
@@ -479,6 +479,18 @@ RICHIESTA ──approva──► APPROVATA (attesa acconto) ──ricevuta verif
 - `CHIUSA`: consuntivo compilato e inviato.
 - Ogni transizione genera email (D-19) ed evento di storico.
 
+Scelte di F3 (Andrea, 17/11/2026):
+- **Notifiche di gestione**: alla casella della base e agli utenti con il permesso «Riceve le
+  notifiche di gestione», assegnabile a qualunque ruolo (ogni ruolo è un gruppo); di default
+  Amministratore e Responsabile della base.
+- **Acconto zero** (esenzione o soggiorno sotto la soglia): la prenotazione resta `APPROVATA`, senza
+  scadenza, finché la Pattuglia non la conferma a mano.
+- **Ricevuta**: caricata entro il termine ferma la scadenza anche se la verifica arriva dopo; la
+  verifica (importo correggibile) porta a `CONFERMATA`; una ricevuta respinta fa ripartire il termine.
+- **Rifiuto**: motivazione obbligatoria (con "deciso da", P-03); l'invio della motivazione nell'email
+  al richiedente si sceglie al momento del rifiuto.
+- `NON_SVOLTA` → `SVOLTA` (storico importato) solo dall'amministrazione e senza email.
+
 ---
 
 ## 5. Calcolo del contributo
@@ -836,7 +848,6 @@ contenuti → import SuperSaaS → verifiche → spegnimento di SuperSaaS e del 
 
 | N. | Verifica | Come si procede intanto |
 | --- | --- | --- |
-| V-14 | *(si decide in codifica)* Sottodominio: `baseaiello.agescicampania.net` o `prenotazioni.baseaiello.agescicampania.net`. Oggi `www.baseaiello.agescicampania.net` punta al Google Site (CNAME a `ghs.googlehosted.com`, attivo dal 17/11/2026) e `baseaiello.agescicampania.net` è libero. Allo spegnimento del Google Site il nome `www` passa al server, con redirect all'indirizzo scelto (blocco Caddy, §9.1) | `ALLOWED_HOSTS`/`BASE_URL` in `.env` |
 | V-16 | *(si decide in codifica)* Nome della casella mittente e metodo di invio da Google Workspace (password per app o SMTP relay) | Variabili in `.env` |
 | V-13 | Punti 11.1–11.9 della sintesi v0.2 in lettura alla Pattuglia: le risposte di Andrea del 10/11 valgono salvo diversa indicazione | Decisioni attuali |
 
@@ -844,7 +855,9 @@ Chiuse il 10/11/2026: V-02 (importi inseriti dalla gestione), V-03 (responsabile
 V-04 (hosting), V-05 (titolare e conservazione), V-06 (listino extra con voci proprie), V-07 (area
 verde senza sala), V-08 (frigo e fuochi per area), V-09 (niente offline), V-10 (CFT → Fo.Ca.
 regionale), V-11 (consenso alla prima uscita), V-12 (orizzonte). Chiusa il 13/11/2026: V-01
-(repository `AGESCI-Campania/prenotazionebase`). Chiuse il 17/11/2026: V-15 (Sestante secondo il
+(repository `AGESCI-Campania/prenotazionebase`). Chiusa il 17/11/2026 in F3: V-14 (indirizzo `baseaiello.agescicampania.net`; allo spegnimento
+del Google Site `www.baseaiello.agescicampania.net` passa al server con redirect, blocco Caddy §9.1).
+Chiuse il 17/11/2026: V-15 (Sestante secondo il
 contratto `INTEGRAZIONE-SSO.md`, slug `tana`, blueprint preparato dall'agente: D-28, P-21; client id e
 secret si copiano in `.env` all'installazione), V-17 (backup notturno di progetto con `backup.sh` e
 timer systemd come Plancia 3.0; la copia fuori dal server della cartella `backups/` è compito

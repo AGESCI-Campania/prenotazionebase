@@ -1,0 +1,11 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}La richiesta è stata approvata.{% else %}La tua richiesta di prenotazione è stata approvata.{% endif %}
+
+{% include "prenotazioni/email/_riepilogo.txt" %}
+{% if p.acconto_centesimi %}{% if not per_gestione %}Per confermare la prenotazione versa l'acconto di {{ p.acconto_centesimi|euro }} e carica la ricevuta del bonifico entro il {{ p.scadenza_acconto|date:"j F Y, H:i"|lower }}: senza ricevuta la prenotazione scade e le date si liberano. L'acconto non è rimborsabile.
+{% if conf.iban %}
+IBAN: {{ conf.iban }}{% if conf.intestatario_bonifico %}
+Intestatario: {{ conf.intestatario_bonifico }}{% endif %}
+Causale: {{ causale }}
+{% endif %}{% else %}Acconto richiesto: {{ p.acconto_centesimi|euro }}, ricevuta entro il {{ p.scadenza_acconto|date:"j F Y, H:i"|lower }}.
+{% endif %}{% else %}{% if per_gestione %}Nessun acconto: la prenotazione va confermata dalla Pattuglia.{% else %}Non è richiesto alcun acconto: la Pattuglia della base confermerà a breve la prenotazione.{% endif %}
+{% endif %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

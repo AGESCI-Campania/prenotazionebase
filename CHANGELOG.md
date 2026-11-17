@@ -5,6 +5,22 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### F3 — flusso, email e login Sestante
+- Ruoli di gestione come nomine (Pattuglia, Amministratore, Responsabile, Redazione, Segreteria),
+  ognuno con il suo gruppo Django; permessi del §6 in `tana.accounts.permessi`.
+- Login Sestante: provisioning, collegamento per email, rifiuto senza email o con email doppia,
+  ruoli globali dal claim `groups` a ogni login; niente MFA ripetuta per le sessioni Sestante;
+  TOTP obbligatorio e non rimovibile per il superutente di emergenza. Blueprint
+  `docs/sestante/provider-tana.yaml` per `baseaiello.agescicampania.net`.
+- Flusso della prenotazione (`tana.prenotazioni.flusso`): richiesta (orizzonte, prioritarie,
+  esclusiva), approvazione con concessioni e acconto come decisioni, rifiuto motivato, annullamento,
+  ricevuta dell'acconto (caricamento, verifica, rifiuto), conferma senza acconto, svolta, chiusura
+  con consuntivo.
+- Scheduler: acconti scaduti → SCADUTA, soggiorni conclusi → SVOLTA.
+- Email a ogni cambio di stato al richiedente e alla gestione (casella della base e permesso
+  «Riceve le notifiche di gestione», di default ad Amministratore e Responsabile).
+- Configurazione: IBAN, intestatario e causale del bonifico.
+
 ### F2 — preventivo e consuntivo
 - `tana.prenotazioni.contributo`: preventivo (§5.1) giorno per giorno con le stagioni, bivacco a
   notti per i soggiorni di una notte, attività in giornata, voci "da definire" (P-04), listino

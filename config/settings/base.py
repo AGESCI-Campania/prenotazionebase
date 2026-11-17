@@ -71,6 +71,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "tana.accounts.middleware.MFAObbligatoriaMiddleware",
     "tana.core.middleware.ManutenzioneMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "axes.middleware.AxesMiddleware",
@@ -163,8 +164,14 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 LOGIN_REDIRECT_URL = "/"
-SOCIALACCOUNT_AUTO_SIGNUP = False  # auto-signup solo per Sestante, nell'adapter (F3)
+SOCIALACCOUNT_AUTO_SIGNUP = False  # auto-signup solo per Sestante, nell'adapter
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_ADAPTER = "tana.accounts.adapters.TanaSocialAccountAdapter"
+MFA_ADAPTER = "tana.accounts.adapters.TanaMFAAdapter"
 MFA_SUPPORTED_TYPES = ["totp", "recovery_codes"]
+MFA_TOTP_ISSUER = "Tana – Base Scout Aiello"
 
 # Sestante (SSO AGESCI Campania): senza client id il provider non si configura e il pulsante
 # non compare, ma l'app parte comunque (contratto INTEGRAZIONE-SSO.md di Sestante).

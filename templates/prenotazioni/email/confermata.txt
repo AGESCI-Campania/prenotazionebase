@@ -1,0 +1,5 @@
+{% load formati %}{% autoescape off %}{% if per_gestione %}La prenotazione è confermata.{% else %}La tua prenotazione è confermata: ti aspettiamo alla base!{% endif %}
+{% if pagamento %}Acconto ricevuto: {{ pagamento.importo_centesimi|euro }}.
+{% endif %}Orari standard: arrivo dalle {{ conf.orario_arrivo|time:"H:i" }}, partenza entro le {{ conf.orario_partenza|time:"H:i" }}. Per arrivare prima o partire dopo accordati con il gruppo che lascia o che arriva.
+
+{% include "prenotazioni/email/_riepilogo.txt" %}{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}
