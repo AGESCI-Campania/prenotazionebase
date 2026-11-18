@@ -5,6 +5,8 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.14 — 2026-11-18
+
 ### Correzioni
 
 - Primo accesso con Sestante di un account pre-registrato (ruolo assegnato prima dell'iscrizione): Tana non chiede più di verificare l'email, che Sestante ha già verificato. Vale anche per chi era già collegato e aveva l'email non verificata: si sistema al prossimo accesso.
