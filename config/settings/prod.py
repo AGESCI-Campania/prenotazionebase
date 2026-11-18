@@ -5,8 +5,6 @@ Regole: docs/INTEGRAZIONE.md del repo agesci-campania-web-frontend (§ 2.4–2.5
 
 from pathlib import Path
 
-from django.utils.csp import CSP
-
 from tana.core.log import configurazione as configurazione_logging
 
 from .base import *  # noqa: F401,F403
@@ -29,26 +27,6 @@ SILENCED_SYSTEM_CHECKS = ["security.W019"]  # SAMEORIGIN voluto, vedi sopra
 
 # Il healthcheck chiama /healthz/ in HTTP dentro il container: niente redirect HTTPS lì
 SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
-
-# Il tema 3.0.0a3 carica Bootstrap 6 da jsDelivr e i font da Google Fonts (base.html del tema)
-SECURE_CSP = {
-    "default-src": [CSP.SELF],
-    "script-src": [CSP.SELF, CSP.UNSAFE_INLINE, "https://cdn.jsdelivr.net"],
-    "style-src": [
-        CSP.SELF,
-        CSP.UNSAFE_INLINE,
-        "https://cdn.jsdelivr.net",
-        "https://fonts.googleapis.com",
-    ],
-    "img-src": [CSP.SELF, "data:", "https:"],
-    "font-src": [CSP.SELF, "data:", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
-    "connect-src": [CSP.SELF],
-    "frame-src": [CSP.SELF, "https://www.google.com", "https://www.openstreetmap.org"],
-    "object-src": [CSP.NONE],
-    "base-uri": [CSP.SELF],
-    "form-action": [CSP.SELF, "https://auth.agescicampania.net"],
-    "frame-ancestors": [CSP.SELF],
-}
 
 # Ricevute e allegati privati: li serve l'nginx interno dopo il controllo in Django (P-14)
 PRIVATI_X_ACCEL = True

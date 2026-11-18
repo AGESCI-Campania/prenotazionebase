@@ -9,7 +9,8 @@ from django.urls import reverse
 
 from .adapters import mfa_obbligatoria, sessione_da_sestante
 
-PERCORSI_LIBERI = ("/accounts/", "/healthz/", "/static/")
+# sw.js e manifest: il browser li chiede da solo, un redirect darebbe solo errori in console
+PERCORSI_LIBERI = ("/accounts/", "/healthz/", "/static/", "/sw.js", "/manifest.webmanifest")
 
 
 class MFAObbligatoriaMiddleware:

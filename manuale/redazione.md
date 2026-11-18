@@ -51,7 +51,8 @@ pagina «Le strutture» si scelgono quelle da mostrare sul sito.
 ## Impostazioni del sito
 
 Menu **Impostazioni** › **Impostazioni del sito**: email, telefono, Facebook e Instagram che
-compaiono nel piè di pagina.
+compaiono nel piè di pagina. Gli altri link del piè di pagina (pagine di Tana, «Manuale d'uso»,
+campania.agesci.it) sono fissi e non si cambiano da qui.
 
 ## Immagini e documenti
 

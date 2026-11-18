@@ -9,10 +9,12 @@ anche amministratore e responsabile della base, che hanno in più le funzioni de
 La barra laterale ha tre sezioni a fisarmonica (se ne apre una alla volta):
 
 - **Prenotazioni**: «Cruscotto», «Da approvare», «Acconti da verificare», «Consensi in attesa»,
-  «Consuntivi», «Messaggi senza risposta», «Tutte le prenotazioni», «Calendario», «Arrivi e
+  «Consuntivi», «Messaggi» (quelli senza risposta), «Tutte le prenotazioni», «Calendario», «Arrivi e
   partenze». Il numero accanto al titolo è il totale delle cose da fare.
 - **Configurazione**: solo amministrazione e segreteria.
 - **Report**: «Statistiche», «Export contabilità».
+
+In fondo alla barra, **«Manuale d'uso»** apre questo manuale in una nuova scheda.
 
 ## Cruscotto
 
@@ -76,7 +78,7 @@ gli orari standard della configurazione). Il gruppo riceve un'email.
 ### Messaggi
 
 In **Messaggi con il gruppo** scrivi nel campo «Risposta della Pattuglia» e premi **Invia**. I
-messaggi a cui la gestione non ha ancora risposto sono in «Messaggi senza risposta».
+messaggi a cui la gestione non ha ancora risposto sono nella voce «Messaggi» del menu.
 
 ### Storico
 

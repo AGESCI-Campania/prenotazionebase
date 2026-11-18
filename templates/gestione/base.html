@@ -20,10 +20,10 @@
           {% include "gestione/_voce.html" with nome="acconti" url_nome="gestione:elenco" etichetta="Acconti da verificare" conteggio=contatori.acconti query="?elenco=acconti" icona="acconti" %}
           {% include "gestione/_voce.html" with nome="consensi" url_nome="gestione:elenco" etichetta="Consensi in attesa" conteggio=contatori.consensi query="?elenco=consensi" icona="consensi" %}
           {% include "gestione/_voce.html" with nome="consuntivi" url_nome="gestione:elenco" etichetta="Consuntivi" conteggio=contatori.consuntivi query="?elenco=consuntivi" icona="consuntivi" %}
-          {% include "gestione/_voce.html" with nome="messaggi" url_nome="gestione:elenco" etichetta="Messaggi senza risposta" conteggio=contatori.messaggi query="?elenco=messaggi" icona="messaggi" %}
+          {% include "gestione/_voce.html" with nome="messaggi" url_nome="gestione:elenco" etichetta="Messaggi" conteggio=contatori.messaggi query="?elenco=messaggi" icona="messaggi" %}
           {% include "gestione/_voce.html" with nome="tutte" url_nome="gestione:elenco" etichetta="Tutte le prenotazioni" query="?elenco=tutte" icona="tutte" %}
           {% include "gestione/_voce.html" with nome="calendario" url_nome="gestione:calendario" etichetta="Calendario" icona="calendario" %}
-          {% include "gestione/_voce.html" with nome="arrivi" url_nome="gestione:arrivi" etichetta="Arrivi e partenze" icona="arrivi" %}
+          {% if puo.pattuglia %}{% include "gestione/_voce.html" with nome="arrivi" url_nome="gestione:arrivi" etichetta="Arrivi e partenze" icona="arrivi" %}{% endif %}
         </ul>
       </details>
     </li>
@@ -57,6 +57,7 @@
         </ul>
       </details>
     </li>
+    <li><a class="ag-sidebar__nav-link" href="{{ manuale_url }}" target="_blank" rel="noopener">{% include "gestione/_icona.html" with icona="manuale" %}<span class="ag-sidebar__label">Manuale d'uso</span></a></li>
   </ul>
 </dialog>
 {% endblock %}

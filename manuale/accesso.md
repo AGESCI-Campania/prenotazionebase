@@ -51,3 +51,9 @@ La pagina «Accedi»: in cima il pulsante dell'SSO, sotto email e password.
 I ruoli (Pattuglia, Amministratore, Responsabile della base, Redazione, Segreteria regionale) li
 assegna la Segreteria regionale: vedi {doc}`segreteria`. Amministratore e Segreteria possono
 arrivare anche da Sestante, insieme all'account regionale.
+
+## Il piè di pagina
+
+In fondo a ogni pagina ci sono i link «Disponibilità», «Listino prezzi», «Le mie prenotazioni»
+(dopo l'accesso) e **«Manuale d'uso»**, che apre questo manuale in una nuova scheda, oltre ai
+contatti della base e al link al sito della Regione AGESCI Campania.

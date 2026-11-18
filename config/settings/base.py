@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import environ
+from django.utils.csp import CSP
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -74,12 +75,34 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "tana.accounts.middleware.MFAObbligatoriaMiddleware",
     "tana.core.middleware.ManutenzioneMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "axes.middleware.AxesMiddleware",
 ]
+
+# CSP uguale in sviluppo, test e produzione (le violazioni si vedono subito in locale).
+# Il tema 3.0.0a3 carica Bootstrap 6 da jsDelivr e i font da Google Fonts (base.html del tema)
+SECURE_CSP = {
+    "default-src": [CSP.SELF],
+    "script-src": [CSP.SELF, CSP.UNSAFE_INLINE, "https://cdn.jsdelivr.net"],
+    "style-src": [
+        CSP.SELF,
+        CSP.UNSAFE_INLINE,
+        "https://cdn.jsdelivr.net",
+        "https://fonts.googleapis.com",
+    ],
+    "img-src": [CSP.SELF, "data:", "https:"],
+    "font-src": [CSP.SELF, "data:", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
+    "connect-src": [CSP.SELF],
+    "frame-src": [CSP.SELF, "https://www.google.com", "https://www.openstreetmap.org"],
+    "object-src": [CSP.NONE],
+    "base-uri": [CSP.SELF],
+    "form-action": [CSP.SELF, "https://auth.agescicampania.net"],
+    "frame-ancestors": [CSP.SELF],
+}
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -95,6 +118,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "agesci_theme.context_processors.agesci_theme",
+                "tana.core.context_processors.manuale",
                 "tana.gestione.context_processors.menu",
                 "tana.sito.context_processors.menu",
                 "wagtail.contrib.settings.context_processors.settings",
@@ -166,6 +190,8 @@ WAGTAILADMIN_BASE_URL = BASE_URL
 WAGTAIL_I18N_ENABLED = False
 WAGTAILSEARCH_BACKENDS = {"default": {"BACKEND": "wagtail.search.backends.database"}}
 WAGTAILDOCS_EXTENSIONS = ["pdf"]
+# Gravatar sempre in https (il default «//» in http locale viola la CSP, img-src https:)
+WAGTAIL_GRAVATAR_PROVIDER_URL = "https://www.gravatar.com/avatar"
 # Editor (P-15) con il login di Tana (Sestante o superutente); password gestite da allauth
 WAGTAILADMIN_LOGIN_URL = "account_login"
 # Chi è già collegato ma non può entrare nell'editor vede la pagina di accesso (per cambiare
@@ -249,6 +275,9 @@ ADMINS = env.list("ADMIN_EMAILS", default=[])  # indirizzi, non più coppie (nom
 
 # --- Aggiornamento dal web (P-20) -------------------------------------------------------
 # Bind mount di /opt/prenotazionebase/aggiornamenti: Django scrive solo richiesta.json
+# Manuale d'uso su Read the Docs: la versione dell'ultima release, link nel footer e nella gestione
+MANUALE_URL = "https://baseaiello.readthedocs.io/it/stable/"
+
 AGGIORNAMENTI_DIR = BASE_DIR / "aggiornamenti"
 AGGIORNAMENTI_CONTROLLO_RELEASE = True  # controllo giornaliero dell'ultima release su GitHub
 

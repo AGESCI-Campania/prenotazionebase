@@ -3,6 +3,7 @@ import datetime
 import io
 
 import pytest
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.test import Client
 from django.urls import reverse
@@ -59,6 +60,11 @@ def test_accessi(client, richiedente, pattuglia, admin, segreteria):
     assert cliente_di(pattuglia).get(reverse("gestione:configurazione")).status_code == 403
     assert cliente_di(admin).get(reverse("gestione:utenti")).status_code == 403
     assert cliente_di(segreteria).get(reverse("gestione:utenti")).status_code == 200
+    # Arrivi e partenze solo alla Pattuglia (e all'amministrazione): niente voce alla segreteria
+    arrivi = reverse("gestione:arrivi")
+    assert cliente_di(segreteria).get(arrivi).status_code == 403
+    assert arrivi not in cliente_di(segreteria).get(url).content.decode()
+    assert arrivi in cliente_di(pattuglia).get(url).content.decode()
     # Voce «Gestione» nel menu solo a chi la vede
     assert "Gestione" in cliente_di(pattuglia).get(reverse("listino")).content.decode()
     assert ">Gestione<" not in cliente_di(richiedente).get(reverse("listino")).content.decode()
@@ -389,6 +395,14 @@ def test_menu_a_sezioni(prenotazione, admin, pattuglia):
     pagina = cliente_di(pattuglia).get(elenco).content.decode()
     assert pagina.count('name="tana-menu"') == 2  # niente Configurazione per la Pattuglia
     assert f'active" href="{elenco}"' in pagina
+
+
+def test_link_al_manuale(admin, client):
+    # Nel footer per tutti, anche senza accesso, e nel menu della gestione
+    url = settings.MANUALE_URL
+    assert f'href="{url}"' in client.get(reverse("listino")).content.decode()
+    pagina = cliente_di(admin).get(reverse("gestione:statistiche")).content.decode()
+    assert pagina.count(f'href="{url}"') == 2
 
 
 def test_correzione_di_una_versione(prenotazione, admin):

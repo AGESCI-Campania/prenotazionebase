@@ -49,6 +49,9 @@ Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
   Aggiornamento del tema: `uv add --prerelease allow django-agesci-campania-theme`.
 - **ALTCHA** (D-33): `altcha` Python + widget 3.5.0 in `static/tana/vendor/` (variante `external`, senza
   `blob:` per la CSP; il worker PBKDF2 si registra a mano), per la richiesta senza account.
+- **CSP** (`SECURE_CSP` in `config/settings/base.py`, middleware di Django): uguale in sviluppo, test e
+  produzione. Una risorsa esterna nuova (script, font, iframe, form verso altri domini) va aggiunta lì,
+  altrimenti il browser la blocca; niente `eval` né `blob:`.
 - **django-allauth** (email con verifica obbligatoria, MFA, SSO Sestante via `openid_connect`),
   **django-axes**, **WhiteNoise**, **WeasyPrint** (PDF), **openpyxl** (Excel), **gunicorn**.
 - Niente Celery/Redis: le scadenze le esegue il servizio `scheduler` (`manage.py scheduler`).
@@ -185,7 +188,8 @@ commit**, poi `git tag vX.Y.Z && git push origin vX.Y.Z` e `gh release create vX
 della sezione (mai `--prerelease`: la pagina Aggiornamenti legge `releases/latest`, che le ignora).
 Tag e release sempre insieme. Sul server solo `scripts/aggiorna.sh`.
 
-**Manuale d'uso** (`manuale/`, pubblicato su Read the Docs a ogni push): ogni modifica visibile
+**Manuale d'uso** (`manuale/`, pubblicato su Read the Docs a ogni push in
+<https://baseaiello.readthedocs.io>, link `MANUALE_URL` nel footer e nel menu della gestione): ogni modifica visibile
 agli utenti aggiorna nello stesso commit il capitolo del ruolo interessato (richiedenti,
 pattuglia, amministrazione, segreteria, redazione, automatismi), con le etichette esatte
 dell'interfaccia; le «Novità» si aggiornano da sole dal CHANGELOG. Se cambia una pagina fotografata si

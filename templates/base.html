@@ -81,6 +81,7 @@
         <li><a href="{% url 'disponibilita' %}">Disponibilità</a></li>
         <li><a href="{% url 'listino' %}">Listino prezzi</a></li>
         {% if request.user.is_authenticated %}<li><a href="{% url 'prenotazioni:elenco' %}">Le mie prenotazioni</a></li>{% endif %}
+        <li><a href="{{ manuale_url }}" target="_blank" rel="noopener">Manuale d'uso</a></li>
       </ul>
       <ul class="tana-footer__voci" aria-label="Contatti">
         {% with impostazioni=settings.sito.ImpostazioniSito %}
@@ -94,7 +95,7 @@
     <div class="ag-footer__bottom tana-footer__fondo">
       <p>© Regione AGESCI Campania · Associazione Guide e Scouts Cattolici Italiani</p>
       <ul>
-        <li><a href="https://www.agesci.it" target="_blank" rel="noopener">agesci.it</a></li>
+        <li><a href="https://campania.agesci.it" target="_blank" rel="noopener">campania.agesci.it</a></li>
       </ul>
     </div>
   </div>

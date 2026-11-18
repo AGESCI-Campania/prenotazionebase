@@ -5,6 +5,19 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.11 — 2026-11-18
+
+### Sicurezza
+
+- La **Content Security Policy** è finalmente applicata: le regole c'erano nelle impostazioni ma mancava il middleware che le invia. Ora valgono uguali in sviluppo, test e produzione; provate su tutte le pagine (sito, area richiedente, gestione, editor del sito, admin, mappe incorporate) senza violazioni. Gli avatar Gravatar dell'editor si chiedono sempre in https.
+- Superutente senza MFA: `sw.js` e il manifest non vengono più reindirizzati all'attivazione del TOTP (errori in console).
+
+### Modifiche
+
+- Link **«Manuale d'uso»** (<https://baseaiello.readthedocs.io>, versione dell'ultima release) nel piè di pagina per tutti e in fondo al menu della gestione.
+- Piè di pagina: il link al sito associativo porta a campania.agesci.it invece che ad agesci.it.
+- Menu della gestione: «Arrivi e partenze» solo a chi può aprirla (non più alla Segreteria, che riceveva «accesso negato»); «Messaggi senza risposta» diventa «Messaggi» (l'etichetta era troncata).
+
 ## v1.0.10 — 2026-11-18
 
 ### Novità

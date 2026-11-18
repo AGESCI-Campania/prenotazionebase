@@ -1,7 +1,8 @@
 # Segreteria regionale
 
 La Segreteria regionale **vede tutte le prenotazioni in sola lettura** (elenchi, schede,
-calendario, statistiche, export) e **assegna i ruoli** di Tana. Il ruolo arriva da Sestante
+calendario, statistiche, export) e **assegna i ruoli** di Tana. «Arrivi e partenze», che serve
+all'accoglienza in base, è solo della Pattuglia e dell'amministrazione. Il ruolo arriva da Sestante
 (gruppo `segreteria`) o si assegna in Tana.
 
 ## Utenti e ruoli
