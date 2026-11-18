@@ -129,6 +129,9 @@ uv run python manage.py manutenzione attiva|disattiva|stato
 - **Stati** solo da `tana.prenotazioni.flusso` (unica eccezione: l'import dello storico in
   `importazione.py`, che non manda email; mai `prenotazione.stato = ...` altrove); i
   **permessi** solo da `tana.accounts.permessi`; le email partono in `transaction.on_commit`.
+- **Permessi nuovi**: se non è specificato diversamente vanno sempre ad **Amministratore e
+  Responsabile della base** (richiesta di Andrea del 18/11/2026). Pianificato in `TODO.md`:
+  avviare gli aggiornamenti solo Amministratore, non Responsabile.
 - **Dati minimi** (D-18): nessun dato sui ragazzi; info interne solo ai gruppi confermati;
   ricevute solo via `X-Accel-Redirect` dopo il controllo dei permessi, mai in `MEDIA_ROOT`.
 - **Import SuperSaaS**: nessuna scrittura senza `--apply`, nessuna riga scartata in silenzio; i CSV

@@ -29,7 +29,10 @@ o «Accoglienza» (solo arrivi e partenze).
    ruoli, email di gestione, informazioni riservate. Sta nel codice, perché ogni permesso
    corrisponde a controlli nel codice.
 2. **Ruoli di base come preimpostazioni** del catalogo, non modificabili: Pattuglia,
-   Amministratore, Responsabile della base, Redazione, Segreteria regionale.
+   Amministratore, Responsabile della base, Redazione, Segreteria regionale. Amministratore e
+   Responsabile hanno tutti i permessi del catalogo tranne assegnare Amministratore,
+   Responsabile e Segreteria (resta alla segreteria) e, per il Responsabile, gli aggiornamenti
+   (vedi sotto).
 3. **Ruoli personalizzati**: nuova pagina Configurazione › **Ruoli**, con nome, descrizione e
    una casella per ogni permesso ammesso.
 4. **`permessi.py` resta l'unica fonte**: i controlli diventano «ha il permesso X», calcolato
@@ -50,6 +53,20 @@ o «Accoglienza» (solo arrivi e partenze).
 - **B.** Modello dei ruoli personalizzati, pagina *Ruoli*, allineamento dei gruppi, storico.
 - **C.** Assegnazione e inviti; tabella del manuale generata dal catalogo; specifica (nuova
   proposta, §6) e manuale.
+
+### Da fare insieme (richieste di Andrea del 18/11/2026)
+
+- **Aggiornamenti solo all'Amministratore**: avviare gli aggiornamenti della piattaforma
+  (Configurazione › Aggiornamenti) lo può fare solo l'Amministratore, locale o da Sestante, e
+  non più il Responsabile della base. Oggi c'è `@accesso(permessi.e_amministrazione)` su
+  `aggiornamenti` in `tana/gestione/views.py`. Cambia la regola della specifica §6 «il
+  responsabile ha gli stessi permessi dell'amministratore»: va aggiornata insieme al §6, al
+  manuale (`amministrazione.md`, `ruoli.md`) e al test della tabella. Nel catalogo diventa un
+  permesso a sé, presente solo nella preimpostazione di Amministratore.
+- **Permessi nuovi ad Amministratore e Responsabile**: ogni permesso che si aggiunge al catalogo
+  va di default nelle preimpostazioni di Amministratore e di Responsabile della base, se non è
+  specificato diversamente. Il test della tabella lo deve verificare. La regola vale già oggi
+  per ogni nuovo controllo in `permessi.py` (scritta in `CLAUDE.md`).
 
 ### Decisioni aperte
 
