@@ -5,6 +5,8 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.12 — 2026-11-18
+
 ### Sicurezza
 
 - Chi ha un **ruolo di gestione** non entra più con email e password, nemmeno se se n'è impostata una con «Password dimenticata?» o da richiedente prima del ruolo: entra solo con «SSO AGESCI Campania», che chiede la verifica in due passaggi. Vale anche per il login dell'editor del sito e dell'admin; resta escluso il superutente di emergenza (con la sua MFA).
