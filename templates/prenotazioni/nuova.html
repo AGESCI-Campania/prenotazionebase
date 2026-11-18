@@ -6,6 +6,8 @@
 {% if bloccate %}
 <div class="alert theme-warning mt-5">{{ bloccate|urlize|linebreaksbr }}</div>
 {% else %}
+{% if avviso_demo %}<div class="alert theme-info mt-5">Modalità demo: questa è una prenotazione di prova, non è valida e sarà cancellata al termine della prova.</div>{% endif %}
+{% if not request.user.is_authenticated and passo == 1 %}<p class="mt-5">Non serve registrarsi: alla fine ti mandiamo un'email per confermare la richiesta. Hai già un account? <a href="{% url 'account_login' %}?next={{ request.path|urlencode }}">Accedi</a>.</p>{% endif %}
 <div class="mt-5 mb-7">{% ag_stepper steps=passi current=passo %}</div>
 
 {% if passo == 1 %}
@@ -62,7 +64,9 @@
           {% csrf_token %}
           {{ form.non_field_errors }}
           {% for field in form %}{% include "prenotazioni/_campo.html" %}{% endfor %}
+          {% if not request.user.is_authenticated %}<altcha-widget class="d-block mb-5" challenge="{% url 'prenotazioni:sfida' %}" language="it" name="altcha" auto="onfocus"></altcha-widget>{% endif %}
           <button class="btn-solid theme-primary" type="submit"{% if preventivo and not preventivo.esito.tutte_libere %} disabled{% endif %}>Invia la richiesta</button>
+          {% if not request.user.is_authenticated %}<p class="small fg-2 mt-3">Ti mandiamo un'email a <b>{{ richiedente.referente_email }}</b> con il link per confermare la richiesta: le date si riservano solo con la conferma.</p>{% endif %}
         </form>
       </div></div>
     </div>
@@ -75,4 +79,11 @@
 {% endblock %}
 {% block extra_js %}{{ block.super }}
   {% if passo == 2 %}<script type="module" src="{% static 'tana/js/nuova-richiesta.js' %}"></script>{% endif %}
+  {% if passo == 3 and not request.user.is_authenticated %}
+    {# ALTCHA, variante senza blob: per la CSP; il worker PBKDF2 si registra a mano #}
+    <link rel="stylesheet" href="{% static 'tana/vendor/altcha-3.5.0/altcha.css' %}">
+    <script src="{% static 'tana/vendor/altcha-3.5.0/altcha.min.js' %}"></script>
+    <script src="{% static 'tana/vendor/altcha-3.5.0/it.js' %}"></script>
+    <script>$altcha.algorithms.set("PBKDF2/SHA-256", () => new Worker("{% static 'tana/vendor/altcha-3.5.0/workers/pbkdf2.js' %}"));</script>
+  {% endif %}
 {% endblock %}

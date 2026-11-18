@@ -41,7 +41,7 @@ def test_si_attiva_solo_senza_prenotazioni(admin, pattuglia, richiedente, contat
 
 def test_in_demo_prenota_solo_la_gestione(admin, pattuglia, richiedente, contatto):
     demo.attiva(utente=admin)
-    with pytest.raises(ValidationError, match="prova del sistema"):
+    with pytest.raises(ValidationError, match="versione di prova"):
         richiesta(richiedente, contatto)
     assert richiesta(pattuglia, contatto).pk
 
@@ -100,7 +100,7 @@ def test_in_demo_registrazione_chiusa_tranne_sestante(admin, client, settings):
     assert pagina.index("Accedi con SSO AGESCI Campania") < pagina.index('name="password1"')
     demo.attiva(utente=admin)
     pagina = client.get(reverse("account_signup")).content.decode()
-    assert "Le registrazioni non sono ancora aperte" in pagina and "password1" not in pagina
+    assert "versione di prova" in pagina and "password1" not in pagina
     assert "Accedi con SSO AGESCI Campania" in pagina and "oppure con email" not in pagina
     dati = {
         "email": "nuovo@example.org",

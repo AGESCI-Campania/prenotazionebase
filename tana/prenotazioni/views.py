@@ -8,6 +8,7 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -17,10 +18,12 @@ from django.http import (
     HttpRequest,
     HttpResponse,
     HttpResponseBase,
+    JsonResponse,
     QueryDict,
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import urlencode
 from django.views.decorators.http import require_POST
 
@@ -29,7 +32,17 @@ from tana.base.models import Area, Configurazione
 from tana.core.pdf import PdfNonDisponibile
 from tana.listini.models import Categoria
 
-from . import consensi, contributo, demo, disponibilita, documenti, flusso, messaggi
+from . import (
+    consensi,
+    contributo,
+    demo,
+    disponibilita,
+    documenti,
+    flusso,
+    messaggi,
+    richieste_da_confermare,
+    verifica_umana,
+)
 from .forms import (
     AnnullaForm,
     MessaggioForm,
@@ -311,8 +324,14 @@ def prenotazione_url(prenotazione: Prenotazione) -> str:
 
 def _dati(request: HttpRequest, passo: str) -> QueryDict | None:
     salvati = request.session.get(CHIAVE_SESSIONE, {}).get(passo)
-    if salvati is None:
-        return None
+    return None if salvati is None else _querydict(salvati)
+
+
+def _grezzi(request: HttpRequest, passo: str) -> dict[str, list[str]]:
+    return dict(request.session.get(CHIAVE_SESSIONE, {}).get(passo, {}))
+
+
+def _querydict(salvati: dict[str, list[str]]) -> QueryDict:
     dati = QueryDict(mutable=True)
     for chiave, valori in salvati.items():
         dati.setlist(chiave, valori)
@@ -364,14 +383,15 @@ def _preventivo(richiedente: dict[str, Any], soggiorno: dict[str, Any]) -> dict[
     }
 
 
-@login_required
 def nuova(request: HttpRequest, passo: int = 1) -> HttpResponse:
+    """Richiesta in tre passi, anche senza account: allora all'invio parte il link di conferma
+    dell'email e la prenotazione nasce al clic (D-33)."""
     if passo not in (1, 2, 3):
         raise Http404
     conf = Configurazione.corrente()
     bloccate = conf.messaggio_blocco if conf.prenotazioni_bloccate else ""  # D-31
     if not bloccate and not demo.puo_prenotare(request.user):  # D-32
-        bloccate = demo.MESSAGGIO_DEMO
+        bloccate = demo.messaggio()
     if bloccate:
         return render(
             request, "prenotazioni/nuova.html", {"sezione": "prenotazioni", "bloccate": bloccate}
@@ -401,9 +421,33 @@ def nuova(request: HttpRequest, passo: int = 1) -> HttpResponse:
             _salva(request, str(passo), request.POST)
             return redirect("prenotazioni:nuova_passo", passo=passo + 1)
         assert richiedente is not None and soggiorno is not None
+        if not request.user.is_authenticated and not verifica_umana.verifica(
+            request.POST.get("altcha")
+        ):
+            messages.error(request, "Conferma di non essere un robot e invia di nuovo.")
+            return redirect("prenotazioni:nuova_passo", passo=3)
+        if not request.user.is_authenticated:
+            email = richiedente.cleaned_data["referente_email"]
+            dati = {
+                "1": _grezzi(request, "1"),
+                "2": _grezzi(request, "2"),
+                "note": form.cleaned_data.get("note", ""),
+            }
+            try:
+                richieste_da_confermare.crea(email, dati)
+            except ValidationError as errore:
+                _errori(request, errore)
+            else:
+                request.session.pop(CHIAVE_SESSIONE, None)
+                return render(
+                    request,
+                    "prenotazioni/controlla_email.html",
+                    {"sezione": "prenotazioni", "email": email},
+                )
+            return redirect("prenotazioni:nuova_passo", passo=3)
         try:
             prenotazione = _invia(
-                request, richiedente.cleaned_data, soggiorno.cleaned_data, form.cleaned_data
+                request.user, richiedente.cleaned_data, soggiorno.cleaned_data, form.cleaned_data
             )
         except ValidationError as errore:
             _errori(request, errore)
@@ -421,6 +465,7 @@ def nuova(request: HttpRequest, passo: int = 1) -> HttpResponse:
         "form": form,
         "passo": passo,
         "passi": PASSI,
+        "avviso_demo": Configurazione.corrente().modalita_demo,
     }
     if passo == 3:
         assert richiedente is not None and soggiorno is not None
@@ -434,7 +479,6 @@ def nuova(request: HttpRequest, passo: int = 1) -> HttpResponse:
     return render(request, "prenotazioni/nuova.html", contesto)
 
 
-@login_required
 @require_POST
 def anteprima(request: HttpRequest) -> HttpResponse:
     """Preventivo in tempo reale del passo 2 (frammento HTML)."""
@@ -451,7 +495,7 @@ def anteprima(request: HttpRequest) -> HttpResponse:
 
 @transaction.atomic
 def _invia(
-    request: HttpRequest,
+    utente: Any,
     richiedente: dict[str, Any],
     soggiorno: dict[str, Any],
     invio: dict[str, Any],
@@ -471,7 +515,7 @@ def _invia(
             organizzazione=richiedente["gruppo"],
         )
     return flusso.invia_richiesta(
-        utente=request.user,
+        utente=utente,
         categoria=richiedente["categoria"],
         arrivo=soggiorno["arrivo"],
         partenza=soggiorno["partenza"],
@@ -485,3 +529,49 @@ def _invia(
         esclusiva_richiesta=soggiorno.get("esclusiva_richiesta", False),
         note=invio.get("note", ""),
     )
+
+
+def conferma_richiesta(request: HttpRequest, token: str) -> HttpResponse:
+    """Link dell'email di una richiesta senza account (D-33): la prenotazione nasce con il POST
+    del pulsante, non all'apertura del link (i controlli della posta aprono i link da soli)."""
+    richiesta = richieste_da_confermare.valida(token)
+    contesto: dict[str, Any] = {"sezione": "prenotazioni", "richiesta": richiesta}
+    if richiesta is None or request.method != "POST":
+        return render(request, "prenotazioni/conferma_richiesta.html", contesto)
+    passo1 = PassoRichiedente(_querydict(richiesta.dati["1"]))
+    passo2 = PassoSoggiorno(_querydict(richiesta.dati["2"]))
+    if not passo1.is_valid() or not passo2.is_valid():
+        contesto["errori"] = ["La richiesta non è più valida: compilala di nuovo."]
+        return render(request, "prenotazioni/conferma_richiesta.html", contesto)
+    try:
+        with transaction.atomic():
+            utente = richieste_da_confermare.account(richiesta.email)
+            prenotazione = _invia(
+                utente, passo1.cleaned_data, passo2.cleaned_data, {"note": richiesta.dati["note"]}
+            )
+            richiesta.confermata_il = timezone.now()
+            richiesta.save(update_fields=["confermata_il"])
+    except ValidationError as errore:
+        contesto["errori"] = errore.messages
+        return render(request, "prenotazioni/conferma_richiesta.html", contesto)
+    if richieste_da_confermare.accesso_automatico(utente):
+        login(request, utente, backend="django.contrib.auth.backends.ModelBackend")
+        messages.success(
+            request,
+            "Richiesta inviata: le date sono riservate a te mentre la Pattuglia la esamina. Per "
+            "rientrare in seguito usa «Password dimenticata?» nella pagina di accesso e imposta "
+            "una password.",
+        )
+        return redirect(prenotazione_url(prenotazione))
+    messages.success(
+        request,
+        f"Richiesta {prenotazione.numero} inviata: accedi con il tuo account per seguirla.",
+    )
+    return redirect("account_login")
+
+
+def sfida(request: HttpRequest) -> JsonResponse:
+    """Sfida del «Non sono un robot» (ALTCHA) per la richiesta senza account."""
+    risposta = JsonResponse(verifica_umana.sfida())
+    risposta["Cache-Control"] = "no-store"
+    return risposta

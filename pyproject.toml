@@ -1,6 +1,6 @@
 [project]
 name = "tana"
-version = "1.0.9"
+version = "1.0.10"
 description = "Tana - Prenotazioni e sito della Base Scout «Gianni Sabatino» di Aiello del Sabato, AGESCI Campania"
 readme = "README.md"
 license = "MIT"
@@ -19,6 +19,7 @@ dependencies = [
     "weasyprint>=70",
     "openpyxl>=3.1",
     "pillow>=13.0",
+    "altcha>=2.3,<2.4",
 ]
 
 [dependency-groups]
@@ -30,6 +31,10 @@ dev = [
     "mypy>=2.4",
     "django-stubs>=6.1.2",
     "pre-commit>=4.7",
+]
+schermate = [
+    "playwright>=1.65.2",
+    "time-machine>=3.6.0",
 ]
 
 [tool.uv]
@@ -63,6 +68,7 @@ exclude = ["/migrations/"]
 module = [
     "allauth.*", "axes.*", "environ.*", "openpyxl.*", "weasyprint.*", "wagtail.*",
     "agesci_theme.*", "modelcluster.*", "modelsearch.*", "taggit.*", "treebeard.*",
+    "playwright.*",  # gruppo schermate (manuale/schermate.py), non installato in CI
 ]
 ignore_missing_imports = true
 

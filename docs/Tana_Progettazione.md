@@ -455,6 +455,29 @@ Decisa il 17/11/2026 (prova completa del sistema, import compreso, prima dell'ap
   listini, categorie, configurazione e date bloccate. Attivazione e termine vanno nello storico
   della Configurazione.
 - Se D-31 (blocco) è attivo prevale il blocco: nessuno prenota.
+- Il messaggio per chi non è della gestione dice che le prenotazioni inserite non sono valide e,
+  se impostato in Configurazione («dove prenotare durante la demo»), dà il link per prenotare
+  davvero (in produzione `https://www.baseaiello.agescicampania.net/prenotazioni`). Alla gestione
+  il modulo ricorda che la prenotazione è di prova.
+
+### D-33 — Richiesta senza registrazione
+Decisa il 17/11/2026 (non complicare la vita a chi prenota).
+- La richiesta si compila **anche senza account**. All'invio i dati restano in attesa e il
+  referente riceve un'email con un **link valido 24 ore**; il link apre una pagina con il pulsante
+  «Conferma la richiesta» (aprire il link da solo non conferma: i controlli della posta lo fanno).
+- **Le date si riservano solo alla conferma**, con i controlli di sempre; se nel frattempo si sono
+  occupate, la pagina lo dice e invita a una nuova richiesta.
+- Alla conferma la prenotazione va sull'**account con quell'email**, creato se manca (senza
+  password, email verificata dal clic). Accesso automatico, con l'indicazione di usare «Password
+  dimenticata?» per rientrare; **nessun accesso automatico** per gli account con un ruolo o per il
+  superutente (entrano con SSO o password e verifica in due passaggi).
+- Prima dell'invio senza account, «Non sono un robot» con **ALTCHA** (prova di lavoro risolta dal
+  browser; nessun servizio esterno, widget nel progetto, chiave derivata dalla `SECRET_KEY`): ogni
+  sfida vale 20 minuti e una volta sola. Scelto al posto di reCAPTCHA per non mandare dati a terzi.
+- Al massimo 3 richieste da confermare per email nelle 24 ore; le richieste in attesa si
+  cancellano dopo 24 ore (anche quelle confermate: la prenotazione ha già i dati).
+- «Registrati» resta, ma non serve più: nel menu «Richiedi una prenotazione» c'è anche per chi non
+  ha fatto l'accesso. In modalità demo (D-32) chi non è della gestione non invia richieste.
 
 ---
 

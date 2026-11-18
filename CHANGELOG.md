@@ -5,6 +5,21 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.10 — 2026-11-18
+
+### Novità
+
+- Richiesta di prenotazione **senza registrazione**: chi non ha un account compila la richiesta e la conferma con il link ricevuto per email (valido 24 ore); le date si riservano alla conferma, l'account nasce da solo e si rientra con «Password dimenticata?». Prima dell'invio, «Non sono un robot» con ALTCHA (nessun servizio esterno, nessun dato a terzi).
+- Modalità demo: il messaggio dice che le prenotazioni inserite non sono valide e dà il link per prenotare davvero (nuovo campo «dove prenotare durante la demo» in Configurazione); alla gestione il modulo ricorda che la prenotazione è di prova.
+
+### Documentazione
+
+- Nuovo **manuale d'uso** per ruolo (richiedenti, Pattuglia, amministrazione, segreteria, redazione, automatismi) con le schermate, per Read the Docs (`manuale/`, compilato anche dalla CI); le «Novità» vengono da questo CHANGELOG.
+- Schermate del manuale rigenerate solo se cambiano (orologio fermo durante la generazione, confronto dei pixel).
+- Guida di installazione: come correggere il file di revisione dell'import dal Mac (copia con `scp`).
+
+Nessuna variabile nuova in `.env`. Dopo l'aggiornamento, se la demo è attiva, compila in Configurazione il campo «dove prenotare durante la demo».
+
 ## v1.0.9 — 2026-11-17
 
 ### Modifiche

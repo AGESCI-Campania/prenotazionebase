@@ -1,0 +1,13 @@
+{% autoescape off %}Buongiorno,
+
+abbiamo ricevuto una richiesta di prenotazione della Base Scout «Gianni Sabatino» con questo indirizzo email.
+
+Per inviarla alla Pattuglia della base apri questo link e premi «Conferma la richiesta» entro {{ ore }} ore:
+
+{{ link }}
+
+Le date si riservano solo al momento della conferma. Se non hai fatto tu la richiesta, ignora questa email: senza conferma non succede niente.
+
+Con la conferma troverai la prenotazione nel tuo account di Tana, creato con questo indirizzo se non ne avevi già uno. Per rientrare in seguito usa «Password dimenticata?» nella pagina di accesso e imposta una password.
+
+{% include "prenotazioni/email/_firma.txt" %}{% endautoescape %}

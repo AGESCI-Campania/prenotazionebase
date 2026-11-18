@@ -108,7 +108,7 @@ def invia_richiesta(
     if conf.prenotazioni_bloccate:
         raise ValidationError(conf.messaggio_blocco)  # D-31: anche per la gestione
     if conf.modalita_demo and not permessi.e_pattuglia(utente):
-        raise ValidationError(demo.MESSAGGIO_DEMO)  # D-32: in demo prenota solo la gestione
+        raise ValidationError(demo.messaggio())  # D-32: in demo prenota solo la gestione
     gestione = da_gestione
     presenze = {codice: persone for codice, persone in (presenze or {}).items() if persone}
     attivita = attivita or []

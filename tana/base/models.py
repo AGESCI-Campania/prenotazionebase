@@ -116,6 +116,12 @@ class Configurazione(models.Model):
     # Modalità demo (D-32): prova del sistema prima dell'apertura; si attiva e si termina solo
     # con i servizi di tana.prenotazioni.demo (alla fine si cancellano tutte le prenotazioni)
     modalita_demo = models.BooleanField("modalità demo", default=False, editable=False)
+    link_prenotazioni_vere = models.URLField(
+        "dove prenotare durante la demo",
+        blank=True,
+        help_text="Durante la modalità demo chi visita il sito legge che le prenotazioni qui non "
+        "sono valide e trova questo indirizzo per prenotare davvero.",
+    )
     # Stagione invernale ricorrente (D-08): di default dal 1/11 al 15/3, estremi inclusi
     inverno_dal_giorno = models.PositiveSmallIntegerField(
         default=1, validators=[MinValueValidator(1), MaxValueValidator(31)]

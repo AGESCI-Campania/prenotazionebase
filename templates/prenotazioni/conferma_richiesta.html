@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block titolo_pagina %}Conferma la richiesta · {% endblock %}
+{% block content %}
+<h1>Conferma la richiesta</h1>
+{% if errori %}
+  <div class="alert theme-danger mt-5">{% for e in errori %}<p>{{ e }}</p>{% endfor %}</div>
+  <p><a class="btn-solid theme-primary" href="{% url 'prenotazioni:nuova' %}">Fai una nuova richiesta</a> · <a href="{% url 'disponibilita' %}">guarda le date libere</a></p>
+{% elif richiesta %}
+  <div class="card mt-5"><div class="card-body">
+    <p>Stai confermando la richiesta di prenotazione inviata con l'indirizzo <b>{{ richiesta.email }}</b>.</p>
+    <p>Con la conferma la richiesta arriva alla Pattuglia della base e le date si riservano, se sono ancora libere. La troverai nel tuo account di Tana, creato con questo indirizzo se non ne avevi già uno.</p>
+    <form method="post">{% csrf_token %}<button class="btn-solid theme-primary" type="submit">Conferma la richiesta</button></form>
+  </div></div>
+{% else %}
+  <div class="alert theme-warning mt-5">Il link non è valido: è scaduto (vale 24 ore) oppure la richiesta è già stata confermata.</div>
+  <p>Se l'hai già confermata la trovi in <a href="{% url 'prenotazioni:elenco' %}">Le mie prenotazioni</a> (per rientrare usa «Password dimenticata?» nella pagina di accesso); altrimenti <a href="{% url 'prenotazioni:nuova' %}">compila di nuovo la richiesta</a>.</p>
+{% endif %}
+{% endblock %}

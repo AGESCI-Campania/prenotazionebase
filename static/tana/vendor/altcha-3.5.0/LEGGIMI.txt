@@ -1,0 +1,4 @@
+Widget ALTCHA 3.5.0 (npm `altcha`, licenza MIT: LICENSE.txt), variante dist/external per la CSP
+senza blob: altcha.min.js, altcha.css, workers/pbkdf2.js, it.js (= dist/i18n/it.js).
+Pacchetto verificato con l'integrity di npm (sha512-wBXNK1bBeWs/XTOZiyE3JQv…). Lo usa la richiesta
+senza account (D-33): vedi tana/prenotazioni/verifica_umana.py.

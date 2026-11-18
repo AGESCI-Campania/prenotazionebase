@@ -220,6 +220,19 @@ docker compose run --rm -v $I:/import web uv run python manage.py import_supersa
   --apply --decisioni /import/revisione.xlsx
 ```
 
+Sul server non c'è Excel: il file di revisione si corregge sul Mac (Excel o Numbers) e si
+rimette al suo posto. Dal Mac, con l'indirizzo usato per `ssh` al posto di `<server>`:
+
+```bash
+# Copia del file di revisione sul Mac
+scp agesci@<server>:/home/agesci/import/revisione.xlsx ~/Desktop/
+# Correggere le colonne gialle e salvare in formato .xlsx (in Numbers: File › Esporta › Excel)
+scp ~/Desktop/revisione.xlsx agesci@<server>:/home/agesci/import/revisione.xlsx
+```
+
+Poi il passo 3 sul server. Il file contiene dati personali: a import finito cancellare la copia
+sul Mac (`rm ~/Desktop/revisione.xlsx`) e la cartella `/home/agesci/import/` sul server.
+
 Le prenotazioni importate non hanno account: si collegano da sole quando il referente si registra
 (o entra con Sestante) con la stessa email verificata. Gli importi sono ricalcolati con il listino e
 segnati «da verificare» nelle note; acconti già versati e preventivi concordati si inseriscono dalla

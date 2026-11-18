@@ -20,9 +20,21 @@ from tana.core.services import registra_evento
 from .models import BloccoTecnico, ContatoreNumeri, Contatto, Pagamento, Prenotazione
 
 MESSAGGIO_DEMO = (
-    "Le prenotazioni non sono ancora aperte: è in corso una prova del sistema. Riprova tra "
-    "qualche giorno."
+    "Questa è una versione di prova di Tana: le prenotazioni inserite qui non sono valide e "
+    "saranno cancellate."
 )
+# Per chi della gestione prova a inserire prenotazioni
+AVVISO_DEMO = (
+    "Modalità demo: questa è una prenotazione di prova, non è valida e sarà cancellata al "
+    "termine della prova."
+)
+
+
+def messaggio() -> str:
+    """Il messaggio della demo per chi non è della gestione, con il link per prenotare davvero
+    (Configurazione) se c'è."""
+    link = Configurazione.corrente().link_prenotazioni_vere
+    return f"{MESSAGGIO_DEMO} Per prenotare la base vai su {link}" if link else MESSAGGIO_DEMO
 
 
 def puo_prenotare(utente: Any) -> bool:

@@ -1,0 +1,5 @@
+# Stesse dipendenze del manuale del tema (django-agesci-campania-theme/docs/requirements.txt)
+sphinx>=7.4
+myst-parser>=3.0
+furo>=2024.8.6
+sphinx-design>=0.6

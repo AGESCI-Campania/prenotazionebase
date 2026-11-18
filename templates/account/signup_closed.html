@@ -1,10 +1,11 @@
 {% extends "account/base_entrance.html" %}
-{% load allauth %}
+{% load allauth demo %}
 {% comment %}Tana: registrazioni chiuse durante la modalità demo (D-32); la gestione entra con Sestante{% endcomment %}
 {% block head_title %}Registrazioni chiuse{% endblock head_title %}
 {% block content %}
     {% element h1 %}Registrazione{% endelement %}
-    <div class="alert theme-warning">Le registrazioni non sono ancora aperte: è in corso una prova del sistema. Riprova tra qualche giorno.</div>
+    {% messaggio_demo as testo %}
+    <div class="alert theme-warning">{{ testo|urlize }} Durante la prova non si creano nuovi account.</div>
     {# Il contesto della vista non ha SOCIALACCOUNT_ENABLED: lo snippet mostra i provider configurati #}
     <p>La gestione della base entra con l'SSO AGESCI Campania.</p>
     {% include "socialaccount/snippets/login.html" with page_layout="entrance" senza_separatore=True %}

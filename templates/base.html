@@ -51,6 +51,7 @@
     {% if menu_gestione %}<li><a href="{% url 'gestione:cruscotto' %}" class="nav-link">Gestione</a></li>{% endif %}
     <li><a href="{% url 'account_logout' %}" class="nav-link">Esci</a></li>
   {% else %}
+    <li><a href="{% url 'prenotazioni:nuova' %}" class="nav-link">Richiedi una prenotazione</a></li>
     <li><a href="{% url 'account_login' %}" class="nav-link">Accedi</a></li>
     <li><a href="{% url 'account_signup' %}" class="nav-link">Registrati</a></li>
   {% endif %}
@@ -61,8 +62,9 @@
     <a href="{% url 'prenotazioni:nuova' %}" class="btn-solid theme-primary">Richiedi una prenotazione</a>
     <a href="{% url 'account_logout' %}" class="btn-outline theme-secondary">Esci</a>
   {% else %}
+    {# Si prenota anche senza account (verifica dell'email): «Registrati» resta nel menu #}
+    <a href="{% url 'prenotazioni:nuova' %}" class="btn-solid theme-primary">Richiedi una prenotazione</a>
     <a href="{% url 'account_login' %}" class="btn-solid ag-btn-light">Accedi</a>
-    <a href="{% url 'account_signup' %}" class="btn-solid theme-primary">Registrati</a>
   {% endif %}
 {% endblock %}
 

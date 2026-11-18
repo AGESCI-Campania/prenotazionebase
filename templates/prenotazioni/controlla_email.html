@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titolo_pagina %}Conferma la richiesta · {% endblock %}
+{% block content %}
+<h1>Controlla la tua email</h1>
+<div class="card mt-5"><div class="card-body">
+  <p>Ti abbiamo mandato un'email a <b>{{ email }}</b> con il link per confermare la richiesta di prenotazione. Il link vale 24 ore.</p>
+  <p><b>Le date si riservano solo quando confermi</b>: fino ad allora possono essere prenotate da altri.</p>
+  <p class="mb-0 small fg-2">Non trovi l'email? Guarda nella posta indesiderata. Se l'indirizzo è sbagliato, <a href="{% url 'prenotazioni:nuova' %}">compila di nuovo la richiesta</a>.</p>
+</div></div>
+{% endblock %}

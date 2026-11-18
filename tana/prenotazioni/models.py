@@ -621,3 +621,24 @@ class RichiestaTelefono(models.Model):
 
     def __str__(self) -> str:
         return f"{self.da.numero} → {self.a.numero}: {self.get_stato_display()}"
+
+
+class RichiestaDaConfermare(models.Model):
+    """Richiesta inviata senza account, in attesa della conferma dell'email (D-33).
+
+    Contiene i dati dei tre passi così come inviati; la prenotazione nasce solo al clic sul
+    link. Si cancella dopo `richieste_da_confermare.VALIDITA` (anche se confermata: dati minimi).
+    """
+
+    token = models.CharField(max_length=64, unique=True)
+    email = models.EmailField()
+    dati = models.JSONField()
+    creata_il = models.DateTimeField(auto_now_add=True)
+    confermata_il = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "richiesta da confermare"
+        verbose_name_plural = "richieste da confermare"
+
+    def __str__(self) -> str:
+        return f"{self.email} ({self.creata_il:%d/%m/%Y %H:%M})"

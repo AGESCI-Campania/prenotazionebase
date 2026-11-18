@@ -8,6 +8,7 @@ Scadenze (sempre servizi di dominio):
 - prenotazioni confermate con la partenza passata → SVOLTA (§4);
 - richieste di consenso senza risposta entro il termine → negate (D-06);
 - anonimizzazione dei dati personali dopo 10 anni (D-18);
+- richieste senza account non confermate entro 24 ore: cancellate (D-33);
 - controllo giornaliero dell'ultima release per l'aggiornamento dal web (P-20).
 """
 
@@ -24,6 +25,7 @@ from tana.aggiornamenti.services import controllo_periodico
 from tana.prenotazioni.consensi import scadi_consensi
 from tana.prenotazioni.conservazione import anonimizza_scadute
 from tana.prenotazioni.flusso import scadi_acconti, segna_svolte
+from tana.prenotazioni.richieste_da_confermare import pulisci as pulisci_richieste_da_confermare
 
 log = logging.getLogger("tana.scheduler")
 
@@ -33,6 +35,7 @@ SCADENZE: list[Callable[[], object]] = [
     segna_svolte,
     scadi_consensi,
     anonimizza_scadute,
+    pulisci_richieste_da_confermare,
     controllo_periodico,
 ]
 

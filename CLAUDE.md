@@ -47,6 +47,8 @@ Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
   JavaScript di Bootstrap 5; regole in <https://django-agesci-campania-theme.readthedocs.io/it/latest/llms.txt>),
   branca `eg` ricolorata con la palette della base in `static/tana/css/tana.css` (P-08).
   Aggiornamento del tema: `uv add --prerelease allow django-agesci-campania-theme`.
+- **ALTCHA** (D-33): `altcha` Python + widget 3.5.0 in `static/tana/vendor/` (variante `external`, senza
+  `blob:` per la CSP; il worker PBKDF2 si registra a mano), per la richiesta senza account.
 - **django-allauth** (email con verifica obbligatoria, MFA, SSO Sestante via `openid_connect`),
   **django-axes**, **WhiteNoise**, **WeasyPrint** (PDF), **openpyxl** (Excel), **gunicorn**.
 - Niente Celery/Redis: le scadenze le esegue il servizio `scheduler` (`manage.py scheduler`).
@@ -91,6 +93,7 @@ templates/         base.html (estende agesci_theme/base.html), core/manutenzione
 static/tana/       css/tana.css (palette), img/logo/*.svg (loghi della base, non ridisegnarli)
 deploy/            entrypoint.sh, nginx/ (Dockerfile + template dell'nginx interno)
 scripts/           installa.sh, aggiorna.sh, backup.sh, _comune.sh (copia), _tana.sh
+manuale/           manuale d'uso per ruolo (Sphinx + MyST, Read the Docs: .readthedocs.yaml); novita.md include CHANGELOG
 docs/              Tana_Progettazione.md (specifica), installazione.md (guida del server),
                    sestante/provider-tana.yaml (blueprint, copiato in sestante/blueprints il 17/11/2026)
 note/              istruzioni private di installazione sul server (escluse con .git/info/exclude: mai committarle)
@@ -181,6 +184,15 @@ Dal Mac, **prima** dell'aggiornamento del server: versione in `pyproject.toml`, 
 commit**, poi `git tag vX.Y.Z && git push origin vX.Y.Z` e `gh release create vX.Y.Z` con le note
 della sezione (mai `--prerelease`: la pagina Aggiornamenti legge `releases/latest`, che le ignora).
 Tag e release sempre insieme. Sul server solo `scripts/aggiorna.sh`.
+
+**Manuale d'uso** (`manuale/`, pubblicato su Read the Docs a ogni push): ogni modifica visibile
+agli utenti aggiorna nello stesso commit il capitolo del ruolo interessato (richiedenti,
+pattuglia, amministrazione, segreteria, redazione, automatismi), con le etichette esatte
+dell'interfaccia; le «Novità» si aggiornano da sole dal CHANGELOG. Se cambia una pagina fotografata si
+rigenerano le schermate (dati inventati, database di test):
+`uv run --group schermate pytest manuale/schermate.py` (Chromium: `uv run --group schermate playwright install chromium`). La CI lo compila con
+`sphinx-build -W`; in locale:
+`uv run --no-project --prerelease=allow --python 3.12 --with-requirements manuale/requirements.txt sphinx-build -W -b html manuale /tmp/manuale`.
 
 ## Cosa NON fare
 - Non cambiare `AUTH_USER_MODEL` né le `label` delle app dopo le prime migrazioni.

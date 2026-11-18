@@ -428,7 +428,7 @@ def test_modalita_demo_dalla_configurazione(admin, pattuglia, richiedente, conta
     assert Configurazione.corrente().modalita_demo
     assert "Modalità demo:" in c.get(reverse("gestione:cruscotto")).content.decode()
     pagina = cliente_di(richiedente).get(reverse("prenotazioni:nuova")).content.decode()
-    assert "prova del sistema" in pagina
+    assert "versione di prova" in pagina
     richiesta(pattuglia, contatto)
     # Senza conferma non si cancella niente
     c.post(url, {"azione": "termina"})

@@ -276,6 +276,7 @@ class ConfigurazioneForm(forms.ModelForm):
             "iban",
             "intestatario_bonifico",
             "causale_bonifico",
+            "link_prenotazioni_vere",
         )
         widgets = {
             "inverno_dal_mese": Combobox(choices=MESI, placeholder="Scegli il mese"),
