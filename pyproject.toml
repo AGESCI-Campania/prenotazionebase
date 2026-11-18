@@ -68,7 +68,7 @@ exclude = ["/migrations/"]
 module = [
     "allauth.*", "axes.*", "environ.*", "openpyxl.*", "weasyprint.*", "wagtail.*",
     "agesci_theme.*", "modelcluster.*", "modelsearch.*", "taggit.*", "treebeard.*",
-    "playwright.*",  # gruppo schermate (manuale/schermate.py), non installato in CI
+    "playwright.*", "time_machine.*",  # gruppo schermate (manuale/schermate.py), non installato in CI
 ]
 ignore_missing_imports = true
 

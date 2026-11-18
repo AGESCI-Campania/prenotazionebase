@@ -18,7 +18,6 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "README.md"]
 
 html_theme = "furo"
 html_title = f"Tana {release} – Manuale d'uso"
-html_static_path = ["_static"]
 html_logo = "../static/tana/img/logo/lupo-base-aiello.svg"
 html_favicon = "../static/tana/img/logo/lupo-base-aiello.svg"
 html_theme_options = {
