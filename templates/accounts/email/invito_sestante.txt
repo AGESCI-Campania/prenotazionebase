@@ -2,7 +2,7 @@
 
 {% if richiesto_da %}{{ richiesto_da.get_full_name|default:richiesto_da.email }} ti ha dato{% else %}hai ricevuto{% endif %} accesso a Tana, la piattaforma di prenotazione della Base Scout «Gianni Sabatino», con il ruolo {{ ruoli }}.
 
-Per entrare serve un account del login unico regionale (SSO AGESCI Campania). Crealo da questo link entro il {{ scadenza|date:"j F Y, H:i" }}:
+Per entrare serve un account del login unico regionale (SSO AGESCI Campania). Crealo da questo link entro il {{ scadenza|date:"j F Y, H:i"|lower }}:
 
 {{ link }}
 

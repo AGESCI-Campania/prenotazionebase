@@ -954,7 +954,7 @@ def _invita(request: HttpRequest, utente: User) -> None:
             "Riprova più tardi con «Rimanda l'invito».",
         )
         return
-    scadenza = formats.date_format(timezone.localtime(invito.scade_il), "j F Y")
+    scadenza = formats.date_format(timezone.localtime(invito.scade_il), "j F Y").lower()
     messages.success(
         request,
         f"Inviato a {utente} il link per creare l'account Sestante (valido fino al {scadenza}).",

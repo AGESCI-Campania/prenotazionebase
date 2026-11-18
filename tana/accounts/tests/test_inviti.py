@@ -9,9 +9,9 @@ import pytest
 from allauth.socialaccount.models import SocialAccount
 from django.test import Client
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import formats, timezone
 
-from tana.accounts import inviti, permessi
+from tana.accounts import inviti, permessi, services
 from tana.accounts.models import InvitoSestante, Nomina, Ruolo, User
 from tana.accounts.services import nomina
 
@@ -73,14 +73,21 @@ def responsabile(db):
 
 
 def test_ruolo_a_email_nuova_manda_l_invito(
-    sestante, responsabile, django_capture_on_commit_callbacks, mailoutbox
+    sestante, responsabile, django_capture_on_commit_callbacks, mailoutbox, caplog
 ):
-    with django_capture_on_commit_callbacks(execute=True):
+    with (
+        django_capture_on_commit_callbacks(execute=True),
+        caplog.at_level(logging.INFO, logger="tana.inviti"),
+    ):
         risposta = cliente_di(responsabile).post(
-            URL, {"email": "Nuovo@Example.org", "ruolo": Ruolo.PATTUGLIA}
+            URL, {"email": "Nuovo@Example.org", "ruolo": Ruolo.PATTUGLIA}, follow=True
         )
-    assert risposta.status_code == 302
     utente = User.objects.get(email__iexact="nuovo@example.org")
+    # Data con il mese in minuscolo, come nel resto di Tana
+    scadenza = timezone.localtime(timezone.now() + inviti.DURATA)
+    assert f"{scadenza.day} {formats.date_format(scadenza, 'F').lower()} " in (
+        risposta.content.decode()
+    )
     _, percorso, dati = sestante.di("POST")[0]
     assert percorso == "stages/invitation/invitations/"
     assert dati["flow"] == "flusso-pk" and dati["single_use"] is False
@@ -97,6 +104,8 @@ def test_ruolo_a_email_nuova_manda_l_invito(
     assert email.to == [utente.email]
     assert f"/if/flow/sestante-iscrizione-invito/?itoken={invito.uuid}" in email.body
     assert "Pattuglia" in email.body and TOKEN not in email.body
+    assert formats.date_format(scadenza, "F").lower() in email.body
+    assert f"Invito Sestante: email inviata a {utente.email}" in caplog.text
     pagina = cliente_di(responsabile).get(URL).content.decode()
     assert "Rimanda l&#x27;invito" in pagina or "Rimanda l'invito" in pagina
 
@@ -108,13 +117,23 @@ def test_rimanda_stesso_link_o_nuovo_invito(
     c = cliente_di(segreteria)
     with django_capture_on_commit_callbacks(execute=True):
         c.post(URL, {"invita": utente.pk})
-        primo = InvitoSestante.objects.get(utente=utente).uuid
+    primo = InvitoSestante.objects.get(utente=utente).uuid
+    # Subito dopo (doppio clic): niente di nuovo
+    with django_capture_on_commit_callbacks(execute=True):
         c.post(URL, {"invita": utente.pk})
-    # Ancora valido: stessa email con lo stesso link, nessun invito nuovo
+    assert len(sestante.di("POST")) == 1 and len(mailoutbox) == 1
+    # Più tardi, ancora valido: stessa email con lo stesso link, nessun invito nuovo
+    InvitoSestante.objects.filter(utente=utente).update(
+        inviato_il=timezone.now() - inviti.RIPETIZIONE
+    )
+    with django_capture_on_commit_callbacks(execute=True):
+        c.post(URL, {"invita": utente.pk})
     assert len(sestante.di("POST")) == 1 and len(mailoutbox) == 2
     assert InvitoSestante.objects.get(utente=utente).uuid == primo
     # Quasi scaduto: invito nuovo e revoca del vecchio
-    InvitoSestante.objects.filter(utente=utente).update(scade_il=timezone.now())
+    InvitoSestante.objects.filter(utente=utente).update(
+        scade_il=timezone.now(), inviato_il=timezone.now() - inviti.RIPETIZIONE
+    )
     c.post(URL, {"invita": utente.pk})
     assert len(sestante.di("POST")) == 2
     assert sestante.di("DELETE")[0][1] == f"stages/invitation/invitations/{primo}/"
@@ -209,3 +228,46 @@ def test_chiamata_http(settings, monkeypatch, caplog):
     ):
         inviti._chiama("DELETE", "stages/invitation/invitations/x/")
     assert "403" in caplog.text and TOKEN not in caplog.text
+
+
+@pytest.mark.django_db(transaction=True)
+def test_doppio_clic_un_solo_invito(settings, monkeypatch, mailoutbox):
+    """Due richieste contemporanee (doppio clic su «Assegna»): un utente, un ruolo, un invito su
+    Sestante e una sola email."""
+    import threading
+    import time
+
+    from django.db import connection
+
+    settings.SESTANTE_INVITI_TOKEN = TOKEN
+    finto = SestanteFinto()
+
+    def lento(metodo, percorso, dati=None):
+        if metodo == "POST":
+            time.sleep(0.5)  # Sestante che ci mette un po' a rispondere
+        return finto(metodo, percorso, dati)
+
+    monkeypatch.setattr(inviti, "_chiama", lento)
+    richiedente = con_ruolo(Ruolo.SEGRETERIA, "segreteria@example.org")
+    errori = []
+
+    def assegna():
+        try:
+            n, _ = services.nomina_per_email("capo@example.org", Ruolo.PATTUGLIA)
+            inviti.invita(n.utente, richiesto_da=richiedente)
+        except Exception as errore:  # noqa: BLE001
+            errori.append(errore)
+        finally:
+            connection.close()
+
+    fili = [threading.Thread(target=assegna) for _ in range(2)]
+    for filo in fili:
+        filo.start()
+    for filo in fili:
+        filo.join()
+    assert errori == []
+    assert User.objects.filter(email="capo@example.org").count() == 1
+    assert Nomina.objects.filter(utente__email="capo@example.org", attiva=True).count() == 1
+    assert len(finto.di("POST")) == 1
+    assert InvitoSestante.objects.count() == 1
+    assert len(mailoutbox) == 1

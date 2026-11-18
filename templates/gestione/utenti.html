@@ -1,4 +1,5 @@
 {% extends "gestione/base.html" %}
+{% load static %}
 {% block titolo_pagina %}Utenti e ruoli · {% endblock %}
 {% block content %}
 <h1>Utenti e ruoli</h1>
@@ -11,17 +12,18 @@
         {% for r in righe %}
           <tr><td>{{ r.utente }}{% if r.in_attesa %} <span class="badge theme-warning">in attesa del primo accesso con Sestante</span>
             {% if r.invito %}<br><small class="fg-2">Invito Sestante del {{ r.invito.inviato_il|date:"j/n/Y" }}, {% if r.invito.scade_il > adesso %}valido fino al {{ r.invito.scade_il|date:"j/n/Y" }}{% else %}scaduto{% endif %}</small>{% endif %}
-            {% if inviti_attivi %}<form method="post">{% csrf_token %}<button class="btn-subtle theme-primary" name="invita" value="{{ r.utente.pk }}">{% if r.invito %}Rimanda l'invito{% else %}Invita su Sestante{% endif %}</button></form>{% endif %}
+            {% if inviti_attivi %}<form method="post" data-invio-unico>{% csrf_token %}<button class="btn-subtle theme-primary" name="invita" value="{{ r.utente.pk }}">{% if r.invito %}Rimanda l'invito{% else %}Invita su Sestante{% endif %}</button></form>{% endif %}
           {% endif %}</td>
             <td><ul class="list-unstyled mb-0">{% for n in r.nomine %}
-              <li class="d-flex flex-wrap align-items-center gap-3">{{ n.get_ruolo_display }}{% if n.da_sso %} <span class="badge theme-info">Sestante</span>{% elif n.ruolo in assegnabili %}<form method="post">{% csrf_token %}<button class="btn-subtle theme-danger" name="revoca" value="{{ n.pk }}" aria-label="Revoca {{ n.get_ruolo_display }} a {{ r.utente }}">revoca</button></form>{% endif %}</li>
+              <li class="d-flex flex-wrap align-items-center gap-3">{{ n.get_ruolo_display }}{% if n.da_sso %} <span class="badge theme-info">Sestante</span>{% elif n.ruolo in assegnabili %}<form method="post" data-invio-unico>{% csrf_token %}<button class="btn-subtle theme-danger" name="revoca" value="{{ n.pk }}" aria-label="Revoca {{ n.get_ruolo_display }} a {{ r.utente }}">revoca</button></form>{% endif %}</li>
             {% endfor %}</ul></td></tr>
         {% empty %}<tr><td colspan="2" class="fg-2">Nessun ruolo assegnato.</td></tr>{% endfor %}
       </tbody>
     </table></div>
   </div>
   <div class="lg:col-5">
-    <form method="post" class="card"><div class="card-body">{% csrf_token %}<h2 class="fs-lg">Assegna un ruolo</h2>{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Assegna</button></div></form>
+    <form method="post" data-invio-unico class="card"><div class="card-body">{% csrf_token %}<h2 class="fs-lg">Assegna un ruolo</h2>{% include "gestione/_campi.html" %}<button class="btn-solid theme-primary" type="submit">Assegna</button></div></form>
   </div>
 </div>
+<script type="module" src="{% static 'tana/js/invio-unico.js' %}"></script>
 {% endblock %}

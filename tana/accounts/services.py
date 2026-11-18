@@ -3,7 +3,7 @@
 from typing import Any
 
 from django.contrib.auth.models import Group
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 from .models import Nomina, Ruolo, User
 
@@ -46,7 +46,9 @@ def allinea_gruppi(utente: User) -> None:
 
 @transaction.atomic
 def nomina(utente: User, ruolo: str, *, assegnata_da: Any = None) -> Nomina:
-    """Assegna un ruolo locale (lo fa la segreteria, P-12)."""
+    """Assegna un ruolo locale (lo fa la segreteria, P-12). Idempotente anche con due richieste
+    contemporanee (doppio clic): le nomine dello stesso utente si mettono in fila."""
+    User.objects.select_for_update().filter(pk=utente.pk).first()
     esistente = utente.nomine.filter(ruolo=ruolo, da_sso=False, attiva=True).first()
     risultato = esistente or Nomina.objects.create(
         utente=utente, ruolo=ruolo, assegnata_da=assegnata_da
@@ -65,7 +67,13 @@ def nomina_per_email(email: str, ruolo: str, *, assegnata_da: Any = None) -> tup
     utente = User.objects.filter(email__iexact=email).first()
     creato = utente is None
     if utente is None:
-        utente = User.objects.create_user(email)
+        try:
+            with transaction.atomic():
+                utente = User.objects.create_user(email)
+        except IntegrityError:
+            # Creato nel frattempo da una richiesta contemporanea (doppio clic)
+            utente = User.objects.get(email__iexact=email)
+            creato = False
     return nomina(utente, ruolo, assegnata_da=assegnata_da), creato
 
 

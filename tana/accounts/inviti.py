@@ -32,6 +32,8 @@ FLUSSO = "sestante-iscrizione-invito"
 DURATA = timedelta(days=7)
 # Sotto questo margine si manda un invito nuovo invece di rimandare lo stesso link
 MARGINE = timedelta(days=1)
+# Un invito appena mandato non si rimanda: doppio clic o richiesta ripetuta dalla rete
+RIPETIZIONE = timedelta(minutes=2)
 TIMEOUT = 10
 PREFISSO_OGGETTO = "[Base Aiello] "
 
@@ -109,11 +111,19 @@ def _crea_su_sestante(utente: User, richiesto_da: User) -> tuple[str, Any]:
     return risposta["pk"], scadenza
 
 
+@transaction.atomic
 def invita(utente: User, *, richiesto_da: User) -> InvitoSestante:
     """Manda alla persona il link per creare l'account Sestante: lo stesso se l'invito è ancora
-    valido, altrimenti uno nuovo (il vecchio si revoca). Solleva ErroreSestante."""
+    valido, altrimenti uno nuovo (il vecchio si revoca). Solleva ErroreSestante.
+
+    Le richieste per lo stesso utente si mettono in fila (lock sulla riga dell'utente): con un
+    doppio clic la seconda trova l'invito della prima e non ne crea un altro su Sestante.
+    """
+    User.objects.select_for_update().filter(pk=utente.pk).first()
     adesso = timezone.now()
     invito = InvitoSestante.objects.filter(utente=utente).first()
+    if invito is not None and adesso - invito.inviato_il < RIPETIZIONE:
+        return invito
     if invito is None or invito.scade_il - adesso < MARGINE:
         uuid, scadenza = _crea_su_sestante(utente, richiesto_da)
         if invito is not None:
@@ -165,4 +175,10 @@ def _manda_email(invito: InvitoSestante) -> None:
         to=[utente.email],
         reply_to=[settings.EMAIL_REPLY_TO],
     )
-    transaction.on_commit(messaggio.send)
+
+    def invia() -> None:
+        # Solo a invio riuscito: dice a chi è andata l'email (es. un indirizzo scritto male)
+        messaggio.send()
+        log.info("Invito Sestante: email inviata a %s (invito %s)", utente.email, invito.uuid)
+
+    transaction.on_commit(invia)

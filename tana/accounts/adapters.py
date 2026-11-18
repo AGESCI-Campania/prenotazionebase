@@ -5,9 +5,10 @@ MFA del contratto § 6 punto 4: conta il metodo di autenticazione della sessione
 l'esistenza di un account Sestante collegato.
 """
 
-from typing import Any
+from typing import Any, NoReturn
 
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.account.models import EmailAddress
 from allauth.core import context as allauth_context
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.mfa.adapter import DefaultMFAAdapter
@@ -49,7 +50,25 @@ def _groups(extra_data: dict) -> list[str]:
     return [g for g in groups if isinstance(g, str)]
 
 
-def _rifiuta(request: Any, messaggio: str) -> None:
+def _email_verificata(utente: Any, email: str) -> None:
+    """L'email arrivata da Sestante vale come verificata anche in Tana (Sestante verifica le email
+    dei suoi utenti). Serve quando il login si collega a un account esistente, per esempio
+    pre-registrato dalla segreteria: allauth non vi copia gli indirizzi del login social e
+    chiederebbe una verifica inutile."""
+    indirizzo = EmailAddress.objects.filter(user=utente, email__iexact=email).first()
+    if indirizzo is None:
+        EmailAddress.objects.create(
+            user=utente,
+            email=email,
+            verified=True,
+            primary=not EmailAddress.objects.filter(user=utente, primary=True).exists(),
+        )
+    elif not indirizzo.verified:
+        indirizzo.verified = True
+        indirizzo.save(update_fields=["verified"])
+
+
+def _rifiuta(request: Any, messaggio: str) -> NoReturn:
     """Interrompe il login SSO senza creare account parziali (contratto § 6 punto 6)."""
     messages.error(request, messaggio)
     raise ImmediateHttpResponse(HttpResponseRedirect(reverse("account_login")))
@@ -124,6 +143,7 @@ class TanaSocialAccountAdapter(DefaultSocialAccountAdapter):
         if sociallogin.is_existing:
             # Entrato con Sestante: l'eventuale invito (account pre-registrato) non serve più
             InvitoSestante.objects.filter(utente=sociallogin.user).delete()
+            _email_verificata(sociallogin.user, email)
             allinea_ruoli_globali(sociallogin.user, _groups(sociallogin.account.extra_data))
             allinea_avatar(sociallogin.user, sociallogin.picture_sestante)
 

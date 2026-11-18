@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 from allauth.account.models import EmailAddress
+from allauth.account.utils import has_verified_email
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.mfa.models import Authenticator
 from allauth.socialaccount.models import SocialAccount, SocialLogin
@@ -159,7 +160,18 @@ def test_account_pre_registrato_collegato_al_primo_login(db, sestante):
     TanaSocialAccountAdapter().pre_social_login(richiesta(), sociallogin)
     assert sociallogin.is_existing and sociallogin.user == n.utente
     assert User.objects.count() == 1
+    # Email verificata da Sestante: Tana non chiede un'altra verifica
+    assert has_verified_email(n.utente)
+    assert EmailAddress.objects.get(user=n.utente).primary
     assert ruoli_attivi(n.utente) == {Ruolo.PATTUGLIA, Ruolo.REDAZIONE, Ruolo.SEGRETERIA}
+
+
+def test_email_non_verificata_diventa_verificata(utente, sestante):
+    # Es. account collegato prima della correzione, o richiedente con l'email da confermare
+    EmailAddress.objects.create(user=utente, email="capo@example.org", verified=False, primary=True)
+    TanaSocialAccountAdapter().pre_social_login(richiesta(), social_login("Capo@Example.org"))
+    assert EmailAddress.objects.get(user=utente).verified
+    assert EmailAddress.objects.filter(user=utente).count() == 1
 
 
 def test_invito_cancellato_al_primo_login(utente, sestante):
