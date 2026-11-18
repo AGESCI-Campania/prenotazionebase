@@ -76,6 +76,7 @@ config/            settings/{base,dev,test,prod}.py, urls.py (rotta Wagtail SEMP
 tana/core/         healthz, manutenzione, scheduler, dati_iniziali, EventoStorico (P-03), storage privato
 tana/accounts/     User con login via email (AUTH_USER_MODEL = "accounts.User"), Nomina (ruoli = gruppi),
                    permessi.py (§6), adapters.py (Sestante, MFA), middleware MFA del superutente
+                   backends.py (niente password per la gestione), inviti.py (inviti su Sestante, § 10 del contratto)
 tana/base/         Area, Struttura, Configurazione (singleton)
 tana/listini/      Listino, VersioneListino (immutabile se usata), VoceListino, Categoria; versione_applicabile (D-09)
 tana/prenotazioni/ Prenotazione, PresenzaArea, Occupazione (exclusion constraint), BloccoTecnico, consensi, importi, pagamenti, messaggi

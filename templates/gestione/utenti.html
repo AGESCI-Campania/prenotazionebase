@@ -2,16 +2,19 @@
 {% block titolo_pagina %}Utenti e ruoli · {% endblock %}
 {% block content %}
 <h1>Utenti e ruoli</h1>
-<p class="fg-2">Ruoli locali di Tana, assegnati dalla segreteria per email: chi non è ancora entrato in Tana riceve un account che si attiva al primo accesso con Sestante. I ruoli globali (amministratore, segreteria) arrivano da Sestante e si cambiano lì. Chi ha più ruoli ha i permessi di tutti.</p>
+<p class="fg-2">Ruoli locali di Tana, assegnati per email: chi non è ancora entrato in Tana riceve un account che si attiva al primo accesso con Sestante{% if inviti_attivi %} e, se non ha un account Sestante, il link per crearlo{% endif %}. I ruoli globali (amministratore, segreteria) arrivano da Sestante e si cambiano lì. Chi ha più ruoli ha i permessi di tutti.</p>
 <div class="row g-7">
   <div class="lg:col-7">
     <div class="table-responsive"><table class="table">
       <thead><tr><th>Utente</th><th>Ruoli</th></tr></thead>
       <tbody>
-        {% for utente, nomine in utenti %}
-          <tr><td>{{ utente }}{% if not utente.last_login %} <span class="badge theme-warning">in attesa del primo accesso</span>{% endif %}</td>
-            <td><ul class="list-unstyled mb-0">{% for n in nomine %}
-              <li class="d-flex flex-wrap align-items-center gap-3">{{ n.get_ruolo_display }}{% if n.da_sso %} <span class="badge theme-info">Sestante</span>{% else %}<form method="post">{% csrf_token %}<button class="btn-subtle theme-danger" name="revoca" value="{{ n.pk }}" aria-label="Revoca {{ n.get_ruolo_display }} a {{ utente }}">revoca</button></form>{% endif %}</li>
+        {% for r in righe %}
+          <tr><td>{{ r.utente }}{% if r.in_attesa %} <span class="badge theme-warning">in attesa del primo accesso con Sestante</span>
+            {% if r.invito %}<br><small class="fg-2">Invito Sestante del {{ r.invito.inviato_il|date:"j/n/Y" }}, {% if r.invito.scade_il > adesso %}valido fino al {{ r.invito.scade_il|date:"j/n/Y" }}{% else %}scaduto{% endif %}</small>{% endif %}
+            {% if inviti_attivi %}<form method="post">{% csrf_token %}<button class="btn-subtle theme-primary" name="invita" value="{{ r.utente.pk }}">{% if r.invito %}Rimanda l'invito{% else %}Invita su Sestante{% endif %}</button></form>{% endif %}
+          {% endif %}</td>
+            <td><ul class="list-unstyled mb-0">{% for n in r.nomine %}
+              <li class="d-flex flex-wrap align-items-center gap-3">{{ n.get_ruolo_display }}{% if n.da_sso %} <span class="badge theme-info">Sestante</span>{% elif n.ruolo in assegnabili %}<form method="post">{% csrf_token %}<button class="btn-subtle theme-danger" name="revoca" value="{{ n.pk }}" aria-label="Revoca {{ n.get_ruolo_display }} a {{ r.utente }}">revoca</button></form>{% endif %}</li>
             {% endfor %}</ul></td></tr>
         {% empty %}<tr><td colspan="2" class="fg-2">Nessun ruolo assegnato.</td></tr>{% endfor %}
       </tbody>

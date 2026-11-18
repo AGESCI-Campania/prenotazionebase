@@ -177,6 +177,17 @@ versione e, se qualcosa non va, si torna alla precedente.
   secondi non risponde e riprende da sola. Gli altri utenti vedono una pagina di manutenzione che
   si ricarica ogni 30 secondi.
 
+## Utenti e ruoli: Pattuglia e Redazione
+
+Menu Configurazione › **Utenti e ruoli**. Amministratore e responsabile possono assegnare e
+revocare i ruoli **Pattuglia** e **Redazione**: inserisci l'**Email dell'utente**, scegli il
+**Ruolo** e premi **Assegna**. Gli altri ruoli (Amministratore, Responsabile della base, Segreteria
+regionale) li assegna solo la segreteria e non hanno il pulsante **revoca**.
+
+Se la persona non ha ancora un account del login unico regionale, Tana le manda il link per
+crearlo: l'account vale solo per Tana e al primo accesso con «Accedi con SSO AGESCI Campania»
+trova già il ruolo. Funzionamento, **Rimanda l'invito** e messaggi: vedi {doc}`segreteria`.
+
 ## Notifiche
 
 Amministratore e responsabile ricevono le email di gestione (nuove richieste, ricevute da

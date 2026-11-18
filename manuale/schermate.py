@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 from django.core.files.base import ContentFile
-from django.test import Client
+from django.test import Client, override_settings
 from django.utils import timezone
 
 # Playwright (API sincrona) tiene un event loop nel thread dei test: l'ORM lo rifiuterebbe
@@ -87,6 +87,27 @@ def _richiesta(utente, contatto, arrivo, partenza, gruppo, **campi):
         contatto=contatto,
         gruppo=gruppo,
         **campi,
+    )
+
+
+def _utenti_con_invito(s: dict) -> None:
+    """Tutti già entrati con Sestante tranne un nuovo membro della Pattuglia, invitato."""
+    import uuid
+
+    from allauth.socialaccount.models import SocialAccount
+
+    from tana.accounts.models import InvitoSestante, Ruolo
+    from tana.accounts.services import nomina_per_email
+
+    for chiave in ("pattuglia", "admin", "segreteria", "redazione"):
+        SocialAccount.objects.create(user=s[chiave], provider="sestante", uid=chiave)
+    nuovo, _ = nomina_per_email("nuovo.capo@example.org", Ruolo.PATTUGLIA, assegnata_da=s["admin"])
+    InvitoSestante.objects.create(
+        utente=nuovo.utente,
+        uuid=uuid.uuid4(),
+        scade_il=timezone.now() + datetime.timedelta(days=7),
+        inviato_da=s["admin"],
+        inviato_il=timezone.now(),
     )
 
 
@@ -303,7 +324,9 @@ def test_schermate(scenario, live_server, browser):
     f.scatta(admin, "/gestione/prenotazioni/nuova/", "prenotazione-gestione")
 
     # Segreteria e redazione
-    f.scatta(f.come(s["segreteria"]), "/gestione/utenti/", "utenti-ruoli")
+    _utenti_con_invito(s)
+    with override_settings(SESTANTE_INVITI_TOKEN="token-delle-schermate"):
+        f.scatta(f.come(s["segreteria"]), "/gestione/utenti/", "utenti-ruoli")
     redazione = f.come(s["redazione"])
     f.scatta(redazione, "/cms/pages/", "editor-pagine")
 

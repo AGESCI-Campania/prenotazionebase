@@ -143,7 +143,13 @@ Quando si spegne il vecchio sito Google (§ 12) si aggiunge anche il redirect da
    `scripts/_sestante.sh` e lo applica con `scripts/aggiorna.sh` di Sestante.
 2. Client ID e secret da <https://auth.agescicampania.net/if/admin/#/core/providers> → Tana → modifica.
 3. In `/opt/prenotazionebase/.env`: `SOCIAL_SESTANTE_CLIENT_ID`, `SOCIAL_SESTANTE_CLIENT_SECRET`.
-4. `docker compose up -d` (ricrea i container: `restart` non rilegge `.env`).
+4. Facoltativo, **inviti su Sestante** (chi assegna un ruolo a una persona senza account Sestante
+   le manda il link per crearlo, valido solo per Tana): da
+   <https://auth.agescicampania.net/if/admin/#/core/tokens> copiare il token `svc-tana-inviti`
+   (account di servizio creato dal blueprint `provider-tana.yaml` di Sestante) in
+   `SESTANTE_INVITI_TOKEN`. Vuoto = nessun invito: la persona si fa creare l'account dalla
+   segreteria regionale.
+5. `docker compose up -d` (ricrea i container: `restart` non rilegge `.env`).
 
 Callback registrata: `https://baseaiello.agescicampania.net/accounts/oidc/sestante/login/callback/`
 (slug `tana`, issuer `https://auth.agescicampania.net/application/o/tana/`).
@@ -152,7 +158,8 @@ Come funziona l'accesso:
 - account di gestione solo con il pulsante «SSO AGESCI Campania»: al primo accesso Tana collega
   l'utente esistente con la stessa email, altrimenti lo crea senza ruoli;
 - i ruoli globali arrivano dai gruppi di Sestante a ogni login (`admin-multipiattaforma` →
-  Amministratore, `segreteria` → Segreteria regionale); gli altri ruoli li assegna la segreteria;
+  Amministratore, `segreteria` → Segreteria regionale); gli altri ruoli li assegna la segreteria
+  (Pattuglia e Redazione anche amministratore e responsabile, con l'invito su Sestante);
 - chi entra con Sestante non ripete la MFA in Tana; il superutente di emergenza (login locale) deve
   attivare il TOTP al primo accesso e non può più disattivarlo;
 - i richiedenti continuano a registrarsi con email e password.

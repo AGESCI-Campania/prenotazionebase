@@ -20,7 +20,7 @@ from django.urls import reverse
 
 from . import permessi
 from .avatar import allinea_avatar, estrai_picture
-from .models import User
+from .models import InvitoSestante, User
 from .services import allinea_ruoli_globali
 
 PROVIDER_SESTANTE = "sestante"
@@ -122,6 +122,8 @@ class TanaSocialAccountAdapter(DefaultSocialAccountAdapter):
             if utenti:
                 sociallogin.connect(request, utenti[0])
         if sociallogin.is_existing:
+            # Entrato con Sestante: l'eventuale invito (account pre-registrato) non serve più
+            InvitoSestante.objects.filter(utente=sociallogin.user).delete()
             allinea_ruoli_globali(sociallogin.user, _groups(sociallogin.account.extra_data))
             allinea_avatar(sociallogin.user, sociallogin.picture_sestante)
 

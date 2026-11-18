@@ -8,8 +8,9 @@ import datetime
 from collections import defaultdict
 from collections.abc import Callable
 from functools import wraps
-from typing import Any
+from typing import Any, cast
 
+from allauth.socialaccount.models import SocialAccount
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -18,11 +19,11 @@ from django.db.models import Count, Q
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import formats, timezone
 from django.views.decorators.http import require_POST
 
-from tana.accounts import permessi
-from tana.accounts.models import Nomina, Ruolo, User
+from tana.accounts import inviti, permessi
+from tana.accounts.models import Nomina, User
 from tana.accounts.services import nomina_per_email, revoca
 from tana.aggiornamenti import services as servizi_aggiornamenti
 from tana.aggiornamenti.models import ReleaseGitHub, RichiestaAggiornamento
@@ -853,13 +854,34 @@ def categoria(request: HttpRequest, pk: int) -> HttpResponse:
 
 @accesso(permessi.assegna_ruoli)
 def utenti(request: HttpRequest) -> HttpResponse:
-    """La segreteria assegna i ruoli locali (P-12); quelli da Sestante non si toccano qui."""
-    form = NominaForm(request.POST or None)
+    """Ruoli locali (P-12): la segreteria tutti, responsabile e amministratore solo Pattuglia e
+    Redazione. Chi non ha un account Sestante riceve l'invito (contratto SSO § 10). I ruoli da
+    Sestante non si toccano qui."""
+    assegnabili = permessi.ruoli_assegnabili(request.user)
+    form = NominaForm(request.POST or None, assegnabili=assegnabili)
     if request.method == "POST":
         if "revoca" in request.POST:
-            n = get_object_or_404(Nomina, pk=request.POST["revoca"], da_sso=False, attiva=True)
+            n = get_object_or_404(
+                Nomina,
+                pk=request.POST["revoca"],
+                da_sso=False,
+                attiva=True,
+                ruolo__in=assegnabili,
+            )
             revoca(n.utente, n.ruolo)
             messages.success(request, f"Ruolo {n.get_ruolo_display()} revocato a {n.utente}.")
+            if not n.utente.nomine.filter(attiva=True).exists():
+                inviti.revoca(n.utente)
+            return redirect("gestione:utenti")
+        if "invita" in request.POST:
+            utente = get_object_or_404(
+                User.objects.filter(nomine__attiva=True, nomine__da_sso=False).distinct(),
+                pk=request.POST["invita"],
+            )
+            if inviti.da_invitare(utente):
+                _invita(request, utente)
+            else:
+                messages.info(request, f"{utente} è già entrato con Sestante.")
             return redirect("gestione:utenti")
         if form.is_valid():
             n, creato = nomina_per_email(
@@ -872,21 +894,70 @@ def utenti(request: HttpRequest) -> HttpResponse:
                     "sarà attivo al primo accesso con Sestante.",
                 )
             else:
-                messages.success(request, f"Ruolo assegnato a {n.utente}.")
+                messages.success(request, f"Ruolo {n.get_ruolo_display()} assegnato a {n.utente}.")
+            if inviti.da_invitare(n.utente) and not hasattr(n.utente, "invito_sestante"):
+                _invita(request, n.utente)
             return redirect("gestione:utenti")
     # Una riga per utente, con tutti i suoi ruoli (i permessi dei ruoli si sommano)
     per_utente: dict[User, list[Nomina]] = defaultdict(list)
     for n in (
         Nomina.objects.filter(attiva=True)
-        .select_related("utente")
+        .select_related("utente__invito_sestante")
         .order_by("utente__email", "ruolo")
     ):
         per_utente[n.utente].append(n)
+    con_sestante = set(
+        SocialAccount.objects.filter(provider="sestante", user__in=per_utente).values_list(
+            "user_id", flat=True
+        )
+    )
+    righe = [
+        {
+            "utente": utente,
+            "nomine": nomine,
+            # Chi ha un ruolo entra solo con Sestante (P-13): finché non lo fa è in attesa
+            "in_attesa": not utente.is_superuser and utente.pk not in con_sestante,
+            "invito": getattr(utente, "invito_sestante", None),
+        }
+        for utente, nomine in per_utente.items()
+    ]
     return _render(
         request,
         "gestione/utenti.html",
         "utenti",
-        {"form": form, "utenti": list(per_utente.items()), "ruoli": Ruolo},
+        {
+            "form": form,
+            "righe": righe,
+            "assegnabili": assegnabili,
+            "inviti_attivi": inviti.attivi(),
+            "adesso": timezone.now(),
+        },
+    )
+
+
+def _invita(request: HttpRequest, utente: User) -> None:
+    """Invito su Sestante per chi non ha ancora l'account, con l'esito nei messaggi."""
+    if not inviti.attivi():
+        messages.info(
+            request,
+            f"{utente} entra con «SSO AGESCI Campania»: se non ha ancora un account Sestante "
+            "deve farselo creare dalla segreteria regionale.",
+        )
+        return
+    try:
+        # Le viste della gestione richiedono il login (accesso)
+        invito = inviti.invita(utente, richiesto_da=cast(User, request.user))
+    except inviti.ErroreSestante as errore:
+        messages.warning(
+            request,
+            f"L'invito per creare l'account Sestante di {utente} non è partito ({errore}) "
+            "Riprova più tardi con «Rimanda l'invito».",
+        )
+        return
+    scadenza = formats.date_format(timezone.localtime(invito.scade_il), "j F Y")
+    messages.success(
+        request,
+        f"Inviato a {utente} il link per creare l'account Sestante (valido fino al {scadenza}).",
     )
 
 

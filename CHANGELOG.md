@@ -5,6 +5,15 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Novità
+
+- **Inviti su Sestante**: chi assegna un ruolo a una persona che non ha ancora l'account del login unico regionale le fa arrivare il link per crearlo (valido 7 giorni, account valido solo per Tana); al primo accesso con l'SSO trova già il ruolo. In *Utenti e ruoli* si vedono data e scadenza dell'invito, con «Rimanda l'invito»; togliendo l'ultimo ruolo prima dell'iscrizione l'invito si revoca.
+- **Responsabile e amministratore** aprono *Utenti e ruoli* e assegnano o revocano i ruoli **Pattuglia** e **Redazione**; gli altri ruoli restano alla segreteria.
+
+### Variabili nuove
+
+- `SESTANTE_INVITI_TOKEN` (facoltativa): token dell'account di servizio `svc-tana-inviti` di Sestante. Vuota = nessun invito.
+
 ## v1.0.12 — 2026-11-18
 
 ### Sicurezza

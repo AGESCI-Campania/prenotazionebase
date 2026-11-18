@@ -11,6 +11,9 @@ AMMINISTRAZIONE = frozenset({Ruolo.AMMINISTRATORE, Ruolo.RESPONSABILE})
 PATTUGLIA = AMMINISTRAZIONE | {Ruolo.PATTUGLIA}
 
 PERMESSO_NOTIFICHE = "prenotazioni.ricevi_notifiche_gestione"
+# Ruoli che responsabile e amministratore assegnano (e per cui invitano su Sestante) senza la
+# segreteria (P-12): mai Amministratore o Responsabile
+RUOLI_DELEGATI = frozenset({Ruolo.PATTUGLIA, Ruolo.REDAZIONE})
 
 
 def _ha(utente: Any, ruoli: frozenset[str]) -> bool:
@@ -34,8 +37,18 @@ def vede_tutte_le_prenotazioni(utente: Any) -> bool:
     return _ha(utente, PATTUGLIA | {Ruolo.SEGRETERIA})
 
 
+def ruoli_assegnabili(utente: Any) -> frozenset[str]:
+    """Ruoli locali che l'utente può assegnare e revocare (P-12): la segreteria tutti,
+    responsabile e amministratore solo Pattuglia e Redazione."""
+    if _ha(utente, frozenset({Ruolo.SEGRETERIA})):
+        return frozenset(Ruolo.values)
+    if e_amministrazione(utente):
+        return RUOLI_DELEGATI
+    return frozenset()
+
+
 def assegna_ruoli(utente: Any) -> bool:
-    return _ha(utente, frozenset({Ruolo.SEGRETERIA}))
+    return bool(ruoli_assegnabili(utente))
 
 
 def solo_sso(utente: Any) -> bool:

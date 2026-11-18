@@ -228,6 +228,9 @@ SOCIAL_SESTANTE_SERVER_URL = env.str(
     "SOCIAL_SESTANTE_SERVER_URL",
     default="https://auth.agescicampania.net/application/o/tana",
 ).rstrip("/")
+# Token dell'account di servizio svc-tana per gli inviti su Sestante (contratto SSO § 10):
+# vuoto = nessun invito, chi riceve un ruolo si fa creare l'account dalla segreteria regionale
+SESTANTE_INVITI_TOKEN = env.str("SESTANTE_INVITI_TOKEN", default="")
 SOCIALACCOUNT_PROVIDERS: dict = {}
 if SOCIAL_SESTANTE_CLIENT_ID:
     SOCIALACCOUNT_PROVIDERS["openid_connect"] = {

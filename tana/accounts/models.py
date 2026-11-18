@@ -95,3 +95,26 @@ class Nomina(models.Model):
     def __str__(self) -> str:
         origine = " (Sestante)" if self.da_sso else ""
         return f"{self.utente}: {self.get_ruolo_display()}{origine}"
+
+
+class InvitoSestante(models.Model):
+    """Invito su Sestante per un account pre-registrato (P-12, contratto SSO § 10).
+
+    `uuid` è il pk dell'invito su Sestante: serve per il link, per rimandarlo e per revocarlo.
+    Il record sparisce al primo login Sestante dell'utente.
+    """
+
+    utente = models.OneToOneField(User, on_delete=models.CASCADE, related_name="invito_sestante")
+    uuid = models.UUIDField("invito su Sestante", unique=True)
+    scade_il = models.DateTimeField()
+    inviato_da = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    inviato_il = models.DateTimeField()
+
+    class Meta:
+        verbose_name = "invito su Sestante"
+        verbose_name_plural = "inviti su Sestante"
+
+    def __str__(self) -> str:
+        return f"Invito di {self.utente}"

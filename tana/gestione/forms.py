@@ -421,11 +421,17 @@ class NominaForm(forms.Form):
     email = forms.EmailField(
         label="Email dell'utente",
         help_text=(
-            "Se l'account non esiste ancora viene creato: si attiva al primo accesso con "
-            "Sestante con la stessa email."
+            "Se la persona non è ancora entrata in Tana l'account viene creato e si attiva al "
+            "primo accesso con Sestante con la stessa email."
         ),
     )
     ruolo = forms.ChoiceField(label="Ruolo", choices=Ruolo.choices)
+
+    def __init__(self, *args: Any, assegnabili: frozenset[str], **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        campo = self.fields["ruolo"]
+        assert isinstance(campo, forms.ChoiceField)
+        campo.choices = [(v, e) for v, e in Ruolo.choices if v in assegnabili]
 
 
 class ExportForm(forms.Form):

@@ -56,9 +56,10 @@ def test_accessi(client, richiedente, pattuglia, admin, segreteria):
     assert cliente_di(richiedente).get(url).status_code == 403
     for utente in (pattuglia, admin, segreteria):
         assert cliente_di(utente).get(url).status_code == 200
-    # Configurazione solo all'amministrazione, ruoli solo alla segreteria
+    # Configurazione solo all'amministrazione; ruoli alla segreteria e (in parte) all'amministrazione
     assert cliente_di(pattuglia).get(reverse("gestione:configurazione")).status_code == 403
-    assert cliente_di(admin).get(reverse("gestione:utenti")).status_code == 403
+    assert cliente_di(admin).get(reverse("gestione:utenti")).status_code == 200
+    assert cliente_di(pattuglia).get(reverse("gestione:utenti")).status_code == 403
     assert cliente_di(segreteria).get(reverse("gestione:utenti")).status_code == 200
     # Arrivi e partenze solo alla Pattuglia (e all'amministrazione): niente voce alla segreteria
     arrivi = reverse("gestione:arrivi")
@@ -311,7 +312,8 @@ def test_ruoli_dalla_segreteria(segreteria):
     pagina = c.get(reverse("gestione:utenti")).content.decode()
     assert pagina.count("<td>capo@example.org ") == 1
     assert "Pattuglia" in pagina and "Redazione" in pagina
-    assert pagina.count("in attesa del primo accesso") == 2  # capo e nuovo, mai entrati
+    # Mai entrati con Sestante: capo, nuovo e (nel test) la segreteria
+    assert pagina.count("in attesa del primo accesso con Sestante") == 3
 
 
 # --- Report -----------------------------------------------------------------------------

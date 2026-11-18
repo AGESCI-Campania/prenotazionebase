@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
@@ -6,6 +8,7 @@ from allauth.socialaccount.models import SocialAccount, SocialLogin
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.backends.db import SessionStore
 from django.test import RequestFactory
+from django.utils import timezone
 
 from tana.accounts import permessi
 from tana.accounts.adapters import (
@@ -13,7 +16,7 @@ from tana.accounts.adapters import (
     TanaSocialAccountAdapter,
     sessione_da_sestante,
 )
-from tana.accounts.models import Nomina, Ruolo, User
+from tana.accounts.models import InvitoSestante, Nomina, Ruolo, User
 from tana.accounts.services import (
     allinea_ruoli_globali,
     nomina,
@@ -87,8 +90,8 @@ def test_ruolo_locale_e_globale_insieme(utente):
 @pytest.mark.parametrize(
     ("ruolo", "amministrazione", "pattuglia", "vede_tutto", "assegna"),
     [
-        (Ruolo.AMMINISTRATORE, True, True, True, False),
-        (Ruolo.RESPONSABILE, True, True, True, False),
+        (Ruolo.AMMINISTRATORE, True, True, True, True),
+        (Ruolo.RESPONSABILE, True, True, True, True),
         (Ruolo.PATTUGLIA, False, True, True, False),
         (Ruolo.SEGRETERIA, False, False, True, True),
         (Ruolo.REDAZIONE, False, False, False, False),
@@ -157,6 +160,14 @@ def test_account_pre_registrato_collegato_al_primo_login(db, sestante):
     assert sociallogin.is_existing and sociallogin.user == n.utente
     assert User.objects.count() == 1
     assert ruoli_attivi(n.utente) == {Ruolo.PATTUGLIA, Ruolo.REDAZIONE, Ruolo.SEGRETERIA}
+
+
+def test_invito_cancellato_al_primo_login(utente, sestante):
+    InvitoSestante.objects.create(
+        utente=utente, uuid=uuid.uuid4(), scade_il=timezone.now(), inviato_il=timezone.now()
+    )
+    TanaSocialAccountAdapter().pre_social_login(richiesta(), social_login("capo@example.org"))
+    assert not InvitoSestante.objects.exists()
 
 
 def test_nuovo_utente_con_i_ruoli_globali(db, sestante):
