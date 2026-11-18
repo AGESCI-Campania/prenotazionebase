@@ -5,6 +5,17 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Correzioni
+
+- Primo accesso con Sestante di un account pre-registrato (ruolo assegnato prima dell'iscrizione): Tana non chiede più di verificare l'email, che Sestante ha già verificato. Vale anche per chi era già collegato e aveva l'email non verificata: si sistema al prossimo accesso.
+- *Utenti e ruoli*: un doppio clic su «Assegna» o «Rimanda l'invito» creava due inviti su Sestante (e mandava due email), e alla revoca del ruolo ne veniva cancellato uno solo. Ora le richieste per la stessa persona si mettono in fila: un solo invito e una sola email; il secondo clic non viene nemmeno inviato. Anche la creazione dell'account e del ruolo regge le richieste doppie.
+
+### Modifiche
+
+- Manuale d'uso: nuova pagina **Ruoli e permessi** con la tabella di cosa può fare ciascun ruolo.
+- Inviti su Sestante: ogni email di invito inviata lascia una riga nel log di Tana con il destinatario, per ritrovare subito dove è andata (per esempio con un indirizzo scritto male).
+- Date con il mese in minuscolo nel messaggio di conferma e nell'email di invito («25 novembre 2026»).
+
 ## v1.0.13 — 2026-11-18
 
 ### Novità

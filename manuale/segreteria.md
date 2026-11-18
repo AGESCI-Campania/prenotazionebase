@@ -18,6 +18,8 @@ regionale insieme).
 | **Redazione** | pagine del sito della base |
 | **Segreteria regionale** | consultazione di tutto, assegnazione di tutti i ruoli |
 
+Il dettaglio, voce per voce, è in {doc}`ruoli`.
+
 Anche **amministratore e responsabile** aprono questa pagina, ma assegnano e revocano solo
 **Pattuglia** e **Redazione** (vedi {doc}`amministrazione`).
 
@@ -32,7 +34,7 @@ link per creare l'account del login unico regionale («Inviato a … il link per
 Sestante (valido fino al …)»). Il link vale 7 giorni e l'account creato vale **solo per Tana**; chi
 ha già un account Sestante con quell'email entra direttamente con l'SSO. Sotto il nome compaiono
 la data dell'invito e la scadenza; **Rimanda l'invito** rispedisce lo stesso link, o uno nuovo se
-è scaduto. Se Sestante non risponde compare «L'invito … non è partito»: il ruolo resta assegnato,
+è scaduto (nei due minuti dopo un invio non rispedisce niente: protegge dai doppi clic). Se Sestante non risponde compare «L'invito … non è partito»: il ruolo resta assegnato,
 riprova più tardi con **Rimanda l'invito**. Se gli inviti non sono configurati sul server, Tana
 ricorda che la persona deve farsi creare l'account dalla Segreteria regionale.
 

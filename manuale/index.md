@@ -13,7 +13,7 @@ Questo manuale spiega come si usa Tana per ciascun ruolo. Scegli il capitolo che
 | **Segreteria regionale** | consulti tutte le prenotazioni, assegni i ruoli | {doc}`segreteria` |
 | **Redazione** | aggiorni le pagine del sito della base | {doc}`redazione` |
 
-Il capitolo {doc}`automatismi` riassume le email che Tana invia e le scadenze che gestisce da sola;
+Il capitolo {doc}`ruoli` riassume in una tabella cosa può fare ciascun ruolo; {doc}`automatismi` riassume le email che Tana invia e le scadenze che gestisce da sola;
 {doc}`novita` elenca le modifiche di ogni versione.
 
 ```{toctree}
@@ -21,6 +21,7 @@ Il capitolo {doc}`automatismi` riassume le email che Tana invia e le scadenze ch
 :caption: Manuale
 
 accesso
+ruoli
 richiedenti
 pattuglia
 amministrazione
