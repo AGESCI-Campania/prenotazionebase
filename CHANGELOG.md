@@ -5,6 +5,10 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Modifiche
+
+- **Utenti e ruoli**: la segreteria può assegnare un ruolo anche a chi non è ancora entrato in Tana. L'account viene pre-registrato per email, senza password, e si collega al primo accesso con Sestante con i ruoli già assegnati; in tabella è segnato «in attesa del primo accesso».
+
 ## v1.0.11 — 2026-11-18
 
 ### Sicurezza

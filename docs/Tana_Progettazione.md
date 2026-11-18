@@ -44,7 +44,7 @@ legate a SSO e installazione sul modello di Plancia 3.0.
 | P-09 | ✅ Approvata. PDF generati con WeasyPrint, export con openpyxl | §9 | Altre librerie |
 | P-10 | ✅ Approvata. Autenticazione con django-allauth (verifica email obbligatoria), già supportato dal tema | D-15 | Autenticazione Django di base |
 | P-11 | ✅ Approvata. Servizio `scheduler` nel compose (stessa immagine dell'app) che lancia il comando periodico a intervalli, con healthcheck su un file di battito; niente cron sull'host | §9.1 | Cron/systemd timer sull'host con `docker compose exec` |
-| P-12 | ✅ Approvata. Ruoli di Tana assegnati in Tana dalla segreteria agli utenti entrati con Sestante (al primo accesso nessun ruolo locale). Precisazione del 17/11/2026 per il contratto SSO: solo i due ruoli globali (`admin-multipiattaforma` → Amministratore, `segreteria` → Segreteria regionale) arrivano dal claim `groups` | D-28 | Ruoli derivati dai gruppi di Sestante (claim `groups`) |
+| P-12 | ✅ Approvata. Ruoli di Tana assegnati in Tana dalla segreteria agli utenti entrati con Sestante (al primo accesso nessun ruolo locale). Precisazione del 17/11/2026 per il contratto SSO: solo i due ruoli globali (`admin-multipiattaforma` → Amministratore, `segreteria` → Segreteria regionale) arrivano dal claim `groups`. Precisazione del 18/11/2026: la segreteria può assegnare un ruolo anche a chi non è ancora entrato, indicandone l'email; Tana **pre-registra** l'account senza password (P-13) e il primo login Sestante lo collega per email (D-28) con i ruoli già assegnati | D-28 | Ruoli derivati dai gruppi di Sestante (claim `groups`) |
 | P-13 | ✅ Approvata. Account di gestione solo via Sestante, senza password locale; un solo superutente tecnico locale per emergenza, se Sestante non è raggiungibile, creato da `installa.sh` con MFA TOTP obbligatoria | D-28 | Anche password locali |
 | P-14 | ✅ Approvata. Ricevute dei bonifici e altri allegati privati serviti solo tramite Django con controllo dei permessi (`X-Accel-Redirect` verso una location `internal` di nginx), mai come `/media/` pubblico | D-27 | Media pubblici con URL non indovinabili |
 | P-15 | ✅ Approvata il 17/11/2026. Ruolo **Redazione** assegnato dalla segreteria (anche a membri della Pattuglia): dà accesso solo all'editor delle pagine del sito; l'amministratore ha anche questo permesso | D-30, §6 | Editor riservato all'amministratore |
@@ -243,8 +243,8 @@ esenzione dell'acconto. P-03.
 ### D-15 — Account
 - **Richiedenti**: si registrano da soli con email verificata (P-10). Storico delle proprie prenotazioni.
 - **Account di gestione** (Pattuglia, amministratori, responsabile, redazione, segreteria): accedono
-  con il login unico di **Sestante** (D-28). La segreteria assegna i ruoli locali in Tana e nomina il
-  responsabile della base (P-12); i ruoli globali arrivano da Sestante (D-28).
+  con il login unico di **Sestante** (D-28). La segreteria assegna i ruoli locali in Tana (anche prima del primo
+  accesso, per email) e nomina il responsabile della base (P-12); i ruoli globali arrivano da Sestante (D-28).
 - Un utente Sestante senza ruoli di gestione può prenotare come richiedente (P-19).
 
 ### D-16 — Comunicazione tra gruppi
@@ -698,7 +698,7 @@ configurare (D-08).
 | Prenotazioni prioritarie senza contatti, blocchi tecnici | | | | ✓ | |
 | Listini, strutture, configurazione | | | | ✓ | |
 | Pagine del sito in Wagtail (anche il ruolo Redazione, P-15) | | | | ✓ | |
-| Assegnare i ruoli di gestione in Tana (account creati in Sestante), nominare il responsabile della base | | | | | ✓ |
+| Assegnare i ruoli di gestione in Tana (account di Sestante, anche pre-registrati per email), nominare il responsabile della base | | | | | ✓ |
 
 - Responsabile della base: nominato dalla segreteria; ha **gli stessi permessi dell'amministratore**.
   L'amministratore resta un ruolo tecnico, non necessariamente coincidente con il responsabile.

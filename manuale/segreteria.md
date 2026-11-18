@@ -19,8 +19,10 @@ regionale insieme).
 | **Segreteria regionale** | consultazione di tutto, assegnazione dei ruoli |
 
 **Assegnare un ruolo**: in «Assegna un ruolo» inserisci l'**Email dell'utente** e il **Ruolo**, poi
-**Assegna**. L'utente deve essere già entrato almeno una volta in Tana (di solito con Sestante),
-altrimenti compare «Nessun utente con questa email: deve prima entrare in Tana.»
+**Assegna**. Se la persona non è ancora entrata in Tana, l'account viene creato subito con il ruolo
+(«Account creato per … sarà attivo al primo accesso con Sestante.») e in tabella compare
+**in attesa del primo accesso**: al primo accesso con Sestante con la stessa email trova già i suoi
+ruoli. Controlla bene l'indirizzo: deve essere quello del suo account Sestante.
 
 **Revocare**: accanto al ruolo, **revoca**.
 

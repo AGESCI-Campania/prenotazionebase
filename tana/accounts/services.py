@@ -56,6 +56,20 @@ def nomina(utente: User, ruolo: str, *, assegnata_da: Any = None) -> Nomina:
 
 
 @transaction.atomic
+def nomina_per_email(email: str, ruolo: str, *, assegnata_da: Any = None) -> tuple[Nomina, bool]:
+    """Assegna un ruolo locale per email; se l'account non esiste lo pre-registra (P-12).
+
+    L'account nasce senza password (P-13): al primo login Sestante il collegamento per email
+    (D-28) lo aggancia, con i ruoli già assegnati. Restituisce la nomina e se l'account è nuovo.
+    """
+    utente = User.objects.filter(email__iexact=email).first()
+    creato = utente is None
+    if utente is None:
+        utente = User.objects.create_user(email)
+    return nomina(utente, ruolo, assegnata_da=assegnata_da), creato
+
+
+@transaction.atomic
 def revoca(utente: User, ruolo: str) -> None:
     """Revoca un ruolo locale; le nomine da Sestante le gestisce solo il login SSO."""
     utente.nomine.filter(ruolo=ruolo, da_sso=False, attiva=True).update(attiva=False)

@@ -297,14 +297,21 @@ def test_ruoli_dalla_segreteria(segreteria):
     assert nomina_.assegnata_da == segreteria
     c.post(reverse("gestione:utenti"), {"revoca": nomina_.pk})
     assert not Nomina.objects.filter(utente=utente, attiva=True).exists()
-    c.post(reverse("gestione:utenti"), {"email": "nessuno@example.org", "ruolo": Ruolo.PATTUGLIA})
-    assert Nomina.objects.filter(attiva=True).count() == 1  # solo quella della segreteria
+    # Email sconosciuta: account pre-registrato senza password, con il ruolo già assegnato
+    risposta = c.post(
+        reverse("gestione:utenti"), {"email": "Nuovo@Example.org", "ruolo": Ruolo.REDAZIONE}
+    )
+    assert risposta.status_code == 302
+    nuovo = User.objects.get(email__iexact="nuovo@example.org")
+    assert not nuovo.has_usable_password()
+    assert Nomina.objects.get(utente=nuovo, attiva=True).ruolo == Ruolo.REDAZIONE
     # Più ruoli: una sola riga per l'utente
     nomina(utente, Ruolo.PATTUGLIA)
     nomina(utente, Ruolo.REDAZIONE)
     pagina = c.get(reverse("gestione:utenti")).content.decode()
-    assert pagina.count("<td>capo@example.org</td>") == 1
+    assert pagina.count("<td>capo@example.org ") == 1
     assert "Pattuglia" in pagina and "Redazione" in pagina
+    assert pagina.count("in attesa del primo accesso") == 2  # capo e nuovo, mai entrati
 
 
 # --- Report -----------------------------------------------------------------------------

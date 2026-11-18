@@ -420,7 +420,10 @@ class CategoriaForm(forms.ModelForm):
 class NominaForm(forms.Form):
     email = forms.EmailField(
         label="Email dell'utente",
-        help_text="L'account esiste dopo il primo accesso con Sestante (o la registrazione).",
+        help_text=(
+            "Se l'account non esiste ancora viene creato: si attiva al primo accesso con "
+            "Sestante con la stessa email."
+        ),
     )
     ruolo = forms.ChoiceField(label="Ruolo", choices=Ruolo.choices)
 

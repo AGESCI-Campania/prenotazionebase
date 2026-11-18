@@ -14,7 +14,13 @@ from tana.accounts.adapters import (
     sessione_da_sestante,
 )
 from tana.accounts.models import Nomina, Ruolo, User
-from tana.accounts.services import allinea_ruoli_globali, nomina, revoca, ruoli_attivi
+from tana.accounts.services import (
+    allinea_ruoli_globali,
+    nomina,
+    nomina_per_email,
+    revoca,
+    ruoli_attivi,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -140,6 +146,17 @@ def test_utente_esistente_collegato_per_email(utente, sestante):
     assert SocialAccount.objects.get(user=utente).provider == "sestante"
     assert all(e.verified for e in sociallogin.email_addresses)
     assert ruoli_attivi(utente) == {Ruolo.SEGRETERIA}
+
+
+def test_account_pre_registrato_collegato_al_primo_login(db, sestante):
+    n, creato = nomina_per_email("Pre@Example.org", Ruolo.PATTUGLIA)
+    assert creato and not n.utente.has_usable_password()
+    assert nomina_per_email("pre@example.org", Ruolo.REDAZIONE)[1] is False
+    sociallogin = social_login("pre@example.org", groups=["segreteria"])
+    TanaSocialAccountAdapter().pre_social_login(richiesta(), sociallogin)
+    assert sociallogin.is_existing and sociallogin.user == n.utente
+    assert User.objects.count() == 1
+    assert ruoli_attivi(n.utente) == {Ruolo.PATTUGLIA, Ruolo.REDAZIONE, Ruolo.SEGRETERIA}
 
 
 def test_nuovo_utente_con_i_ruoli_globali(db, sestante):

@@ -23,7 +23,7 @@ from django.views.decorators.http import require_POST
 
 from tana.accounts import permessi
 from tana.accounts.models import Nomina, Ruolo, User
-from tana.accounts.services import nomina, revoca
+from tana.accounts.services import nomina_per_email, revoca
 from tana.aggiornamenti import services as servizi_aggiornamenti
 from tana.aggiornamenti.models import ReleaseGitHub, RichiestaAggiornamento
 from tana.base.models import Area, Configurazione
@@ -862,15 +862,18 @@ def utenti(request: HttpRequest) -> HttpResponse:
             messages.success(request, f"Ruolo {n.get_ruolo_display()} revocato a {n.utente}.")
             return redirect("gestione:utenti")
         if form.is_valid():
-            utente = User.objects.filter(email__iexact=form.cleaned_data["email"]).first()
-            if utente is None:
-                messages.error(
-                    request, "Nessun utente con questa email: deve prima entrare in Tana."
+            n, creato = nomina_per_email(
+                form.cleaned_data["email"], form.cleaned_data["ruolo"], assegnata_da=request.user
+            )
+            if creato:
+                messages.success(
+                    request,
+                    f"Account creato per {n.utente} con il ruolo {n.get_ruolo_display()}: "
+                    "sarà attivo al primo accesso con Sestante.",
                 )
             else:
-                nomina(utente, form.cleaned_data["ruolo"], assegnata_da=request.user)
-                messages.success(request, f"Ruolo assegnato a {utente}.")
-                return redirect("gestione:utenti")
+                messages.success(request, f"Ruolo assegnato a {n.utente}.")
+            return redirect("gestione:utenti")
     # Una riga per utente, con tutti i suoi ruoli (i permessi dei ruoli si sommano)
     per_utente: dict[User, list[Nomina]] = defaultdict(list)
     for n in (
