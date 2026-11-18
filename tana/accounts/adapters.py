@@ -13,10 +13,12 @@ from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.mfa.adapter import DefaultMFAAdapter
 from allauth.mfa.models import Authenticator
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from django import forms
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
+from . import permessi
 from .avatar import allinea_avatar, estrai_picture
 from .models import User
 from .services import allinea_ruoli_globali
@@ -60,6 +62,24 @@ class TanaAccountAdapter(DefaultAccountAdapter):
         from tana.base.models import Configurazione
 
         return not Configurazione.corrente().modalita_demo
+
+    def authenticate(self, request: Any, **credentials: Any) -> Any:
+        utente = super().authenticate(request, **credentials)
+        if utente is None:
+            # I backend rifiutano la password degli account di gestione (P-13): spiegarlo solo a
+            # chi la conosce, per non rivelare chi ha un ruolo
+            email = credentials.get("email") or credentials.get("username") or ""
+            password = credentials.get("password") or ""
+            candidato = User.objects.filter(email__iexact=email).first() if email else None
+            if (
+                candidato is not None
+                and candidato.check_password(password)
+                and permessi.solo_sso(candidato)
+            ):
+                raise forms.ValidationError(
+                    "Il tuo account ha un ruolo di gestione: entra con «SSO AGESCI Campania»."
+                )
+        return utente
 
 
 class TanaSocialAccountAdapter(DefaultSocialAccountAdapter):

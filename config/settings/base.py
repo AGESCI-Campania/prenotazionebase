@@ -148,8 +148,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",  # per primo: blocco dei tentativi ripetuti
-    "django.contrib.auth.backends.ModelBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",
+    # Con password: mai gli account di gestione, che entrano solo con Sestante (P-13)
+    "tana.accounts.backends.TanaModelBackend",
+    "tana.accounts.backends.TanaAllauthBackend",
 ]
 
 LANGUAGE_CODE = "it"

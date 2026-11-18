@@ -5,6 +5,10 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Sicurezza
+
+- Chi ha un **ruolo di gestione** non entra più con email e password, nemmeno se se n'è impostata una con «Password dimenticata?» o da richiedente prima del ruolo: entra solo con «SSO AGESCI Campania», che chiede la verifica in due passaggi. Vale anche per il login dell'editor del sito e dell'admin; resta escluso il superutente di emergenza (con la sua MFA).
+
 ### Modifiche
 
 - **Utenti e ruoli**: la segreteria può assegnare un ruolo anche a chi non è ancora entrato in Tana. L'account viene pre-registrato per email, senza password, e si collega al primo accesso con Sestante con i ruoli già assegnati; in tabella è segnato «in attesa del primo accesso».

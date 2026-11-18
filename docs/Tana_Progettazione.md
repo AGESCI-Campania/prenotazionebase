@@ -45,7 +45,7 @@ legate a SSO e installazione sul modello di Plancia 3.0.
 | P-10 | ✅ Approvata. Autenticazione con django-allauth (verifica email obbligatoria), già supportato dal tema | D-15 | Autenticazione Django di base |
 | P-11 | ✅ Approvata. Servizio `scheduler` nel compose (stessa immagine dell'app) che lancia il comando periodico a intervalli, con healthcheck su un file di battito; niente cron sull'host | §9.1 | Cron/systemd timer sull'host con `docker compose exec` |
 | P-12 | ✅ Approvata. Ruoli di Tana assegnati in Tana dalla segreteria agli utenti entrati con Sestante (al primo accesso nessun ruolo locale). Precisazione del 17/11/2026 per il contratto SSO: solo i due ruoli globali (`admin-multipiattaforma` → Amministratore, `segreteria` → Segreteria regionale) arrivano dal claim `groups`. Precisazione del 18/11/2026: la segreteria può assegnare un ruolo anche a chi non è ancora entrato, indicandone l'email; Tana **pre-registra** l'account senza password (P-13) e il primo login Sestante lo collega per email (D-28) con i ruoli già assegnati | D-28 | Ruoli derivati dai gruppi di Sestante (claim `groups`) |
-| P-13 | ✅ Approvata. Account di gestione solo via Sestante, senza password locale; un solo superutente tecnico locale per emergenza, se Sestante non è raggiungibile, creato da `installa.sh` con MFA TOTP obbligatoria | D-28 | Anche password locali |
+| P-13 | ✅ Approvata. Account di gestione solo via Sestante, senza password locale; un solo superutente tecnico locale per emergenza, se Sestante non è raggiungibile, creato da `installa.sh` con MFA TOTP obbligatoria. Precisazione del 18/11/2026: i backend con password rifiutano chi ha un ruolo attivo (anche se una password l'ha impostata, per esempio con il recupero o da richiedente prima del ruolo); l'SSO e le sessioni aperte non cambiano | D-28 | Anche password locali |
 | P-14 | ✅ Approvata. Ricevute dei bonifici e altri allegati privati serviti solo tramite Django con controllo dei permessi (`X-Accel-Redirect` verso una location `internal` di nginx), mai come `/media/` pubblico | D-27 | Media pubblici con URL non indovinabili |
 | P-15 | ✅ Approvata il 17/11/2026. Ruolo **Redazione** assegnato dalla segreteria (anche a membri della Pattuglia): dà accesso solo all'editor delle pagine del sito; l'amministratore ha anche questo permesso | D-30, §6 | Editor riservato all'amministratore |
 | P-16 | ✅ Approvata il 17/11/2026. Blocchi di contenuto limitati e senza HTML libero: paragrafo (testo formattato), titolo, immagine con didascalia, galleria, documento (PDF), citazione, pulsante/link, mappa incorporata da URL consentiti | D-30 | Blocco HTML libero |
@@ -384,7 +384,7 @@ già Tana); implementazione di riferimento: Plancia (`docs/guide/sso_sestante.md
   tecnico locale di emergenza (P-13) ha la MFA TOTP obbligatoria.
 - **Logout**: chiude solo la sessione di Tana.
 - **Login locale**: resta per i richiedenti (registrazione email) e per il superutente di emergenza;
-  gli account di gestione non hanno password locale (P-13). Non è una transizione: Tana nasce nuova,
+  gli account di gestione non hanno password locale e i backend con password li rifiutano (P-13). Non è una transizione: Tana nasce nuova,
   senza utenti di gestione da migrare.
 - **Test di fine installazione** (contratto § 8): utente nuovo, utente esistente collegato per
   email, membro di `segreteria`, utente senza gruppi.

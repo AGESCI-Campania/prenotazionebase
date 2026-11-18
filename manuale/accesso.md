@@ -15,6 +15,10 @@
   «Registrati» (password di almeno 10 caratteri, non solo numeri, non troppo simile ai propri
   dati), confermando l'indirizzo con il link ricevuto per email.
 
+  Chi ha un ruolo di gestione (Pattuglia, amministrazione, responsabile, redazione, segreteria)
+  **non può entrare con email e password**, nemmeno se ne ha impostata una: entra sempre con
+  l'SSO, che chiede la verifica in due passaggi. Anche per prenotare come gruppo usa l'SSO.
+
 :::{tip}
 Usa per l'account la **stessa email** indicata come referente nelle prenotazioni: le prenotazioni
 già presenti con quella email (per esempio quelle portate dal vecchio sistema) si collegano da
@@ -35,6 +39,8 @@ La pagina «Accedi»: in cima il pulsante dell'SSO, sotto email e password.
 - **«Il tuo account SSO AGESCI Campania non ha un indirizzo email»**: chiedi alla Segreteria
   regionale di aggiungerlo al tuo account Sestante.
 - **«Più account di Tana usano l'indirizzo…»**: contatta la Segreteria regionale per unificarli.
+- **«Il tuo account ha un ruolo di gestione: entra con «SSO AGESCI Campania».»**: hai inserito
+  email e password giuste, ma chi ha un ruolo entra solo con il pulsante dell'SSO.
 - **Registrazioni chiuse**: durante una prova del sistema prima dell'apertura (modalità demo) la
   pagina «Registrati» non accetta nuovi account con email e password; chi fa parte della gestione
   entra con l'SSO.

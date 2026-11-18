@@ -555,7 +555,7 @@ def conferma_richiesta(request: HttpRequest, token: str) -> HttpResponse:
         contesto["errori"] = errore.messages
         return render(request, "prenotazioni/conferma_richiesta.html", contesto)
     if richieste_da_confermare.accesso_automatico(utente):
-        login(request, utente, backend="django.contrib.auth.backends.ModelBackend")
+        login(request, utente, backend="tana.accounts.backends.TanaModelBackend")
         messages.success(
             request,
             "Richiesta inviata: le date sono riservate a te mentre la Pattuglia la esamina. Per "

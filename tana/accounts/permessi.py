@@ -38,6 +38,14 @@ def assegna_ruoli(utente: Any) -> bool:
     return _ha(utente, frozenset({Ruolo.SEGRETERIA}))
 
 
+def solo_sso(utente: Any) -> bool:
+    """Chi ha un ruolo di gestione entra solo con Sestante, mai con la password (P-13).
+
+    Unica eccezione il superutente tecnico di emergenza, che ha la MFA TOTP obbligatoria.
+    """
+    return not utente.is_superuser and bool(ruoli_attivi(utente))
+
+
 def e_titolare(utente: Any, prenotazione: Any) -> bool:
     return (
         getattr(utente, "is_authenticated", False)
