@@ -5,6 +5,8 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+## v1.0.15 — 2026-11-25
+
 ### Correzioni
 
 - Nuova richiesta: il preventivo si aggiorna anche scegliendo le date con un clic sul calendario (prima solo digitandole o modificando un altro campo).
