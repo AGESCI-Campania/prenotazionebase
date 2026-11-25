@@ -43,7 +43,7 @@ Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 - Python **≥ 3.14**, Django **6.1**, PostgreSQL **18** (necessario: `daterange` + exclusion
   constraint con `btree_gist`), **uv** (mai pip), mise facoltativo.
 - **Wagtail 8.1** per il sito della base (licenza BSD-3-Clause), integrato nello stesso progetto.
-- Tema **`django-agesci-campania-theme` 3.0.0a3** (Bootstrap 6 **alpha**: non usare classi o
+- Tema **`django-agesci-campania-theme` 3.0.0a5** (Bootstrap 6 **alpha**: non usare classi o
   JavaScript di Bootstrap 5; regole in <https://django-agesci-campania-theme.readthedocs.io/it/latest/llms.txt>),
   branca `eg` ricolorata con la palette della base in `static/tana/css/tana.css` (P-08).
   Aggiornamento del tema: `uv add --prerelease allow django-agesci-campania-theme`.
@@ -58,7 +58,7 @@ Aggiorna questa tabella e `CHANGELOG.md` alla fine di ogni fase.
 - **PDF sul Mac**: WeasyPrint vuole Pango di Homebrew; `mise.toml` imposta
   `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib` (senza mise: esportarla prima di `uv run pytest`).
 - Interfaccia: mockup in <https://claude.ai/artifact/L1d4xoj1HZSuHkbP65uRUQ> (solo riferimento: valgono
-  testi e colori, il markup è del tema). Classi Bootstrap 6.0.0-alpha.1 verificate sul CSS del CDN
+  testi e colori, il markup è del tema). Classi Bootstrap 6.0.0-alpha.2 verificate sul CSS del CDN
   (es. non esiste `card-title`). Il footer del tema è un `{% include %}`: i suoi blocchi interni
   non si sovrascrivono, `templates/base.html` riscrive l'intero blocco `footer` (in fondo alla
   finestra, fisso da lg: CSS in `tana.css`). In sviluppo con `runserver --noreload` i template

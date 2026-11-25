@@ -804,7 +804,7 @@ Testi utente in italiano, senza codici di decisione.
 | Backend | Django ultima stabile (6.1 rilasciata il 05/08/2026; versione effettiva fissata in F0 con uv) |
 | Python | ≥ 3.14, gestito con uv; comandi in `mise.toml` |
 | Database | PostgreSQL 18 (necessario per `daterange` ed exclusion constraint), come Plancia 3.0 |
-| Tema | `django-agesci-campania-theme` serie 3 (3.0.0a3 pre-release al 03/11/2026, Bootstrap 6 alpha), confermata da Andrea; si aggiorna di volta in volta (`uv add --prerelease allow`); palette P-08 |
+| Tema | `django-agesci-campania-theme` serie 3 (3.0.0a5 pre-release al 25/11/2026, Bootstrap 6 alpha.2), confermata da Andrea; si aggiorna di volta in volta (`uv add --prerelease allow`); palette P-08 |
 | Autenticazione | django-allauth (P-10) |
 | Sito della base | Wagtail 8.x (D-30), template sul tema regionale |
 | PDF / Excel | WeasyPrint / openpyxl (P-09) |
@@ -1065,6 +1065,6 @@ dell'amministratore del server), V-18 (il Google Site non si mantiene: si spegne
 - Regolamento della base (PDF, aggiornato a gennaio 2023), collegato dalla pagina Regolamento
 - Google Site della base: https://sites.google.com/agescicampania.net/baseaiello, anche su https://www.baseaiello.agescicampania.net (migrato dal `.org` il 15/11/2026, da spegnere all'avvio di Tana; pagine: Home, La storia, Gianni Sabatino, Le Strutture, Info › Regolamento, Info › Listino prezzi, Prenotazioni; letto il 14/11/2026)
 - Wagtail, versioni e compatibilità con Django/Python: https://endoflife.date/wagtail (letto il 14/11/2026)
-- `AGESCI-Campania/django-agesci-campania-theme` (v3.0.0a3, `docs/allauth.md`, `docs/branche.md`, `docs/palette.md`)
+- `AGESCI-Campania/django-agesci-campania-theme` (v3.0.0a5, `docs/allauth.md`, `docs/branche.md`, `docs/palette.md`)
 - Django 6.1 released: https://www.djangoproject.com/weblog/2026/aug/05/django-61-released/
 - Documento preliminare v0.1 per la Pattuglia (08/11/2026) e risposte (10/11/2026)

@@ -84,7 +84,7 @@ MIDDLEWARE = [
 ]
 
 # CSP uguale in sviluppo, test e produzione (le violazioni si vedono subito in locale).
-# Il tema 3.0.0a3 carica Bootstrap 6 da jsDelivr e i font da Google Fonts (base.html del tema)
+# Il tema 3.0.0a5 carica Bootstrap 6 da jsDelivr e i font da Google Fonts (base.html del tema)
 SECURE_CSP = {
     "default-src": [CSP.SELF],
     "script-src": [CSP.SELF, CSP.UNSAFE_INLINE, "https://cdn.jsdelivr.net"],

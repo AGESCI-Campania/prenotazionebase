@@ -1,5 +1,11 @@
 # Gruppi ed enti: prenotare la base
 
+```{note}
+Serve un browser aggiornato: Chrome o Edge 138, Firefox 147, Safari 26 o successivi. Se il tuo è
+troppo vecchio compare in alto l'avviso «Il tuo browser non è aggiornato»: aggiornalo o usane uno
+più recente.
+```
+
 ## Prima di prenotare
 
 - **Disponibilità** (menu in alto): il calendario mostra, giorno per giorno, se l'accantonamento

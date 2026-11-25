@@ -5,6 +5,15 @@ mostrare le novità). Le variabili nuove di `.env.template` vanno indicate qui.
 
 ## Non rilasciato
 
+### Correzioni
+
+- Nuova richiesta: il preventivo si aggiorna anche scegliendo le date con un clic sul calendario (prima solo digitandole o modificando un altro campo).
+
+### Modifiche
+
+- Tema regionale 3.0.0a5 (Bootstrap 6 alpha.2): corretti i menu a scomparsa su telefono, spaziature leggermente più strette.
+- Browser minimi: Chrome ed Edge 138, Firefox 147, Safari 26. Nei browser che non supportano le funzioni di base compare un avviso in cima alla pagina.
+
 ## v1.0.14 — 2026-11-18
 
 ### Correzioni

@@ -42,5 +42,7 @@ form.addEventListener("change", () => {
   aggiornaPreventivo();
 });
 form.addEventListener("input", aggiornaPreventivo);
+// Il clic sul calendario (datepicker di Bootstrap) non genera change né input, solo questo evento
+form.addEventListener("change.bs.datepicker", aggiornaPreventivo);
 aggiornaCampi();
 aggiornaPreventivo();
